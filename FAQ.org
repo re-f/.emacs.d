@@ -1,0 +1,3 @@
+* org-mode 中 priority 无法显示
+[[https://fontlibrary.org/en/font/symbola][手工安装Symbola字体]]
+[[https://emacs-china.org/t/spacemacs-centaur-emacs/3802/626?u=re-f][解决过程]]
