@@ -4,7 +4,8 @@
 ;;;       Put your own configurations in custom-post.el to override default configurations.
 ;;; Code:
 
-;; (setq centaur-logo nil)                        ; Logo file or nil (official logo)
+
+(setq centaur-logo nil)                        ; Logo file or nil (official logo)
 (setq centaur-full-name "ref")           ; User full name
 (setq centaur-mail-address "z.ref@outlook.com")   ; Email address
 ;; (setq centaur-proxy "127.0.0.1:1080")          ; Network proxy
@@ -90,6 +91,19 @@
 ;; ref: https://yiming.dev/blog/2018/03/02/my-org-refile-workflow/
 ;; This config lets org-refile searches all the opened org mode files and fetches all the headings in them.
 ;; 
+
+
+;; 尝试做加密，但是失败了
+;; 参考的文章：
+;; https://devbins.github.io/post/gpg5/
+;; https://coldnew.github.io/4bb1df06/
+;; 失败的原因：在 terminal 中可以加密，但是在客户端加密就显示 Encrypt failed，但是可以解密
+(require 'org-crypt)
+(org-crypt-use-before-save-magic)
+(setq org-tags-exclude-from-inheritance (quote("日常")))
+(setq org-crypt-key nil)
+(setq org-crypt-tag-matcher "日常")
+
 (defun +org/opened-buffer-files ()
   "Return the list of files currently opened in emacs"
   (delq nil
