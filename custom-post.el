@@ -19,6 +19,29 @@
           (tags-todo "code")
           (tags-todo "theory")
           ))
+        ("g" "Get Things Done (GTD)" ;; ref: https://github.com/rougier/emacs-gtd
+         ((agenda ""
+                  ((org-agenda-skip-function
+                    '(org-agenda-skip-entry-if 'deadline))
+                   (org-deadline-warning-days 0)))
+          (todo "NEXT"
+                ((org-agenda-skip-function
+                  '(org-agenda-skip-entry-if 'deadline))
+                 (org-agenda-prefix-format "  %i %-12:c [%e] ")
+                 (org-agenda-overriding-header "\nTasks\n")))
+          (agenda nil
+                  ((org-agenda-entry-types '(:deadline))
+                   (org-agenda-format-date "")
+                   (org-deadline-warning-days 7)
+                   (org-agenda-skip-function
+                    '(org-agenda-skip-entry-if 'notregexp "\\* NEXT"))
+                   (org-agenda-overriding-header "\nDeadlines")))
+          (tags-todo "inbox"
+                     ((org-agenda-prefix-format "  %?-12t% s")
+                      (org-agenda-overriding-header "\nInbox\n")))
+          (tags "CLOSED>=\"<today>\""
+                ((org-agenda-overriding-header "\nCompleted today\n"))))
+         )
         ))
 
 
@@ -30,8 +53,9 @@
         ("l" "TODO of life" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                                    ,(concat org-directory "/daily.org"))
          "* TODO \%^{任务标题}  :日常:\n\%u\n \%^{任务描述}" :tree-type week)
-        ("n" "Note" entry (file ,(concat org-directory "/note.org"))
-         "* %? :NOTE:\n%U\n%a\n")
+        ("n" "Note" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+                           ,(concat org-directory "/daily.org"))
+         "* %^{标题} %^{标签} \n%U\n%a\n%?" :tree-type week)
         ("r" "Record flashes" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                                      ,(concat org-directory "/daily.org"))
          "*  %^{Title} %?\n%U\n%a\n"  :tree-type week :jump-to-captured t)
