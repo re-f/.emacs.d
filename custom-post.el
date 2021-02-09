@@ -6,6 +6,7 @@
 ;; 设置一些 agenda 视图， 参考：http://www.mamicode.com/info-detail-2316948.html
 (setq org-agenda-custom-commands
       '(
+        ("f" "灵光一闪" tags "NOTE")
         ("w" . "任务安排")
         ("wa" "重要且紧急的任务" tags-todo "+PRIORITY=\"A\"")
         ("wb" "重要且不紧急的任务" tags-todo "-weekly-monthly-daily+PRIORITY=\"B\"")
@@ -66,3 +67,10 @@
                             ,(concat org-directory "/book.org"))
          "* Topic: %^{Description}  %^g %? Added: %U")
         ))
+
+
+;; config Refile
+(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
+(setq org-refile-use-outline-path 'file)
+(setq org-outline-path-complete-in-steps nil)
+(setq org-refile-allow-creating-parent-nodes 'confirm)
