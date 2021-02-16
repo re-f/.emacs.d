@@ -35,7 +35,7 @@
          "* TODO \%^{任务标题}  :日常:\n\%u\n \%^{任务描述}" :tree-type week)
         ("n" "Note" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                            ,(concat org-directory "/daily.org"))
-         "* %^{标题} %^{标签} \n%U\n%a\n%?" :tree-type week)
+         "* %^{标题} %^{标签(要加冒号)} \n%U\n%a\n%?" :tree-type week)
         ("r" "Record flashes" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                                      ,(concat org-directory "/daily.org"))
          "*  %^{Title} %?\n%U\n%a\n"  :tree-type week :jump-to-captured t)
