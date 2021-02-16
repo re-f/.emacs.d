@@ -68,6 +68,13 @@
          "* Topic: %^{Description}  %^g %? Added: %U")
         ))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; config Refile: ref:  [[file:~/Dropbox/knowledgebase/README.org::*Refile][Refile]]
+(setq org-refile-targets '((org-agenda-files :maxlevel . 3))
+      org-refile-use-outline-path 'file
+      org-outline-path-complete-in-steps nil
+      org-refile-allow-creating-parent-nodes 'confirm)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; config Refile
 (setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
