@@ -3,8 +3,8 @@
       '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
 
 (setq org-todo-keywords
-      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING")))
+      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d@/!)")
+              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)")))
 
       org-todo-keyword-faces (quote (
                                      ("NEXT" :foreground "blue" :weight bold)
@@ -22,20 +22,20 @@
                                                 ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
                                                 ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
       )
-      
+
 (setq org-capture-templates
       `(
         ("j" "TODO of Job" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                                  ,(concat org-directory "/daily.org"))
+                                  ,(concat org-directory "/inbox.org"))
          "* TODO %?\n%u\n%a\n" :tree-type week)
         ("l" "TODO of life" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                                   ,(concat org-directory "/daily.org"))
+                                   ,(concat org-directory "/inbox.org"))
          "* TODO \%^{任务标题}  :日常:\n\%u\n \%^{任务描述}" :tree-type week)
         ("n" "Note" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                           ,(concat org-directory "/daily.org"))
+                           ,(concat org-directory "/inbox.org"))
          "* %^{标题} %^{标签(要加冒号)} \n%U\n%a\n%?" :tree-type week)
         ("r" "Record flashes" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                                     ,(concat org-directory "/daily.org"))
+                                     ,(concat org-directory "/inbox.org"))
          "*  %^{Title} %?\n%U\n%a\n"  :tree-type week :jump-to-captured t)
         ("z" "需要删除的capture")
         ("zi" "Idea" entry (file ,(concat org-directory "/idea.org"))
@@ -299,7 +299,7 @@ Skip project and sub-project tasks, habits, and project related tasks."
 
 ;; Custom agenda command definitions
 (setq org-agenda-custom-commands
-      (quote (("N" "Notes" tags "NOTE"
+      (quote (("N" "Notes" tags "NOTE+CATEGORY=\"inbox\""
                ((org-agenda-overriding-header "Notes")
                 (org-tags-match-list-sublevels t)))
               ("g" "Agenda"
