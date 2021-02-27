@@ -23,6 +23,9 @@
                                                 ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
       )
 
+;; 将 完成的TODO Headline 上加上删除线
+(setq org-fontify-done-headline t)
+
 (setq org-capture-templates
       `(
         ("j" "TODO of Job" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
