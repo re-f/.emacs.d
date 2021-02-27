@@ -26,6 +26,14 @@
 ;; 将 完成的TODO Headline 上加上删除线
 (setq org-fontify-done-headline t)
 
+
+(defun ref/create-org-file ()
+  "Create an org file in org-directory"
+  (interactive)
+  (let ((name (read-string "Filename: ")))
+    (expand-file-name (format "%s.org"
+                              name) org-directory)))
+
 (setq org-capture-templates
       `(
         ("j" "TODO of Job" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
@@ -40,6 +48,8 @@
         ("r" "Record flashes" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                                      ,(concat org-directory "/inbox.org"))
          "*  %^{Title} %?\n%U\n%a\n"  :tree-type week :jump-to-captured t)
+        ("p" "Create Project" plain (file ref/create-org-file )
+         "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured t)
         ("z" "需要删除的capture")
         ("zi" "Idea" entry (file ,(concat org-directory "/idea.org"))
          "*  %^{Title} %?\n%U\n%a\n")
