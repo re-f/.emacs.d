@@ -41,10 +41,10 @@
          "* TODO %? %^{context||:#life:} \n%u\n%^{来源||%a}\n" :tree-type week)
         ("s" "Task " entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                                    ,(concat org-directory "/inbox.org"))
-         "* TODO \%^{任务标题}  %^{context||:#life:}%^G \n%u\n%^{来源||%a}\n" :tree-type week)
+         "* TODO \%^{任务标题}  %^{context||:#life:}%^G \nSCHEDULED:%^t\n%^{来源||%a}\n" :tree-type week)
         ("r" "Record" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                                      ,(concat org-directory "/inbox.org"))
-         "*  %^{标题} %^g \n%U\n%a\n "  :tree-type week :jump-to-captured t)
+         "*  %^{标题} %^g \n%a\n "  :tree-type week :jump-to-captured t)
         ("p" "Create Project" plain (file ref/create-org-file )
          "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured t)
         ("g" "预留的组")
@@ -56,7 +56,7 @@
         ))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; config Refile: ref:  [[file:~/Dropbox/knowledgebase/README.org::*Refile][Refile]]
-(setq org-refile-targets '((org-agenda-files :maxlevel . 3))
+(setq org-refile-targets '((org-agenda-files :maxlevel . 5))
       org-refile-use-outline-path 'file
       org-outline-path-complete-in-steps nil
       org-refile-allow-creating-parent-nodes 'confirm)
