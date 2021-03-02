@@ -36,28 +36,24 @@
 
 (setq org-capture-templates
       `(
-        ("j" "TODO of Job" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+        ("t" "TODO" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                                   ,(concat org-directory "/inbox.org"))
-         "* TODO %?\n%u\n%a\n" :tree-type week)
-        ("l" "TODO of life" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+         "* TODO %? %^{context||:#life:} \n%u\n%^{来源||%a}\n" :tree-type week)
+        ("s" "Task " entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                                    ,(concat org-directory "/inbox.org"))
-         "* TODO \%^{任务标题}  :日常:\n\%u\n \%^{任务描述}" :tree-type week)
-        ("n" "Note" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                           ,(concat org-directory "/inbox.org"))
-         "* %^{标题} %^{标签(要加冒号)} \n%U\n%a\n%?" :tree-type week)
-        ("r" "Record flashes" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+         "* TODO \%^{任务标题}  %^{context||:#life:}%^G \n%u\n%^{来源||%a}\n" :tree-type week)
+        ("r" "Record" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                                      ,(concat org-directory "/inbox.org"))
-         "*  %^{Title} %?\n%U\n%a\n"  :tree-type week :jump-to-captured t)
+         "*  %^{标题} %^g \n%U\n%a\n "  :tree-type week :jump-to-captured t)
         ("p" "Create Project" plain (file ref/create-org-file )
          "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured t)
-        ("z" "需要删除的capture")
-        ("zi" "Idea" entry (file ,(concat org-directory "/idea.org"))
+        ("g" "预留的组")
+        ("gi" "Idea" entry (file ,(concat org-directory "/idea.org"))
          "*  %^{Title} %?\n%U\n%a\n")
-        ("zb" "Book" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+        ("gb" "Book" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                             ,(concat org-directory "/book.org"))
          "* Topic: %^{Description}  %^g %? Added: %U")
         ))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; config Refile: ref:  [[file:~/Dropbox/knowledgebase/README.org::*Refile][Refile]]
 (setq org-refile-targets '((org-agenda-files :maxlevel . 3))
@@ -305,6 +301,8 @@ Skip project and sub-project tasks, habits, and project related tasks."
         ((string= tag "hold")
          t)
         ((string= tag "test")
+         t)
+        ((string= tag "#life")
          t))
        (concat "-" tag)))
 
@@ -389,4 +387,13 @@ Skip project and sub-project tasks, habits, and project related tasks."
   (delete-other-windows))
 
 (global-set-key (kbd "C-M-s-o") 'bh/show-org-agenda)
+
+;;  config tags
+(setq org-tag-alist '((:startgroup)
+                      ("#work" . ?w) ("#life" . ?h)
+                      (:endgroup )))
+;; when predefined tags, need to set org-complete-tags-always-offer-all-agenda-tags,  to extend this default list to all tags used in all agenda files
+(setq org-complete-tags-always-offer-all-agenda-tags t)
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
