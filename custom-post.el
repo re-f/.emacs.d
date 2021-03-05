@@ -37,13 +37,13 @@
 (setq org-capture-templates
       `(
         ("t" "TODO" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                                  ,(concat org-directory "/inbox.org"))
+                           ,(concat org-directory "/inbox.org"))
          "* TODO %? %^{context||:#life:} \n%u\n%^{来源||%a}\n" :tree-type week)
         ("s" "Task " entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                                   ,(concat org-directory "/inbox.org"))
+                            ,(concat org-directory "/inbox.org"))
          "* TODO \%^{任务标题}  %^{context||:#life:}%^G \nSCHEDULED:%^t\n%^{来源||%a}\n" :tree-type week)
         ("r" "Record" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                                     ,(concat org-directory "/inbox.org"))
+                            ,(concat org-directory "/inbox.org"))
          "*  %^{标题} %^g \n%a\n "  :tree-type week :jump-to-captured t)
         ("p" "Create Project" plain (file ref/create-org-file )
          "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured t)
@@ -386,8 +386,6 @@ Skip project and sub-project tasks, habits, and project related tasks."
     (switch-to-buffer "*Org Agenda*"))
   (delete-other-windows))
 
-(global-set-key (kbd "C-M-s-o") 'bh/show-org-agenda)
-
 ;;  config tags
 (setq org-tag-alist '((:startgroup)
                       ("#work" . ?w) ("#life" . ?h)
@@ -397,3 +395,8 @@ Skip project and sub-project tasks, habits, and project related tasks."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; config keyboard shortcuts
+(global-set-key (kbd "C-M-s-a") 'bh/show-org-agenda)
+(global-set-key (kbd "<f1>") 'count-words)
