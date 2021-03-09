@@ -23,9 +23,14 @@
                                                 ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
       )
 
+;;;;;;;;;;;;;; Appearance of the configuration
 ;; 将 完成的TODO Headline 上加上删除线
 (setq org-fontify-done-headline t)
 
+;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
+;; ref: https://emacs-china.org/t/org-mode/13248
+(require 'valign)
+(add-hook 'org-mode-hook #'valign-mode)
 
 (defun ref/create-org-file ()
   "Create an org file in org-directory"
