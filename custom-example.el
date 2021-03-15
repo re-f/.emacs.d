@@ -39,7 +39,7 @@
                                                     (t 100))))
 
   ;; Specify font for all unicode characters
-  (cl-loop for font in '("Apple Color Emoji" "Symbola" "Symbol")
+  (cl-loop for font in '("Apple Color Emoji" "Segoe UI Symbol" "Symbola" "Symbol")
            when (font-installed-p font)
            return(set-fontset-font t 'unicode font nil 'prepend))
 
@@ -65,6 +65,9 @@
 
 ;; Misc.
 ;; (setq confirm-kill-emacs 'y-or-n-p)
+
+;; Enable proxy
+;; (proxy-http-enable)
 
 ;; Display on the specified monitor
 ;; (when (and (> (length (display-monitor-attributes-list)) 1)
