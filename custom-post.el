@@ -315,6 +315,11 @@ Skip project and sub-project tasks, habits, and project related tasks."
 
 (setq org-agenda-auto-exclude-function 'bh/org-auto-exclude-function)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;; Agenda configuration
+
+;; recursively add org file
+(setq org-agenda-files (directory-files-recursively centaur-org-directory "^[^\\.][^#].*\\.org$"))
+    
 ;; Custom agenda command definitions
 (setq org-agenda-custom-commands
       (quote (("N" "Notes" tags "NOTE+CATEGORY=\"inbox\""
