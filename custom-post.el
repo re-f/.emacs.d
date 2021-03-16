@@ -1,3 +1,8 @@
+;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
+;; ref: https://emacs-china.org/t/org-mode/13248
+(require 'valign)
+(add-hook 'org-mode-hook #'valign-mode)
+
 ;; 设置 stuck project ，参考：https://oomake.com/question/2338872
 (setq org-stuck-projects
       '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
@@ -26,11 +31,6 @@
 ;;;;;;;;;;;;;; Appearance of the configuration
 ;; 将 完成的TODO Headline 上加上删除线
 (setq org-fontify-done-headline t)
-
-;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
-;; ref: https://emacs-china.org/t/org-mode/13248
-(require 'valign)
-(add-hook 'org-mode-hook #'valign-mode)
 
 (defun ref/create-org-file ()
   "Create an org file in org-directory"
@@ -320,7 +320,7 @@ Skip project and sub-project tasks, habits, and project related tasks."
 ;; recursively add org file
 (setq org-agenda-files (directory-files-recursively centaur-org-directory "^[^\\.][^#].*\\.org$"))
     
-;; Custom agenda command definitions
+;; Custom agenda command definitions        
 (setq org-agenda-custom-commands
       (quote (("N" "Notes" tags "NOTE+CATEGORY=\"inbox\""
                ((org-agenda-overriding-header "Notes")
