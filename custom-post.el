@@ -43,10 +43,10 @@
       `(
         ("t" "TODO" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                            ,(concat org-directory "/inbox.org"))
-         "* TODO %? %^{context||:#life:} \n%u\n%^{来源||%a}\n" :tree-type week)
+         "* TODO %^{任务标题} %^{context||:#life:} \n:PROPERTIES:\n :Create:%u\n:END:\n%^{来源||来源：%a}\n%?" :tree-type week)
         ("s" "Task " entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                             ,(concat org-directory "/inbox.org"))
-         "* TODO \%^{任务标题}  %^{context||:#life:} \nSCHEDULED:%^t\n%^{来源||%a}\n%?" :tree-type week)
+         "* TODO \%^{任务标题}  %^{context||:#life:} \n:PROPERTIES:\n :Create:%u\n:END:\nSCHEDULED:%^t\n%^{来源||来源：%a}\n%?" :tree-type week)
         ("r" "Notes" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                             ,(concat org-directory "/inbox.org"))
          "*  %^{标题} :NOTE:%^g \n%a\n "  :tree-type week :jump-to-captured t)
