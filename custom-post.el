@@ -3,6 +3,11 @@
 (require 'valign)
 (add-hook 'org-mode-hook #'valign-mode)
 
+(use-package ox-hugo
+  :ensure t            ;Auto-install the package from Melpa (optional)
+  :after ox)
+;; (setq org-hugo-default-section-directory "knowledgebase")
+
 ;; 设置 stuck project ，参考：https://oomake.com/question/2338872
 (setq org-stuck-projects
       '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
@@ -319,8 +324,8 @@ Skip project and sub-project tasks, habits, and project related tasks."
 
 ;; recursively add org file
 (setq org-agenda-files (directory-files-recursively centaur-org-directory "^[^\\.][^#].*\\.org$"))
-    
-;; Custom agenda command definitions        
+
+;; Custom agenda command definitions
 (setq org-agenda-custom-commands
       (quote (("N" "Notes" tags "NOTE+CATEGORY=\"inbox\""
                ((org-agenda-overriding-header "Notes")
