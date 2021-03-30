@@ -3,6 +3,24 @@
 (require 'valign)
 (add-hook 'org-mode-hook #'valign-mode)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
+(require 'org-roam-protocol)
+(setq org-roam-capture-templates
+      '(
+        ("d" "default" plain (function org-roam-capture--get-point)
+         "%?"
+         :file-name "%<%Y%m%d%H%M%S>-${slug}"
+         :head "#+title: ${title}\n#+roam_alias:\n\n")
+        ("1" "Person" plain (function org-roam-capture--get-point)
+         "%?"
+         :file-name "person/${slug}"
+         :head "#+title: ${title}\n\n#+roam_alias:${title}\n\n#+hugo_section: posts\n#+hugo_base_dir: ../..")
+        ("2" "Project" plain (function org-roam-capture--get-point)
+         "%?"
+         :file-name "project/${slug}"
+         :head "#+title: ${title}\n\n#+roam_alias:${title}\n\n#+hugo_section: posts\n#+hugo_base_dir: ../..")))
+
+
 (use-package ox-hugo
   :ensure t            ;Auto-install the package from Melpa (optional)
   :after ox)
