@@ -1,26 +1,5 @@
 ;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
 ;; ref: https://emacs-china.org/t/org-mode/13248
-(require 'valign)
-(add-hook 'org-mode-hook #'valign-mode)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
-(require 'org-roam-protocol)
-(setq org-roam-capture-templates
-      '(
-        ("d" "default" plain (function org-roam-capture--get-point)
-         "%?"
-         :file-name "%<%Y%m%d%H%M%S>-${slug}"
-         :head "#+title: ${title}\n#+roam_alias:\n\n")
-        ("1" "Person" plain (function org-roam-capture--get-point)
-         "%?"
-         :file-name "person/${slug}"
-         :head "#+title: ${title}\n\n#+roam_alias:${title}\n\n#+hugo_section: posts\n#+hugo_base_dir: ../..")
-        ("2" "Project" plain (function org-roam-capture--get-point)
-         "%?"
-         :file-name "project/${slug}"
-         :head "#+title: ${title}\n\n#+roam_alias:${title}\n\n#+hugo_section: posts\n#+hugo_base_dir: ../..")))
-
-
 (use-package ox-hugo
   :ensure t            ;Auto-install the package from Melpa (optional)
   :after ox)
@@ -435,3 +414,32 @@ Skip project and sub-project tasks, habits, and project related tasks."
 ;; config keyboard shortcuts
 (global-set-key (kbd "C-M-s-a") 'bh/show-org-agenda)
 (global-set-key (kbd "<f1>") 'count-words)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
+(with-eval-after-load 'org-roam
+  (require 'org-roam-protocol))
+(setq org-roam-capture-templates
+      '(
+        ("d" "default" plain (function org-roam-capture--get-point)
+         "%?"
+         :file-name "%<%Y%m%d%H%M%S>-${slug}"
+         :head "#+title: ${title}\n#+roam_alias:\n\n")
+        ("1" "Person" plain (function org-roam-capture--get-point)
+         "%?"
+         :file-name "person/${slug}"
+         :head "#+title: ${title}\n\n#+roam_alias:${title}\n\n#+hugo_section: posts\n#+hugo_base_dir: ../..")
+        ("2" "Project" plain (function org-roam-capture--get-point)
+         "%?"
+         :file-name "project/${slug}"
+         :head "#+title: ${title}\n\n#+roam_alias:${title}\n\n#+hugo_section: posts\n#+hugo_base_dir: ../..")))
+
+;; 解决在中文下，表格无法自动对齐的问题
+(with-eval-after-load 'org-roam
+  (require 'valign))
+(add-hook 'org-mode-hook #'valign-mode)
+
+(put 'dired-find-alternate-file 'disabled nil)
+(defined-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
+;; 延迟加载
+(with-eval-after-load 'dired
+  (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
+;;; custom.el ends here
