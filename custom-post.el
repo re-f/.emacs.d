@@ -324,7 +324,7 @@ Skip project and sub-project tasks, habits, and project related tasks."
 
 ;; Custom agenda command definitions
 (setq org-agenda-custom-commands
-      (quote (("N" "Notes" tags "NOTE+CATEGORY=\"inbox\""
+      (quote (("n" "Notes" tags "NOTE+CATEGORY=\"inbox\"-TODO=\"DONE\"-TODO=\"CANCELLED\""
                ((org-agenda-overriding-header "Notes")
                 (org-tags-match-list-sublevels t)))
               ("g" "Agenda"
