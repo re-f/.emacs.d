@@ -422,15 +422,20 @@ Skip project and sub-project tasks, habits, and project related tasks."
         ("d" "default" plain (function org-roam-capture--get-point)
          "%?"
          :file-name "%<%Y%m%d%H%M%S>-${slug}"
-         :head "#+title: ${title}\n#+roam_alias:\n\n")
+         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:\n\n")
         ("1" "Person" plain (function org-roam-capture--get-point)
          "%?"
          :file-name "person/${slug}"
-         :head "#+title: ${title}\n\n#+roam_alias:${title}\n\n#+hugo_section: posts\n#+hugo_base_dir: ../..")
+         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/person\n#+hugo_base_dir: ../..\n\n%?")
         ("2" "Project" plain (function org-roam-capture--get-point)
          "%?"
          :file-name "project/${slug}"
-         :head "#+title: ${title}\n\n#+roam_alias:${title}\n\n#+hugo_section: posts\n#+hugo_base_dir: ../..")))
+         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/project\n#+hugo_base_dir: ../..\n\n%?")
+        ("p" "new post" plain (function org-roam-capture--get-point)
+         "%?"
+         :file-name "${slug}/_index"
+         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../..\n\n%?")
+        ))
 
 ;; 解决在中文下，表格无法自动对齐的问题
 (with-eval-after-load 'org-roam
