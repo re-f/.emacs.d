@@ -118,4 +118,8 @@
 
 (setq org-refile-targets '((+org/opened-buffer-files :maxlevel . 9)))
 
+(setq dired-omit-files
+      (concat dired-omit-files
+              "\\|\\.organice-bak$\\|^.obsidian*"))
+
 ;;; custom.el ends here
