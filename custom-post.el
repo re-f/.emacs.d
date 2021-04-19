@@ -367,7 +367,7 @@ Skip project and sub-project tasks, habits, and project related tasks."
                             (org-agenda-todo-ignore-with-date bh/hide-scheduled-and-waiting-next-tasks)
                             (org-agenda-sorting-strategy
                              '(category-keep))))
-                (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!"
+                (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!+TODO"
                            ((org-agenda-overriding-header (concat "Standalone Tasks"
                                                                   (if bh/hide-scheduled-and-waiting-next-tasks
                                                                       ""
@@ -426,15 +426,15 @@ Skip project and sub-project tasks, habits, and project related tasks."
         ("1" "Person" plain (function org-roam-capture--get-point)
          "%?"
          :file-name "person/${slug}"
-         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/person\n#+hugo_base_dir: ../..\n\n%?")
+         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/person\n#+hugo_base_dir: ../..\n\n%?")
         ("2" "Project" plain (function org-roam-capture--get-point)
          "%?"
          :file-name "project/${slug}"
-         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/project\n#+hugo_base_dir: ../..\n\n%?")
+         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/project\n#+hugo_base_dir: ../..\n\n%?")
         ("p" "new post" plain (function org-roam-capture--get-point)
          "%?"
          :file-name "${slug}/_index"
-         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../..\n\n%?")
+         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
         ))
 
 ;; 解决在中文下，表格无法自动对齐的问题
