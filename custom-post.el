@@ -450,4 +450,9 @@ Skip project and sub-project tasks, habits, and project related tasks."
 ;; 延迟加载
 (with-eval-after-load 'dired
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
+
+(setq dired-omit-files
+      (concat dired-omit-files
+              "\\|^.obsidian*\\|\\.organice-bak$"))
+
 ;;; custom.el ends here
