@@ -30,6 +30,9 @@
                                                 ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
       )
 
+(with-eval-after-load 'org-roam
+  (add-to-list 'org-modules 'org-habit))
+
 ;;;;;;;;;;;;;; Appearance of the configuration
 ;; 将 完成的TODO Headline 上加上删除线
 (setq org-fontify-done-headline t)
@@ -73,7 +76,6 @@
 
 
 ;; 从 org-mode xx 复制过来的
-(add-to-list 'org-modules 'org-habit)
 (defvar bh/hide-scheduled-and-waiting-next-tasks t)
 (defun bh/find-project-task ()
   "Move point to the parent (project) task if any"
@@ -417,6 +419,7 @@ Skip project and sub-project tasks, habits, and project related tasks."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
 (with-eval-after-load 'org-roam
   (require 'org-roam-protocol))
+
 (setq org-roam-capture-templates
       '(
         ("d" "default" plain (function org-roam-capture--get-point)
