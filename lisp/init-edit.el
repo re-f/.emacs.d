@@ -1,6 +1,6 @@
 ;; init-edit.el --- Initialize editing configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Vincent Zhang
+;; Copyright (C) 2006-2021 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -234,9 +234,9 @@
         ;; restore window layout when done
         (ediff-quit . winner-undo))
   :config
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  (setq ediff-split-window-function 'split-window-horizontally)
-  (setq ediff-merge-split-window-function 'split-window-horizontally))
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain
+        ediff-split-window-function 'split-window-horizontally
+        ediff-merge-split-window-function 'split-window-horizontally))
 
 ;; Automatic parenthesis pairing
 (use-package elec-pair
@@ -344,12 +344,6 @@
 ;; Goto last change
 (use-package goto-chg
   :bind ("C-," . goto-last-change))
-
-;; Record and jump to the last point in the buffer
-(use-package goto-last-point
-  :diminish
-  :bind ("C-M-," . goto-last-point)
-  :hook (after-init . goto-last-point-mode))
 
 ;; Preview when `goto-char'
 (use-package goto-char-preview

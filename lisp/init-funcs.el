@@ -1,6 +1,6 @@
 ;; init-funcs.el --- Define functions.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2020 Vincent Zhang
+;; Copyright (C) 2018-2021 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -45,6 +45,9 @@
 (declare-function flycheck-buffer 'flycheck)
 (declare-function flymake-start 'flymake)
 (declare-function upgrade-packages 'init-package)
+
+(unless (fboundp 'caadr)
+  (defalias 'caadr #'cl-caadr))
 
 
 
@@ -124,7 +127,7 @@ Same as `replace-string C-q C-m RET RET'."
       (progn
         (kill-new filename)
         (message "Copied '%s'" filename))
-    (message "WARNING: Current buffer is not attached to a file!")))
+    (warn "Current buffer is not attached to a file!")))
 
 ;; Browse URL
 (defun centaur-webkit-browse-url (url &optional pop-buffer new-session)
@@ -144,6 +147,16 @@ NEW-SESSION specifies whether to create a new xwidget-webkit session."
         (if pop-buffer
             (pop-to-buffer buf)
           (switch-to-buffer buf))))))
+
+(defun centaur-find-pdf-file (&optional url)
+  "Find a PDF file via URL and render by `pdf.js'."
+  (interactive "f")
+  (cond ((featurep 'xwidget-internal)
+         (xwidget-webkit-browse-url (concat "file://" url)))
+        ((bound-and-true-p counsel-mode)
+         (counsel-find-file url))
+        (t (find-file url))))
+(defalias 'find-pdf-file #'centaur-find-pdf-file)
 
 ;; Mode line
 (defun mode-line-height ()
@@ -339,67 +352,79 @@ Return the fastest package archive."
 (defalias 'centaur-update-config #'update-config)
 
 (defvar centaur--updating-packages nil)
-(defun update-packages (&optional sync)
+(defun update-packages (&optional force sync)
   "Refresh package contents and update all packages.
 
+If FORCE is non-nil, the updating process will be restarted by force.
 If SYNC is non-nil, the updating process is synchronous."
-  (interactive)
+  (interactive "P")
+
+  (if (process-live-p centaur--updating-packages)
+      (when force
+        (kill-process centaur--updating-packages)
+        (setq centaur--updating-packages nil))
+    (setq centaur--updating-packages nil))
+
   (when centaur--updating-packages
     (user-error "Still updating packages..."))
 
   (message "Updating packages...")
   (if (and (not sync)
            (require 'async nil t))
-      (progn
-        (setq centaur--updating-packages t)
-        (async-start
-         `(lambda ()
-            ,(async-inject-variables "\\`\\(load-path\\)\\'")
-            (require 'init-funcs)
-            (require 'init-package)
-            (upgrade-packages)
-            (with-current-buffer auto-package-update-buffer-name
-              (buffer-string)))
-         (lambda (result)
-           (setq centaur--updating-packages nil)
-           (message "%s" result)
-           (message "Updating packages...done"))))
-    (progn
-      (upgrade-packages)
-      (message "Updating packages...done"))))
+      (setq centaur--updating-packages
+            (async-start
+             `(lambda ()
+                ,(async-inject-variables "\\`\\(load-path\\)\\'")
+                (require 'init-funcs)
+                (require 'init-package)
+                (upgrade-packages)
+                (with-current-buffer auto-package-update-buffer-name
+                  (buffer-string)))
+             (lambda (result)
+               (setq centaur--updating-packages nil)
+               (message "%s" result)
+               (message "Updating packages...done"))))
+    (upgrade-packages)
+    (message "Updating packages...done")))
 (defalias 'centaur-update-packages #'update-packages)
 
 (defvar centaur--updating nil)
-(defun update-config-and-packages(&optional sync)
+(defun update-config-and-packages(&optional force sync)
   "Update confgiurations and packages.
 
+If FORCE is non-nil, the updating process will be restarted by force.
 If SYNC is non-nil, the updating process is synchronous."
-  (interactive)
+  (interactive "P")
+
+  (if (process-live-p centaur--updating)
+      (when force
+        (kill-process centaur--updating)
+        (setq centaur--updating nil))
+    (setq centaur--updating nil))
+
   (when centaur--updating
     (user-error "Centaur Emacs is still updating..."))
 
   (message "This will update Centaur Emacs to the latest")
   (if (and (not sync)
            (require 'async nil t))
-      (progn
-        (setq centaur--updating t)
-        (async-start
-         `(lambda ()
-            ,(async-inject-variables "\\`\\(load-path\\)\\'")
-            (require 'init-funcs)
-            (require 'init-package)
-            (update-config)
-            (update-packages t)
-            (with-current-buffer auto-package-update-buffer-name
-              (buffer-string)))
-         (lambda (result)
-           (setq centaur--updating nil)
-           (message "%s" result)
-           (message "Done. Restart to complete process"))))
-    (progn
-      (update-config)
-      (update-packages t)
-      (message "Done. Restart to complete process"))))
+      (setq centaur--updating
+            (async-start
+             `(lambda ()
+                ,(async-inject-variables "\\`\\(load-path\\)\\'")
+                (require 'init-funcs)
+                (require 'init-package)
+                (update-config)
+                (update-packages nil t)
+                (with-current-buffer auto-package-update-buffer-name
+                  (buffer-string)))
+             (lambda (result)
+               (setq centaur--updating nil)
+               (message "%s" result)
+               (message "Done. Restart to complete process"))))
+    (update-config)
+    (update-packages nil t)
+    (message "Done. Restart to complete process")))
 (defalias 'centaur-update #'update-config-and-packages)
 
 (defun update-all()
@@ -443,12 +468,8 @@ If SYNC is non-nil, the updating process is synchronous."
   "Install necessary fonts."
   (interactive)
 
-  ;; all-the-icons
-  (all-the-icons-install-fonts t)
-
-  ;; Symbola
-  ;; See https://dn-works.com/wp-content/uploads/2020/UFAS-Fonts/Symbola.zip
-  (let* ((url (concat centaur-homepage "/files/6135060/symbola.zip"))
+  (let* ((url-format "https://raw.githubusercontent.com/domtronn/all-the-icons.el/master/fonts/%s")
+         (url (concat centaur-homepage "/files/6135060/symbola.zip"))
          (font-dest (cond
                      ;; Default Linux install directories
                      ((member system-type '(gnu gnu/linux gnu/kfreebsd))
@@ -463,6 +484,14 @@ If SYNC is non-nil, the updating process is synchronous."
 
     (unless (file-directory-p font-dest) (mkdir font-dest t))
 
+    ;; Download `all-the-fonts'
+    (when (bound-and-true-p all-the-icons-font-names)
+      (mapc (lambda (font)
+              (url-copy-file (format url-format font) (expand-file-name font font-dest) t))
+            all-the-icons-font-names))
+
+    ;; Download `Symbola'
+    ;; See https://dn-works.com/wp-content/uploads/2020/UFAS-Fonts/Symbola.zip
     (let* ((temp-file (make-temp-file "symbola-" nil ".zip"))
            (temp-dir (concat (file-name-directory temp-file) "/symbola/"))
            (unzip-script (cond ((executable-find "unzip")
@@ -480,13 +509,15 @@ If SYNC is non-nil, the updating process is synchronous."
                (temp-font (expand-file-name font-name temp-dir)))
           (if (file-exists-p temp-font)
               (copy-file temp-font (expand-file-name font-name font-dest) t)
-            (message "Failed to download `Symbola'!")))
-        (when known-dest?
-          (message "Fonts downloaded, updating font cache... <fc-cache -f -v> ")
-          (shell-command-to-string (format "fc-cache -f -v")))
-        (message "Successfully %s `Symbola' fonts to `%s'!"
-                 (if known-dest? "installed" "downloaded")
-                 font-dest)))))
+            (message "Failed to download `Symbola'!")))))
+
+    (when known-dest?
+      (message "Fonts downloaded, updating font cache... <fc-cache -f -v> ")
+      (shell-command-to-string (format "fc-cache -f -v")))
+
+    (message "Successfully %s `all-the-icons' and `Symbola' fonts to `%s'!"
+             (if known-dest? "installed" "downloaded")
+             font-dest)))
 
 
 
@@ -498,6 +529,14 @@ If SYNC is non-nil, the updating process is synchronous."
   "Run `after-load-theme-hook'."
   (run-hooks 'after-load-theme-hook))
 (advice-add #'load-theme :after #'run-after-load-theme-hook)
+
+(defun childframe-workable-p ()
+  "Test whether childframe is workable."
+  (and emacs/>=26p
+       (eq centaur-completion-style 'childframe)
+       (not (or noninteractive
+                emacs-basic-display
+                (not (display-graphic-p))))))
 
 (defun centaur--theme-name (theme)
   "Return internal THEME name."
@@ -624,6 +663,7 @@ If SYNC is non-nil, the updating process is synchronous."
   (setq url-gateway-method 'socks
         socks-noproxy '("localhost")
         socks-server '("Default server" "127.0.0.1" 1086 5))
+  (setenv "all_proxy" (concat "socks5://" centaur-proxy))
   (proxy-socks-show))
 
 (defun proxy-socks-disable ()
@@ -631,6 +671,7 @@ If SYNC is non-nil, the updating process is synchronous."
   (interactive)
   (setq url-gateway-method 'native
         socks-noproxy nil)
+  (setenv "all_proxy" "")
   (proxy-socks-show))
 
 (defun proxy-socks-toggle ()

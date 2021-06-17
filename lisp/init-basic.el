@@ -1,6 +1,6 @@
 ;; init-basic.el --- Better default configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Vincent Zhang
+;; Copyright (C) 2006-2021 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -157,15 +157,6 @@
     :ensure nil
     :hook (after-init . global-so-long-mode)
     :config (setq so-long-threshold 400)))
-
-;; Mouse & Smooth Scroll
-;; Scroll one line at a time (less "jumpy" than defaults)
-(when (display-graphic-p)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
-        mouse-wheel-progressive-speed nil))
-(setq scroll-step 1
-      scroll-margin 0
-      scroll-conservatively 100000)
 
 ;; Misc
 (fset 'yes-or-no-p 'y-or-n-p)

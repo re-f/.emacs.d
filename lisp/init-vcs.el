@@ -1,6 +1,6 @@
 ;; init-vcs.el --- Initialize version control system configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Vincent Zhang
+;; Copyright (C) 2016-2021 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'init-const)
+(require 'init-funcs)
 
 ;; Git
 ;; See `magit-maybe-define-global-key-bindings'
@@ -77,7 +78,60 @@
     (use-package magit-todos
       :init
       (setq magit-todos-nice (if (executable-find "nice") t nil))
-      (magit-todos-mode 1))))
+      (let ((inhibit-message t))
+        (magit-todos-mode 1))
+      :config
+      (transient-append-suffix 'magit-status-jump '(0 0 -1)
+        '("T " "Todos" magit-todos-jump-to-todos)))))
+
+;; Display transient in child frame
+(when (childframe-workable-p)
+  (use-package transient-posframe
+    :diminish
+    :custom-face
+    (transient-posframe ((t (:inherit tooltip))))
+    (transient-posframe-border ((t (:background ,(face-foreground 'font-lock-comment-face nil t)))))
+    :hook (after-init . transient-posframe-mode)
+    :init
+    (setq transient-posframe-border-width 3
+          transient-posframe-min-height 22
+          transient-posframe-min-width nil
+          transient-posframe-parameters '((left-fringe . 8)
+                                          (right-fringe . 8)))
+    :config
+    (add-hook 'after-load-theme-hook
+              (lambda ()
+                (custom-set-faces
+                 '(transient-posframe ((t (:inherit tooltip))))
+                 `(transient-posframe-border ((t (:background ,(face-foreground 'font-lock-comment-face nil t))))))))
+
+    (with-no-warnings
+      (defun my-transient-posframe--show-buffer (buffer _alist)
+        "Show BUFFER in posframe and we do not use _ALIST at this period."
+        (when (posframe-workable-p)
+          (let ((posframe (posframe-show
+                           buffer
+			               :font transient-posframe-font
+			               :position (point)
+			               :poshandler transient-posframe-poshandler
+			               :background-color (face-attribute 'transient-posframe :background nil t)
+			               :foreground-color (face-attribute 'transient-posframe :foreground nil t)
+			               :min-width (or transient-posframe-min-width (round (* (frame-width) 0.62)))
+			               :min-height transient-posframe-min-height
+                           :lines-truncate t
+			               :internal-border-width transient-posframe-border-width
+			               :internal-border-color (face-attribute 'transient-posframe-border :background nil t)
+			               :override-parameters transient-posframe-parameters)))
+            (frame-selected-window posframe))))
+      (advice-add #'transient-posframe--show-buffer :override #'my-transient-posframe--show-buffer)
+
+      (defun my-transient-posframe--render-buffer ()
+        (with-current-buffer (get-buffer-create transient--buffer-name)
+          (goto-char (point-min))
+          (insert (propertize "\n" 'face '(:height 0.3)))
+          (goto-char (point-max))
+          (insert (propertize "\n\n" 'face '(:height 0.3)))))
+      (advice-add #'transient--show :after #'my-transient-posframe--render-buffer))))
 
 ;; Walk through git revisions of a file
 (use-package git-timemachine
@@ -128,7 +182,8 @@
     (defun my-git-messenger:popup-message ()
       "Popup message with `posframe', `pos-tip', `lv' or `message', and dispatch actions with `hydra'."
       (interactive)
-      (let* ((vcs (git-messenger:find-vcs))
+      (let* ((hydra-hint-display-type 'message)
+             (vcs (git-messenger:find-vcs))
              (file (buffer-file-name (buffer-base-buffer)))
              (line (line-number-at-pos))
              (commit-info (git-messenger:commit-info-at-line vcs file line))
@@ -151,14 +206,18 @@
         (cond ((and (fboundp 'posframe-workable-p) (posframe-workable-p))
                (let ((buffer-name "*git-messenger*"))
                  (posframe-show buffer-name
-                                :string popuped-message
+                                :string (concat (propertize "\n" 'face '(:height 0.3))
+                                                popuped-message
+                                                "\n"
+                                                (propertize "\n" 'face '(:height 0.3)))
                                 :left-fringe 8
                                 :right-fringe 8
                                 :internal-border-width 1
-                                :internal-border-color (face-foreground 'font-lock-comment-face))
+                                :internal-border-color (face-foreground 'font-lock-comment-face nil t)
+                                :background-color (face-background 'tooltip nil t))
                  (unwind-protect
                      (push (read-event) unread-command-events)
-                   (posframe-delete buffer-name))))
+                   (posframe-hide buffer-name))))
               ((and (fboundp 'pos-tip-show) (display-graphic-p))
                (pos-tip-show popuped-message))
               ((fboundp 'lv-message)
