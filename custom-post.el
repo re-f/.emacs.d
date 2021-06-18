@@ -445,14 +445,14 @@ Skip project and sub-project tasks, habits, and project related tasks."
   (require 'valign))
 (add-hook 'org-mode-hook #'valign-mode)
 
+;; 配置 dired
 (put 'dired-find-alternate-file 'disabled nil)
-(defined-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
-;; 延迟加载
 (with-eval-after-load 'dired
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
 
+;; 在 dired 列表中，忽略一些文件
 (setq dired-omit-files
       (concat dired-omit-files
               "\\|^.obsidian*\\|\\.organice-bak$"))
 
-;;; custom.el ends here
+;;; custom-post.el ends here
