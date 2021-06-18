@@ -1,6 +1,6 @@
 ;; init-window.el --- Initialize window configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Vincent Zhang
+;; Copyright (C) 2006-2021 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -68,7 +68,7 @@
      ("j" enlarge-window "↓")
      ("k" shrink-window "↑")
      ("l" enlarge-window-horizontally "→")
-     ("n" balance-windows "balance"))
+     ("n" balance-windows "balance" :exit t))
     "Split"
     (("r" split-window-right "horizontally")
      ("R" split-window-horizontally-instead "horizontally instead")
@@ -84,8 +84,8 @@
     (("F" set-frame-font "font")
      ("T" centaur-load-theme "theme"))))
   :custom-face
-  (aw-leading-char-face ((t (:inherit font-lock-keyword-face :bold t :height 3.0))))
-  (aw-minibuffer-leading-char-face ((t (:inherit font-lock-keyword-face :bold t :height 2.0))))
+  (aw-leading-char-face ((t (:inherit font-lock-keyword-face :bold t :height 2.0))))
+  (aw-minibuffer-leading-char-face ((t (:inherit font-lock-keyword-face :bold t :height 1.0))))
   (aw-mode-line-face ((t (:inherit mode-line-emphasis :bold t))))
   :bind (([remap other-window] . ace-window)
          ("C-c w" . ace-window-hydra/body))
@@ -259,12 +259,14 @@
           (godoc-mode :select t :size 0.4 :align 'below :autoclose t)
 
           ((grep-mode rg-mode deadgrep-mode ag-mode pt-mode) :select t :size 0.4 :align 'below)
-          (Buffer-menu-mode :select t :size 20 :align 'below :autoclose t)
+          (Buffer-menu-mode :select t :size 0.5 :align 'below :autoclose t)
           (gnus-article-mode :select t :size 0.7 :align 'below :autoclose t)
           (helpful-mode :select t :size 0.3 :align 'below :autoclose t)
           ((process-menu-mode cargo-process-mode) :select t :size 0.3 :align 'below :autoclose t)
-          (list-environment-mode :select t :size 0.3 :align 'below :autoclose t)
-          (tabulated-list-mode :size 0.4 :align 'below))))
+          ("*Process-Environment*" :select t :size 0.3 :align 'below :autoclose t)
+          (("*docker-containers*" "*docker-images*" "*docker-networks*" "*docker-volumes*") :size 0.4 :align 'below :autoclose t)
+          (bookmark-bmenu-mode :select t :size 0.4 :align 'below)
+          (tabulated-list-mode :size 0.4 :align 'below :autclose t))))
 
 (provide 'init-window)
 

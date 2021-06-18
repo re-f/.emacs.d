@@ -1,6 +1,6 @@
 ;;; init-package.el --- Initialize package configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Vincent Zhang
+;; Copyright (C) 2006-2021 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -106,17 +106,6 @@
 
 ;; Update GPG keyring for GNU ELPA
 (use-package gnu-elpa-keyring-update)
-
-;; Initialization benchmark
-(when centaur-benchmark-init
-  (use-package benchmark-init
-    :defines swiper-font-lock-exclude
-    :commands (benchmark-init/activate)
-    :hook (after-init . benchmark-init/deactivate)
-    :init (benchmark-init/activate)
-    :config
-    (with-eval-after-load 'swiper
-      (add-to-list 'swiper-font-lock-exclude 'benchmark-init/tree-mode))))
 
 ;; A modern Packages Menu
 (use-package paradox
