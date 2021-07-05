@@ -54,7 +54,7 @@
          "* TODO \%^{任务标题}  %^{context||:#life:} \n:PROPERTIES:\n :Create:%u\n:END:\nSCHEDULED:%^t\n%^{来源||来源：%a}\n%?" :tree-type week)
         ("r" "Notes" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                             ,(concat org-directory "/inbox.org"))
-         "*  %^{标题} :NOTE:%^g \n%a\n "  :tree-type week :jump-to-captured t)
+         "*  %^{标题} :NOTE:%^g \n :PROPERTIES:\n :Create: %u\n :END: \n%a\n "  :tree-type week :jump-to-captured t)
         ("p" "Create Project" plain (file ref/create-org-file )
          "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured t)
         ("l" "log" entry (file+olp, (concat org-directory "2021年团队规划.org"), "完成日志" )
@@ -430,10 +430,13 @@ Skip project and sub-project tasks, habits, and project related tasks."
          "%?"
          :file-name "person/${slug}"
          :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/person\n#+hugo_base_dir: ../..\n\n%?")
-        ("2" "Project" plain (function org-roam-capture--get-point)
-         "%?"
-         :file-name "project/${slug}"
-         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/project\n#+hugo_base_dir: ../..\n\n%?")
+        ("2" "Project" entry (function org-roam-capture--get-point)
+         "** ${slug} \n  :PROPERTIES: \n :项目经理: %^{项目经理} \n :区域: %^{区域}\n :END:  \n %?"
+         :file-name "project/项目信息"
+         :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/project\n#+hugo_base_dir: ../..\n\n%?"
+         :olp ("Projects")
+         :unnarrowed t
+         :empty-lines 1)
         ("p" "new post" plain (function org-roam-capture--get-point)
          "%?"
          :file-name "${slug}/_index"
@@ -441,7 +444,7 @@ Skip project and sub-project tasks, habits, and project related tasks."
         ))
 
 ;; 解决在中文下，表格无法自动对齐的问题
-(with-eval-after-load 'org-roam
+(with-eval-after-load 'org
   (require 'valign))
 (add-hook 'org-mode-hook #'valign-mode)
 
