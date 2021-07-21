@@ -81,6 +81,7 @@
  ;; If there is more than one, they won't work right.
  '(centaur-package-archives 'netease)
  '(centaur-theme 'default)
+ '(org-id-link-to-org-use-id t)
  '(org-sidebar-default-fns
    '(org-sidebar--upcoming-items my/org-sidebar org-sidebar--todo-items )))
 

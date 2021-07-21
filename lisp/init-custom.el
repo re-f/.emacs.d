@@ -52,7 +52,7 @@
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-org-directory (expand-file-name "~/Dropbox/knowledgebase-blog/content-org")
+(defcustom centaur-org-directory (expand-file-name "~/knowledgebase-blog/content-org")
   "Set org directory."
   :group 'centaur
   :type 'string)

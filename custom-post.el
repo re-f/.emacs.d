@@ -30,8 +30,8 @@
                                                 ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
       )
 
-(with-eval-after-load 'org-roam
-  (add-to-list 'org-modules 'org-habit))
+(with-eval-after-load 'org
+  (add-to-list 'org-modules '(ol-docview org-habit org-id ol-git-link)))
 
 ;;;;;;;;;;;;;; Appearance of the configuration
 ;; 将 完成的TODO Headline 上加上删除线
