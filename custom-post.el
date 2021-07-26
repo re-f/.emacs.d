@@ -31,7 +31,7 @@
       )
 
 (with-eval-after-load 'org
-  (add-to-list 'org-modules '(ol-docview org-habit org-id ol-git-link)))
+  (add-to-list 'org-modules 'org-habit 'org-id))
 
 ;;;;;;;;;;;;;; Appearance of the configuration
 ;; 将 完成的TODO Headline 上加上删除线
