@@ -1,3 +1,15 @@
+* Ref的Emacs 自定义设置
+:PROPERTIES:
+:ID:       7900ABE1-B064-4B47-89E0-EB65B9D43154
+:END:
+** 本文档的使用说明
+本文档作为 [[http://doc.norang.ca/org-mode.org][org 文件]] 提供，您可以在 Emacs 中加载它并通过 =C-c C-v C-t=  （org-babel-tangle） 导出 custom-post.el，文件中包含本文档中所有 emacs 配置的 elisp 代码，可以将它放到你的Emacs配置目录中
+** 未整理的内容
+:PROPERTIES:
+:ID:       135D5C31-BE0C-44F2-B59D-3EC49A36D675
+:END:
+#+begin_src emacs-lisp :tangle yes
+
 ;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
 ;; ref: https://emacs-china.org/t/org-mode/13248
 (use-package ox-hugo
@@ -457,7 +469,13 @@ Skip project and sub-project tasks, habits, and project related tasks."
 (setq dired-omit-files
       (concat dired-omit-files
               "\\|^.obsidian*\\|\\.organice-bak$"))
-
+#+end_src
+** 一些实用的工具
+*** 在其它的App 中打开当前buffer的文件
+:PROPERTIES:
+:ID:       2B17C599-5F83-4A16-A220-28AB18EDC10E
+:END:
+#+begin_src emacs-lisp :tangle yes
 ;; Open file in externnal App
 (defun xah-show-in-desktop ()
   "Show current file in desktop.
@@ -538,3 +556,4 @@ Version 2020-02-13"
      ((string-equal system-type "gnu/linux")
       (shell-command (format "code \"%s\"" $path))))))
 ;;; custom-post.el ends here
+#+end_src
