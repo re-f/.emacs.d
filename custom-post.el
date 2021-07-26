@@ -1,18 +1,9 @@
-;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
-;; ref: https://emacs-china.org/t/org-mode/13248
-(use-package ox-hugo
-  :ensure t            ;Auto-install the package from Melpa (optional)
-  :after ox)
-;; (setq org-hugo-default-section-directory "knowledgebase")
-
-;; 设置 stuck project ，参考：https://oomake.com/question/2338872
-(setq org-stuck-projects
-      '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
-
 (setq org-todo-keywords
       (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d@/!)")
-              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)")))
-
+              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)")
+              (sequence "售前" "交付" "|" "终止(@/!)" "结束")
+              ))
+              
       org-todo-keyword-faces (quote (
                                      ("NEXT" :foreground "blue" :weight bold)
                                      ("WAITING" . warning)
@@ -29,6 +20,18 @@
                                                 ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
                                                 ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
       )
+
+;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
+;; ref: https://emacs-china.org/t/org-mode/13248
+(use-package ox-hugo
+  :ensure t            ;Auto-install the package from Melpa (optional)
+  :after ox)
+;; (setq org-hugo-default-section-directory "knowledgebase")
+
+;; 设置 stuck project ，参考：https://oomake.com/question/2338872
+(setq org-stuck-projects
+      '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
+
 
 (with-eval-after-load 'org
   (add-to-list 'org-modules 'org-habit 'org-id))

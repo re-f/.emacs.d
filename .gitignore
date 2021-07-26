@@ -82,3 +82,5 @@ tutorial/
 url/
 var/
 workspace/
+org-mode.el
+org-mode.org

@@ -4,6 +4,37 @@
 :END:
 ** 本文档的使用说明
 本文档作为 [[http://doc.norang.ca/org-mode.org][org 文件]] 提供，您可以在 Emacs 中加载它并通过 =C-c C-v C-t=  （org-babel-tangle） 导出 custom-post.el，文件中包含本文档中所有 emacs 配置的 elisp 代码，可以将它放到你的Emacs配置目录中
+** 配置 org TODO 
+:PROPERTIES:
+:ID:       835E8AB4-81B5-46FE-BCA0-E73E6B7EDDCB
+:END:
+#+begin_src emacs-lisp :tangle yes
+(setq org-todo-keywords
+      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d@/!)")
+              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)")
+              (sequence "售前" "交付" "|" "终止(@/!)" "结束")
+              ))
+              
+      org-todo-keyword-faces (quote (
+                                     ("NEXT" :foreground "blue" :weight bold)
+                                     ("WAITING" . warning)
+                                     ("HOLD" :foreground "magenta" :weight bold)
+                                     ))
+
+      org-use-fast-todo-selection t
+      org-treat-S-cursor-todo-selection-as-state-change nil
+      org-todo-state-tags-triggers      (quote (("CANCELLED" ("CANCELLED" . t))
+                                                ("WAITING" ("WAITING" . t))
+                                                ("HOLD" ("WAITING") ("HOLD" . t))
+                                                (done ("WAITING") ("HOLD"))
+                                                ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+                                                ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+                                                ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
+      )
+
+#+end_src
+
+
 ** 未整理的内容
 :PROPERTIES:
 :ID:       135D5C31-BE0C-44F2-B59D-3EC49A36D675
@@ -21,26 +52,6 @@
 (setq org-stuck-projects
       '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
 
-(setq org-todo-keywords
-      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d@/!)")
-              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)")))
-
-      org-todo-keyword-faces (quote (
-                                     ("NEXT" :foreground "blue" :weight bold)
-                                     ("WAITING" . warning)
-                                     ("HOLD" :foreground "magenta" :weight bold)
-                                     ))
-
-      org-use-fast-todo-selection t
-      org-treat-S-cursor-todo-selection-as-state-change nil
-      org-todo-state-tags-triggers      (quote (("CANCELLED" ("CANCELLED" . t))
-                                                ("WAITING" ("WAITING" . t))
-                                                ("HOLD" ("WAITING") ("HOLD" . t))
-                                                (done ("WAITING") ("HOLD"))
-                                                ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
-                                                ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
-                                                ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
-      )
 
 (with-eval-after-load 'org
   (add-to-list 'org-modules 'org-habit 'org-id))
