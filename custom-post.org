@@ -566,5 +566,33 @@ Version 2020-02-13"
       (shell-command (format "Code \"%s\"" $path)))
      ((string-equal system-type "gnu/linux")
       (shell-command (format "code \"%s\"" $path))))))
+#+end_src
+
+
+*** 中文支持
++ 支持中文分词
+  参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
+  #+begin_src emacs-lisp :tangle yes
+  (add-to-list 'load-path "~/.emacs.d/lisp/chinese-word-segmentation")
+  (setq cns-prog "~/.emacs.d/lisp/chinese-word-segmentation/chinese-word-segmentation")
+  (setq cns-dict-directory "~/.emacs.d/lisp/chinese-word-segmentation/dict")
+  (setq cns-recent-segmentation-limit 20) ; default is 10
+  (setq cns-debug nil) ; disable debug output, default is t
+  (require 'cns nil t)
+  (when (featurep 'cns)
+    (add-hook 'find-file-hook 'cns-auto-enable))
+  #+end_src
+
++ 使用内置的中文输入法
+ https://github.com/tumashu/pyim，  使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用emacs的快捷键
+#+begin_src emacs-lisp :tangle yes
+(require 'pyim)
+(require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
+(pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
+(setq default-input-method "pyim")
+#+end_src
+
+* End
+#+begin_src emacs-lisp :tangle yes
 ;;; custom-post.el ends here
 #+end_src

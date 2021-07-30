@@ -540,4 +540,19 @@ Version 2020-02-13"
       (shell-command (format "Code \"%s\"" $path)))
      ((string-equal system-type "gnu/linux")
       (shell-command (format "code \"%s\"" $path))))))
+
+(add-to-list 'load-path "~/.emacs.d/lisp/chinese-word-segmentation")
+(setq cns-prog "~/.emacs.d/lisp/chinese-word-segmentation/chinese-word-segmentation")
+(setq cns-dict-directory "~/.emacs.d/lisp/chinese-word-segmentation/dict")
+(setq cns-recent-segmentation-limit 20) ; default is 10
+(setq cns-debug nil) ; disable debug output, default is t
+(require 'cns nil t)
+(when (featurep 'cns)
+  (add-hook 'find-file-hook 'cns-auto-enable))
+
+(require 'pyim)
+(require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
+(pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
+(setq default-input-method "pyim")
+
 ;;; custom-post.el ends here
