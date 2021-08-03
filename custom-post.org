@@ -1,3 +1,5 @@
+#+startup: content
+
 * Ref的Emacs 自定义设置
 :PROPERTIES:
 :ID:       7900ABE1-B064-4B47-89E0-EB65B9D43154
@@ -481,6 +483,15 @@ Skip project and sub-project tasks, habits, and project related tasks."
       (concat dired-omit-files
               "\\|^.obsidian*\\|\\.organice-bak$"))
 #+end_src
+
+** 配置
+:PROPERTIES:
+:ID:       15941A19-30EA-4D25-B024-B23962DF6685
+:END:
+#+begin_src emacs-lisp :tangle
+;; 水平分割????
+  (setq split-width-threshold nil )
+#+end_src
 ** 一些实用的工具
 *** 在其它的App 中打开当前buffer的文件
 :PROPERTIES:
@@ -568,8 +579,10 @@ Version 2020-02-13"
       (shell-command (format "code \"%s\"" $path))))))
 #+end_src
 
-
 *** 中文支持
+:PROPERTIES:
+:ID:       03445261-50A4-48ED-8147-1200ADEFA118
+:END:
 + 支持中文分词
   参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
   #+begin_src emacs-lisp :tangle yes
@@ -590,9 +603,13 @@ Version 2020-02-13"
 (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
 (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
 (setq default-input-method "pyim")
+
 #+end_src
 
 * End
+:PROPERTIES:
+:ID:       2D64F1B5-2995-4EAB-9844-CD106DE68160
+:END:
 #+begin_src emacs-lisp :tangle yes
 ;;; custom-post.el ends here
 #+end_src
