@@ -488,10 +488,29 @@ Skip project and sub-project tasks, habits, and project related tasks."
 :PROPERTIES:
 :ID:       15941A19-30EA-4D25-B024-B23962DF6685
 :END:
-#+begin_src emacs-lisp :tangle
-;; 水平分割????
-  (setq split-width-threshold nil )
+默认垂直分屏，要换成水平分屏，参考： [[https://cloud.tencent.com/developer/ask/105836]]，
+  
+#+begin_src emacs-lisp :tangle yes
+;; 新建buffer时水平分割
+  (setq split-width-threshold 1 )
 #+end_src
+
+***  编辑习惯配置
+**** [[https://github.com/knu/easy-kill-extras.el][easy-kill]]
+:PROPERTIES:
+:ID:       F253C7CC-DF16-48B8-881A-56FED4BAD759
+:END:
+重要功能: 快速选中（并复制）；选中行，选中list，选中引号内的内容，选中括号内的内容，甚至是选中当前buffer的文件名。如果使用的是easy－kill的功能，选中时，就会复制到剪贴板等等。
+同类型的插件有：[[https://github.com/manateelazycat/thing-edit][things-edit]]
+增加 easy-kill 配置：
+#+begin_src emacs-lisp :tangle yes
+  ;; 选中 "" 中的内容
+    (add-to-list 'easy-kill-alist '(?\' squoted-string "") t)
+
+  ;; 选中 '' 中的内容
+    (add-to-list 'easy-kill-alist '(?\" dquoted-string "") t)
+#+end_src
+
 ** 一些实用的工具
 *** 在其它的App 中打开当前buffer的文件
 :PROPERTIES:
