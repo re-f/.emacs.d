@@ -461,6 +461,16 @@ Skip project and sub-project tasks, habits, and project related tasks."
       (concat dired-omit-files
               "\\|^.obsidian*\\|\\.organice-bak$"))
 
+;; 新建buffer时水平分割
+  (setq split-width-threshold 1 )
+
+; 配置 easy-kill 
+  ;; 选中 "" 中的内容
+    (add-to-list 'easy-kill-alist '(?\' squoted-string "") t)
+
+  ;; 选中 '' 中的内容
+    (add-to-list 'easy-kill-alist '(?\" dquoted-string "") t)
+
 ;; Open file in externnal App
 (defun xah-show-in-desktop ()
   "Show current file in desktop.
@@ -493,38 +503,6 @@ Version 2020-11-20 2021-01-18"
         (start-process "" nil openFileProgram (shell-quote-argument $path)))
       ;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. eg with nautilus
       ))))
-(defun xah-show-in-desktop ()
-  "Show current file in desktop.
- (Mac Finder, Windows Explorer, Linux file manager)
-This command can be called when in a file buffer or in `dired'.
-URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
-Version 2020-11-20 2021-01-18"
-  (interactive)
-  (let (($path (if (buffer-file-name) (buffer-file-name) default-directory)))
-    (cond
-     ((string-equal system-type "windows-nt")
-      (shell-command (format "PowerShell -Command Start-Process Explorer -FilePath %s" (shell-quote-argument default-directory)))
-      ;; todo. need to make window highlight the file
-      )
-     ((string-equal system-type "darwin")
-      (if (eq major-mode 'dired-mode)
-          (let (($files (dired-get-marked-files )))
-            (if (eq (length $files) 0)
-                (shell-command (concat "open " (shell-quote-argument (expand-file-name default-directory ))))
-              (shell-command (concat "open -R " (shell-quote-argument (car (dired-get-marked-files )))))))
-        (shell-command
-         (concat "open -R " (shell-quote-argument $path)))))
-
-     ((string-equal system-type "gnu/linux")
-      (let (
-            (process-connection-type nil)
-            (openFileProgram (if (file-exists-p "/usr/bin/gvfs-open")
-                                 "/usr/bin/gvfs-open"
-                               "/usr/bin/xdg-open")))
-        (start-process "" nil openFileProgram (shell-quote-argument $path)))
-      ;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. eg with nautilus
-      ))))
-
 (defun xah-open-in-vscode ()
   "Open current file or dir in vscode.
 
@@ -541,6 +519,26 @@ Version 2020-02-13"
      ((string-equal system-type "gnu/linux")
       (shell-command (format "code \"%s\"" $path))))))
 
+(defun xah-open-in-terminal ()
+  "Open the current dir in a new terminal window.
+on Microsoft Windows, it starts cross-platform PowerShell pwsh. You need to have it installed.
+
+URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
+Version 2020-11-21 2021-01-18"
+  (interactive)
+  (cond
+    ((string-equal system-type "windows-nt")
+    (let ((process-connection-type nil))
+      (shell-command (concat "PowerShell -Command Start-Process pwsh -WorkingDirectory " (shell-quote-argument default-directory)))
+      ;;
+      ))
+    ((string-equal system-type "darwin")
+    (shell-command (concat "open -a terminal " (shell-quote-argument (expand-file-name default-directory )))))
+    ((string-equal system-type "gnu/linux")
+    (let ((process-connection-type nil))
+      (start-process "" nil "x-terminal-emulator"
+                      (concat "--working-directory=" default-directory))))))
+
 (add-to-list 'load-path "~/.emacs.d/lisp/chinese-word-segmentation")
 (setq cns-prog "~/.emacs.d/lisp/chinese-word-segmentation/chinese-word-segmentation")
 (setq cns-dict-directory "~/.emacs.d/lisp/chinese-word-segmentation/dict")
@@ -554,5 +552,7 @@ Version 2020-02-13"
 (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
 (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
 (setq default-input-method "pyim")
+
+(setq pyim-punctuation-translate-p '(no auto yes))
 
 ;;; custom-post.el ends here
