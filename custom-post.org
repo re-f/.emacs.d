@@ -6,7 +6,8 @@
 :END:
 ** 本文档的使用说明
 本文档作为 [[http://doc.norang.ca/org-mode.org][org 文件]] 提供，您可以在 Emacs 中加载它并通过 =C-c C-v C-t=  （org-babel-tangle） 导出 custom-post.el，文件中包含本文档中所有 emacs 配置的 elisp 代码，可以将它放到你的Emacs配置目录中
-** 配置 org TODO 
+** org-mode
+*** 配置 org TODO 
 :PROPERTIES:
 :ID:       835E8AB4-81B5-46FE-BCA0-E73E6B7EDDCB
 :END:
@@ -36,6 +37,27 @@
 
 #+end_src
 
+*** DONE Refile 
+   CLOSED: [2021-02-09 Tue 11:52]
+   :PROPERTIES:
+   :ID:       DCDBAD13-D0C3-4C43-9893-3CBA2B27718B
+   :END:
+- State "DONE"       from "NEXT"       [2021-02-09 Tue 11:52] \\
+  完成：能 refile ，并在refile中能挑选出所有我需要的target
+将 Headline 移到另一个 headlin 中，可以是本地的headline 也可以是其它文件的headline
+- [[https://orgmode.org/manual/Refile-and-Copy.html][Manual]] 
+- [[https://blog.aaronbieber.com/2017/03/19/organizing-notes-with-refile.html][Organizing Notes With Refile]]
+  - The main thing you can configure about Refile is where the target list comes from and how it is presented.
+  - 默认配置中，refile 仅列出 Org Buferr 中的文件的一级 Heading
+  - outline形式列出所有的 Heading
+    
+#+begin_src emacs-lisp :tangle yes
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 5))
+        org-refile-use-outline-path 'filey
+        org-outline-path-complete-in-steps nily
+        org-refile-allow-creating-parent-nodes 'confirm
+  )
+#+end_src 
 
 ** 未整理的内容
 :PROPERTIES:
@@ -91,13 +113,7 @@
                             ,(concat org-directory "/book.org"))
          "* Topic: %^{Description}  %^g %? Added: %U")
         ))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; config Refile: ref:  [[file:~/Dropbox/knowledgebase/README.org::*Refile][Refile]]
-(setq org-refile-targets '((org-agenda-files :maxlevel . 5))
-      org-refile-use-outline-path 'file
-      org-outline-path-complete-in-steps nil
-      org-refile-allow-creating-parent-nodes 'confirm)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 
 ;; 从 org-mode xx 复制过来的
