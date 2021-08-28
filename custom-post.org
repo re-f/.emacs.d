@@ -1,4 +1,9 @@
 #+startup: content
+#+STARTUP: hideblocks
+
+
+* 为什么要学习emacs
+ todo 和 文档还有项目的规划是在同一个语言体系(系统)下;个人很多todo 都是是在写规划或者文章时，所生产.过往的GTD 工具碰到的最难受的问题就是总是需要手工关联任务和文章
 
 * Ref的Emacs 自定义设置
 :PROPERTIES:
@@ -498,7 +503,7 @@
                 "\\|^.obsidian*\\|\\.organice-bak$"))
 #+end_src
 
-** 配置
+*** 配置
 :PROPERTIES:
 :ID:       15941A19-30EA-4D25-B024-B23962DF6685
 :END:
@@ -509,8 +514,10 @@
   (setq split-width-threshold 1 )
 #+end_src
 
-***  编辑习惯配置
-**** [[https://github.com/knu/easy-kill-extras.el][easy-kill]]
+**** 编辑习惯配置
+emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emacs/manual/html_node/emacs/Mark.html][The Mark and the Region]]
+ 通用的方式：=smart region= mark，如何通过光标移动，如C-f/b等开始选择区域，如何就能针对这个区域开始调用命令
+***** [[https://github.com/knu/easy-kill-extras.el][easy-kill]]
 :PROPERTIES:
 :ID:       F253C7CC-DF16-48B8-881A-56FED4BAD759
 :END:
@@ -525,9 +532,60 @@
   ;; 选中 '' 中的内容
     (add-to-list 'easy-kill-alist '(?\" dquoted-string "") t)
 #+end_src
+***** 多光标编辑方案：[[https://github.com/magnars/multiple-cursors.el][multiple-cousor]]
+:PROPERTIES:
+:ID:       09CCDB32-D709-4DBF-96CE-A44D19F8BDA6
+:END:
+快捷键是参考 vscode
+#+begin_src emacs-lisp :tangle yes
+ (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+ 
+;;When you want to add multiple cursors not based on   lines, but based on keywords in the buffer, use:
+ 
+ (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+ (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+ (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+#+end_src
 
-** 一些实用的工具
-*** 在其它的App 中打开当前buffer的文件
+***** org-super-links
+:PROPERTIES:
+:ID:       A743C4C5-5616-4645-A2FF-6F84F541B5E6
+:END:
+快捷键注释调的原因： 未设置 C-c s 的 key－prefix，所以快捷键注册失败
+#+begin_src emacs-lisp :tangle yes
+  (add-to-list 'load-path "~/.emacs.d/lisp/org-super-links")
+  (require 'org-super-links)
+  (setq org-super-links-related-into-drawer t
+          org-super-links-link-prefix 'org-super-links-link-prefix-timestamp)
+  ;; (use-package org-super-links
+  ;; ;;  :bind (("C-c s s" . org-super-links-link)
+  ;; ;;         ("C-c s l" . org-super-links-store-link)
+  ;; ;;         ("C-c s C-l" . org-super-links-insert-link)
+  ;; ;;         ("C-c s d" . org-super-links-quick-insert-drawer-link)
+  ;; ;;         ("C-c s i" . org-super-links-quick-insert-inline-link)
+  ;; ;;         ("C-c s C-d" . org-super-links-delete-link))
+  ;;   :config
+  ;;   (setq org-super-links-related-into-drawer t
+  ;;   	    org-super-links-link-prefix 'org-super-links-link-prefix-timestamp))
+#+end_src
+
+
+
+**** 显示配置
+:PROPERTIES:
+:ID:       7FDBAA8A-B0A6-40DF-AA7F-F111A19F9A90
+:END:
+将完成的 TODO Headline 上加上删除线，[[https://liangjun.work/posts/c5c41e4d/][参考]]
+
+#+begin_src emacs-lisp :tangle yes
+(setq org-fontify-done-headline t)
+#+end_src
+
+
+
+
+*** 实用的工具
+**** 在其它的App 中打开当前buffer的文件
 :PROPERTIES:
 :ID:       2B17C599-5F83-4A16-A220-28AB18EDC10E
 :END:
@@ -602,7 +660,7 @@
 
 #+end_src
 
-*** 中文支持
+**** 中文支持
 :PROPERTIES:
 :ID:       03445261-50A4-48ED-8147-1200ADEFA118
 :END:
@@ -628,7 +686,48 @@
 (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
 (setq default-input-method "pyim")
 
-(setq pyim-punctuation-translate-p '(auto yes no)) 
+;;(setq pyim-punctuation-translate-p '(auto yes no)) 
+#+end_src
+
+**** 统计emacs常用命令调用
+:PROPERTIES:
+:ID:       3F1A03DF-D53A-472C-99C2-8A9008C37563
+:END:
+#+begin_src emacs-lisp :tangle yes
+  (require 'keyfreq)
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1)
+
+  (setq keyfreq-excluded-commands
+        '(insert-self-forward
+          self-insert-command
+          mwheel-scroll
+          command-backward
+          char-previous
+          line-char
+          next-mwheel
+          line-scroll
+          org-self-insert-command
+          ))
+#+end_src
+
+**** 搜索: [[https://github.com/manateelazycat/color-rg][color-rg]]
+:PROPERTIES:
+:ID:       4FE38B8C-524D-4AC7-8D58-CA9D969F5749
+:END:
+需要实现的功能：
+1. rg的功能
+   - 指定目录搜索
+2. 全文替换
+ 备注：
+   1) 按下r后，按 y 或者 n 来表示是否替换当前行，按！替换所有。 这个和Emacs的行为一致
+   2) 如果搜索出来的结果有些不想处理，可以通过filter/delete 去除一些搜索结果再替换
+
+#+begin_src emacs-lisp :tangle yes
+(require 'color-rg)
+(global-set-key (kbd "s-F") 'color-rg-search-symbol)
+;; using `isearch-forward', type "M-s M-s" to search current isearch string with color-rg.
+;;(define-key isearch-mode-map (kbd "M-s M-s") 'isearch-toggle-color-rg)
 #+end_src
 
 * End
