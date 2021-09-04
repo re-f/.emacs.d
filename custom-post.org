@@ -33,9 +33,7 @@
 
         org-use-fast-todo-selection t
         org-treat-S-cursor-todo-selection-as-state-change nil
-        org-todo-state-tags-triggers      (quote
-   (("CANCELLED" ("CANCELLED" . t))
-                                                ;;  ("WAITING" ("WAITING???" . t))
+        org-todo-state-tags-triggers      (quote (("CANCELLED" ("CANCELLED" . t))
                                                   ("HOLD" ("WAITING") ("HOLD" . t))
                                                   (done ("WAITING") ("HOLD"))
                                                   ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
@@ -301,8 +299,8 @@
         (cond
          ((bh/is-project-p)
           subtree-end)
-         ((org-is-habit-p)
-          subtree-end)
+;;         ((org-is-habit-p)
+  ;;        subtree-end)
          ((bh/is-project-subtree-p)
           subtree-end)
          (t
@@ -327,8 +325,8 @@
                 next-headline
                 subtree-end))
           )
-         ((org-is-habit-p)
-          subtree-end)
+         ;; ((org-is-habit-p)
+          ;; subtree-end)
          ((and (bh/is-project-subtree-p)
                (member (org-get-todo-state) (list "NEXT")))
           subtree-end)
