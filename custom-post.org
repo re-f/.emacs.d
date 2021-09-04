@@ -9,36 +9,40 @@
 :PROPERTIES:
 :ID:       7900ABE1-B064-4B47-89E0-EB65B9D43154
 :END:
-** 本文档的使用说明
+** 使用说明
 本文档作为 [[http://doc.norang.ca/org-mode.org][org 文件]] 提供，您可以在 Emacs 中加载它并通过 =C-c C-v C-t=  （org-babel-tangle） 导出 custom-post.el，文件中包含本文档中所有 emacs 配置的 elisp 代码，可以将它放到你的Emacs配置目录中
 ** org-mode
 *** 配置 org TODO 
 :PROPERTIES:
 :ID:       835E8AB4-81B5-46FE-BCA0-E73E6B7EDDCB
 :END:
+注意事项
+1. TODO 关键字尽量不要使用中文, 因为 =org-tag-view= 无法支持中文
+2. TODO 关键字尽量不要使用 =+/-= 之类的符号,会导致 =org-tag-view= 的快捷搜索功能( =/TODO关键字= 的搜索方式)无法搜索,只能使用 =TODO = "TODO关键字"= 的搜索方式,也许转义能使用,但是我没找到转义字符时哪个
 #+begin_src emacs-lisp :tangle yes
-(setq org-todo-keywords
-      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d@/!)")
-              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)")
-              (sequence "售前" "交付" "|" "终止(@/!)" "结束")
-              ))
+  (setq org-todo-keywords
+        (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d@/!)")
+                (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)")
+                ))
               
-      org-todo-keyword-faces (quote (
-                                     ("NEXT" :foreground "blue" :weight bold)
-                                     ("WAITING" . warning)
-                                     ("HOLD" :foreground "magenta" :weight bold)
-                                     ))
+        org-todo-keyword-faces (quote (
+                                       ("NEXT" :foreground "blue" :weight bold)
+                                       ("WAITING" . warning)
+                                       ("HOLD" :foreground "magenta" :weight bold)
+                                       ))
 
-      org-use-fast-todo-selection t
-      org-treat-S-cursor-todo-selection-as-state-change nil
-      org-todo-state-tags-triggers      (quote (("CANCELLED" ("CANCELLED" . t))
-                                                ("WAITING" ("WAITING" . t))
-                                                ("HOLD" ("WAITING") ("HOLD" . t))
-                                                (done ("WAITING") ("HOLD"))
-                                                ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
-                                                ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
-                                                ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
-      )
+        org-use-fast-todo-selection t
+        org-treat-S-cursor-todo-selection-as-state-change nil
+        org-todo-state-tags-triggers      (quote
+   (("CANCELLED" ("CANCELLED" . t))
+                                                ;;  ("WAITING" ("WAITING???" . t))
+                                                  ("HOLD" ("WAITING") ("HOLD" . t))
+                                                  (done ("WAITING") ("HOLD"))
+                                                  ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+                                                  ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+                                                  ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
+  )
+
 
 #+end_src
 
@@ -58,11 +62,24 @@
     
 #+begin_src emacs-lisp :tangle yes
   (setq org-refile-targets '((org-agenda-files :maxlevel . 5))
-        org-refile-use-outline-path 'filey
-        org-outline-path-complete-in-steps nily
-        org-refile-allow-creating-parent-nodes 'confirm
-  )
-#+end_src 
+** 针对使用场景的配置
+*** 追踪公司项目进展
+公司项目[简称项目]运转并不是完全由我负责,但是经常关注项目的进展,需要获取的信息 _进展/质量/问题_,因此需要能筛选处一列表:那些是需要回顾的项目,其中存在的问题
+1. 我的org文件目录除了存放TODO ,还存放知识,因此不能每次回顾所有的文件,而必须明确的列出那些是必须回顾的项目
+方案:
+1. +所有的项目放在project/下,每次去扫目录下文件,完成的项目archieve+: 文件太多
+2. 为所有的项目标记 :项目: TAG ,并且有项目自身的状态流程
+   标签: :项目:
+   状态流程: 售前（PreSale）/交付中（InDelivery）/被阻塞[HOLD(h@/!)]/终止（Terminated）/结束[DONE(@/!)]
+
+#+begin_src emacs-lisp :tangle yes
+  (add-to-list 'org-todo-keywords '(sequence "PreSale(s)"  "InDelivery(j)" "HOLD(h@/!)" "|" "Terminated(@/!)" "DONE(@/!)"))
+  (setq org-todo-state-tags-triggers (append '(("PreSale" ("项目" . t)  ("WAITING") ("CANCELLED") ("HOLD") )
+                                               ("Terminated" ("项目" . t) )
+                                               ("InDelivery"  ("项目" . t) ("WAITING") ("CANCELLED") ("HOLD")))
+                                             org-todo-state-tags-triggers))
+
+#+end_src
 
 ** 未整理的内容
 :PROPERTIES:
