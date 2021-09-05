@@ -12,7 +12,7 @@
 ** 使用说明
 本文档作为 [[http://doc.norang.ca/org-mode.org][org 文件]] 提供，您可以在 Emacs 中加载它并通过 =C-c C-v C-t=  （org-babel-tangle） 导出 custom-post.el，文件中包含本文档中所有 emacs 配置的 elisp 代码，可以将它放到你的Emacs配置目录中
 ** org-mode
-*** 配置 org TODO 
+*** 配置 org TODO 状态
 :PROPERTIES:
 :ID:       835E8AB4-81B5-46FE-BCA0-E73E6B7EDDCB
 :END:
@@ -34,81 +34,30 @@
         org-use-fast-todo-selection t
         org-treat-S-cursor-todo-selection-as-state-change nil
         org-todo-state-tags-triggers      (quote (("CANCELLED" ("CANCELLED" . t))
+                                                  ("WAITING" ("WAITING???" . t))
                                                   ("HOLD" ("WAITING") ("HOLD" . t))
                                                   (done ("WAITING") ("HOLD"))
                                                   ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
                                                   ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
                                                   ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
   )
-
-
 #+end_src
 
-*** DONE Refile 
-   CLOSED: [2021-02-09 Tue 11:52]
-   :PROPERTIES:
-   :ID:       DCDBAD13-D0C3-4C43-9893-3CBA2B27718B
-   :END:
-- State "DONE"       from "NEXT"       [2021-02-09 Tue 11:52] \\
-  完成：能 refile ，并在refile中能挑选出所有我需要的target
-将 Headline 移到另一个 headlin 中，可以是本地的headline 也可以是其它文件的headline
-- [[https://orgmode.org/manual/Refile-and-Copy.html][Manual]] 
-- [[https://blog.aaronbieber.com/2017/03/19/organizing-notes-with-refile.html][Organizing Notes With Refile]]
-  - The main thing you can configure about Refile is where the target list comes from and how it is presented.
-  - 默认配置中，refile 仅列出 Org Buferr 中的文件的一级 Heading
-  - outline形式列出所有的 Heading
-    
-#+begin_src emacs-lisp :tangle yes
-  (setq org-refile-targets '((org-agenda-files :maxlevel . 5))
-** 针对使用场景的配置
-*** 追踪公司项目进展
-公司项目[简称项目]运转并不是完全由我负责,但是经常关注项目的进展,需要获取的信息 _进展/质量/问题_,因此需要能筛选处一列表:那些是需要回顾的项目,其中存在的问题
-1. 我的org文件目录除了存放TODO ,还存放知识,因此不能每次回顾所有的文件,而必须明确的列出那些是必须回顾的项目
-方案:
-1. +所有的项目放在project/下,每次去扫目录下文件,完成的项目archieve+: 文件太多
-2. 为所有的项目标记 :项目: TAG ,并且有项目自身的状态流程
-   标签: :项目:
-   状态流程: 售前（PreSale）/交付中（InDelivery）/被阻塞[HOLD(h@/!)]/终止（Terminated）/结束[DONE(@/!)]
-
-#+begin_src emacs-lisp :tangle yes
-  (add-to-list 'org-todo-keywords '(sequence "PreSale(s)"  "InDelivery(j)" "HOLD(h@/!)" "|" "Terminated(@/!)" "DONE(@/!)"))
-  (setq org-todo-state-tags-triggers (append '(("PreSale" ("项目" . t)  ("WAITING") ("CANCELLED") ("HOLD") )
-                                               ("Terminated" ("项目" . t) )
-                                               ("InDelivery"  ("项目" . t) ("WAITING") ("CANCELLED") ("HOLD")))
-                                             org-todo-state-tags-triggers))
-
-#+end_src
-
-** 未整理的内容
+*** org-capture & agenda设置
 :PROPERTIES:
-:ID:       135D5C31-BE0C-44F2-B59D-3EC49A36D675
+:ID:       28B3A3F2-DF48-42A0-B7DF-3A00777A4513
 :END:
+zmonster[fn:1]
 #+begin_src emacs-lisp :tangle yes
-
-  ;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
-  ;; ref: https://emacs-china.org/t/org-mode/13248
-  (use-package ox-hugo
-    :ensure t            ;Auto-install the package from Melpa (optional)
-    :after ox)
-  ;; (setq org-hugo-default-section-directory "knowledgebase")
-
-  ;; 设置 stuck project ，参考：https://oomake.com/question/2338872
+    ;; 设置 stuck project ，参考：https://oomake.com/question/2338872
   (setq org-stuck-projects
-        '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
-
-
-  (with-eval-after-load 'org
-    (add-to-list 'org-modules 'org-habit 'org-id))
-
-  ;;;;;;;;;;;;;; Appearance of the configuration
-
+          '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
   (defun ref/create-org-file ()
-    "Create an org file in org-directory"
-    (interactive)
-    (let ((name (read-string "Filename: ")))
-      (expand-file-name (format "%s.org"
-                                name) org-directory)))
-
+      "Create an org file in org-directory"
+      (interactive)
+      (let ((name (read-string "Filename: ")))
+        (expand-file-name (format "%s.org"
+                                  name) org-directory)))
   (setq org-capture-templates
         `(
           ("t" "TODO" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
@@ -128,12 +77,18 @@
           ("gi" "Idea" entry (file ,(concat org-directory "/idea.org"))
            "*  %^{Title} %?\n%U\n%a\n")
           ("gb" "Book" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                              ,(concat org-directory "/book.org"))
+                              ,(concat org-directory "/reading-notes.org"))
            "* Topic: %^{Description}  %^g %? Added: %U")
           ))
 
 
+#+end_src
 
+*** org agenda设置
+:PROPERTIES:
+
+:END:
+#+begin_src emacs-lisp :tangle yes
   ;; 从 org-mode xx 复制过来的
   (defvar bh/hide-scheduled-and-waiting-next-tasks t)
   (defun bh/find-project-task ()
@@ -287,8 +242,6 @@
           nil)
          (t
           next-headline)))))
-
-
 
   (defun bh/skip-project-tasks ()
     "Show non-project tasks.
@@ -461,7 +414,13 @@
       (switch-to-buffer "*Org Agenda*"))
     (delete-other-windows))
 
-  ;;  config tags
+  #+end_src
+
+*** org mode 其它配置
+标签配置：需要区分生活和工作
+:PROPERTIES:
+:END:
+#+begin_src emacs-lisp :tangle yes
   (setq org-tag-alist '((:startgroup)
                         ("#work" . ?w) ("#life" . ?h)
                         (:endgroup )))
@@ -473,8 +432,8 @@
 
 
   ;; config keyboard shortcuts
-  (global-set-key (kbd "C-M-s-a") 'bh/show-org-agenda)
-  (global-set-key (kbd "<f1>") 'count-words)
+
+  
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
   (with-eval-after-load 'org-roam
     (require 'org-roam-protocol))
@@ -502,23 +461,101 @@
            :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
           ))
 
-  ;; 解决在中文下，表格无法自动对齐的问题
-  (with-eval-after-load 'org
-    (require 'valign))
-  (add-hook 'org-mode-hook #'valign-mode)
-
   ;; 配置 dired
   (put 'dired-find-alternate-file 'disabled nil)
   (with-eval-after-load 'dired
-    (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
+    
 
   ;; 在 dired 列表中，忽略一些文件
   (setq dired-omit-files
         (concat dired-omit-files
                 "\\|^.obsidian*\\|\\.organice-bak$"))
 #+end_src
+**** 链接至 agenda
+:PROPERTIES:
+:ID:       6FEC888B-956F-4BB2-91A8-65BF7D4265DF
+:END:
+[[http://endlessparentheses.com/use-org-mode-links-for-absolutely-anything.html][参考]]: 已经完成的headline无法搜索出来
+#+begin_src emacs-lisp :tangle yes
+(org-add-link-type
+ "tag" 'endless/follow-tag-link)
 
-*** 配置
+(defun endless/follow-tag-link (tag)
+  "Display a list of TODO headlines with tag TAG.
+With prefix argument, also display headlines without a TODO keyword."
+  (org-tags-view (null current-prefix-arg) tag))
+
+#+end_src
+
+
+*** Refile 
+   :PROPERTIES:
+   :ID:       DCDBAD13-D0C3-4C43-9893-3CBA2B27718B
+   :END:
+- State "DONE"       from "NEXT"       [2021-02-09 Tue 11:52] \\
+  完成：能 refile ，并在refile中能挑选出所有我需要的target
+将 Headline 移到另一个 headlin 中，可以是本地的headline 也可以是其它文件的headline
+- [[https://orgmode.org/manual/Refile-and-Copy.html][Manual]] 
+- [[https://blog.aaronbieber.com/2017/03/19/organizing-notes-with-refile.html][Organizing Notes With Refile]]
+  - The main thing you can configure about Refile is where the target list comes from and how it is presented.
+  - 默认配置中，refile 仅列出 Org Buferr 中的文件的一级 Heading
+  - outline形式列出所有的 Heading
+    
+#+begin_src emacs-lisp :tangle yes
+(setq org-refile-targets '((org-agenda-files :maxlevel . 5))
+      org-refile-use-outline-path 'file
+      org-outline-path-complete-in-steps nil
+      org-refile-allow-creating-parent-nodes 'confirm)
+#+end_src 
+
+** 针对使用场景的配置
+*** 追踪公司项目进展
+:PROPERTIES:
+:ID:       651564B1-F4F3-4DF5-BD32-8FC8A5769EF1
+:END:
+公司项目[简称项目]运转并不是完全由我负责,但是经常关注项目的进展,需要获取的信息 _进展/质量/问题_,因此需要能筛选处一列表:那些是需要回顾的项目,其中存在的问题
+1. 我的org文件目录除了存放TODO ,还存放知识,因此不能每次回顾所有的文件,而必须明确的列出那些是必须回顾的项目
+方案:
+1. +所有的项目放在project/下,每次去扫目录下文件,完成的项目archieve+: 文件太多
+2. 为所有的项目标记 :项目: TAG ,并且有项目自身的状态流程
+   标签: :项目:
+   状态流程: 售前（PreSale）/交付中（InDelivery）/被阻塞[HOLD(h@/!)]/终止（Terminated）/结束[DONE(@/!)]
+
+#+begin_src emacs-lisp :tangle yes
+  (add-to-list 'org-todo-keywords '(sequence "PreSale(s)"  "InDelivery(j)" "HOLD(h@/!)" "|" "Terminated(@/!)" "DONE(@/!)"))
+  (setq org-todo-state-tags-triggers (append '(("PreSale" ("项目" . t)  ("WAITING") ("CANCELLED") ("HOLD") )
+                                               ("Terminated" ("项目" . t) )
+                                               ("InDelivery"  ("项目" . t) ("WAITING") ("CANCELLED") ("HOLD")))
+                                             org-todo-state-tags-triggers))
+
+#+end_src
+
+* 未整理的内容
+:PROPERTIES:
+:ID:       135D5C31-BE0C-44F2-B59D-3EC49A36D675
+:END:
+#+begin_src emacs-lisp :tangle yes
+
+    ;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
+    ;; ref: https://emacs-china.org/t/org-mode/13248
+    (use-package ox-hugo
+      :ensure t            ;Auto-install the package from Melpa (optional)
+      :after ox)
+    ;; (setq org-hugo-default-section-directory "knowledgebase")
+
+
+    ;; (with-eval-after-load 'org
+  ;;     (add-to-list 'org-modules 'org-habit 'org-id))
+#+end_src
+
+* 编辑/操作习惯配置
+:PROPERTIES:
+:ID:       3E488FC1-8740-4A28-8486-FC988BE84AF1
+:END:
+emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emacs/manual/html_node/emacs/Mark.html][The Mark and the Region]]
+ 通用的方式：=smart region= mark，如何通过光标移动，如C-f/b等开始选择区域，如何就能针对这个区域开始调用命令
+
+** 垂直分屏
 :PROPERTIES:
 :ID:       15941A19-30EA-4D25-B024-B23962DF6685
 :END:
@@ -529,10 +566,7 @@
   (setq split-width-threshold 1 )
 #+end_src
 
-**** 编辑习惯配置
-emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emacs/manual/html_node/emacs/Mark.html][The Mark and the Region]]
- 通用的方式：=smart region= mark，如何通过光标移动，如C-f/b等开始选择区域，如何就能针对这个区域开始调用命令
-***** [[https://github.com/knu/easy-kill-extras.el][easy-kill]]
+** [[https://github.com/knu/easy-kill-extras.el][easy-kill]]
 :PROPERTIES:
 :ID:       F253C7CC-DF16-48B8-881A-56FED4BAD759
 :END:
@@ -547,22 +581,22 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   ;; 选中 '' 中的内容
     (add-to-list 'easy-kill-alist '(?\" dquoted-string "") t)
 #+end_src
-***** 多光标编辑方案：[[https://github.com/magnars/multiple-cursors.el][multiple-cousor]]
+** 多光标编辑：[[https://github.com/magnars/multiple-cursors.el][multiple-cousor]]
 :PROPERTIES:
 :ID:       09CCDB32-D709-4DBF-96CE-A44D19F8BDA6
 :END:
 快捷键是参考 vscode
 #+begin_src emacs-lisp :tangle yes
- (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+ 
  
 ;;When you want to add multiple cursors not based on   lines, but based on keywords in the buffer, use:
  
- (global-set-key (kbd "C->") 'mc/mark-next-like-this)
- (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
- (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+ 
+ 
+ 
 #+end_src
 
-***** org-super-links
+** org-super-links
 :PROPERTIES:
 :ID:       A743C4C5-5616-4645-A2FF-6F84F541B5E6
 :END:
@@ -586,7 +620,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 
 
-**** 显示配置
+** 显示配置
 :PROPERTIES:
 :ID:       7FDBAA8A-B0A6-40DF-AA7F-F111A19F9A90
 :END:
@@ -599,8 +633,8 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 
 
-*** 实用的工具
-**** 在其它的App 中打开当前buffer的文件
+** 实用的工具
+*** 在其它的App 中打开当前buffer的文件
 :PROPERTIES:
 :ID:       2B17C599-5F83-4A16-A220-28AB18EDC10E
 :END:
@@ -675,10 +709,18 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 #+end_src
 
-**** 中文支持
+*** 中文支持
 :PROPERTIES:
 :ID:       03445261-50A4-48ED-8147-1200ADEFA118
 :END:
+
++ 中文下表格对齐
+  ;; 解决在中文下，表格无法自动对齐的问题
+  #+begin_src emacs-lisp :tangle yes
+  (with-eval-after-load 'org
+    (require 'valign))
+  (add-hook 'org-mode-hook #'valign-mode)
+#+end_src
 + 支持中文分词
   参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
   #+begin_src emacs-lisp :tangle yes
@@ -693,18 +735,17 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   #+end_src
 
 + 使用内置的中文输入法
- https://github.com/tumashu/pyim，  使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用emacs的快捷键
+ https://github.com/tumashu/pyim，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用emacs的快捷键
 
 #+begin_src emacs-lisp :tangle yes
 (require 'pyim)
 (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
 (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
 (setq default-input-method "pyim")
-
-;;(setq pyim-punctuation-translate-p '(auto yes no)) 
+(setq pyim-punctuation-translate-p '(no auto yes)) ;; 默认使用半角符号
 #+end_src
 
-**** 统计emacs常用命令调用
+*** 统计emacs常用命令调用
 :PROPERTIES:
 :ID:       3F1A03DF-D53A-472C-99C2-8A9008C37563
 :END:
@@ -726,7 +767,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
           ))
 #+end_src
 
-**** 搜索: [[https://github.com/manateelazycat/color-rg][color-rg]]
+*** 搜索: [[https://github.com/manateelazycat/color-rg][color-rg]]
 :PROPERTIES:
 :ID:       4FE38B8C-524D-4AC7-8D58-CA9D969F5749
 :END:
@@ -740,9 +781,48 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 #+begin_src emacs-lisp :tangle yes
 (require 'color-rg)
-(global-set-key (kbd "s-F") 'color-rg-search-symbol)
+
 ;; using `isearch-forward', type "M-s M-s" to search current isearch string with color-rg.
+
+#+end_src
+
+* Test 
+:PROPERTIES:
+:ID:       609FA27E-AC07-4385-A050-9DC1491FB0F6
+:END:
+#+begin_src emacs-lisp :tangle yes
+(require 'whole-line-or-region)
+#+end_src
+
+
+* 快捷键配置
+#+begin_src emacs-lisp :tangle yes
+
+(global-set-key (kbd "<f1>") 'count-words)  
+(define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
+
+(defun ref/newline-return ()
+  "append (open) a new line below the current line, and execute return"
+  (interactive)
+    (move-end-of-line 1)
+  (org-newline-and-indent))
+(defun ref/newline-meta-return ()
+  "append (open) a new line below the current line, org-meta-return"
+  (interactive)
+    (move-end-of-line 1)
+  (org-meta-return))
+(define-key org-mode-map (kbd "C-j") 'ref/newline-return)
+(define-key org-mode-map (kbd "C-M-j") 'ref/newline-meta-return)
+
+(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+(global-set-key (kbd "C->") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+
+(global-set-key (kbd "s-F") 'color-rg-search-symbol)
 ;;(define-key isearch-mode-map (kbd "M-s M-s") 'isearch-toggle-color-rg)
+
+(global-set-key (kbd "C-M-s-a") 'bh/show-org-agenda) 
 #+end_src
 
 * End
@@ -752,3 +832,12 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 #+begin_src emacs-lisp :tangle yes
 ;;; custom-post.el ends here
 #+end_src
+
+* Footnotes
+
+[fn:1]zmonter的系列文章[1/3]： 
+- +强大的 Org mode(1): 简单介绍与基本使用+
+- [ ] [[https://www.zmonster.me/2015/07/15/org-mode-planning.html][强大的 Org mode(2): 任务管理]]: 如何设置状态以及状态流转
+- [ ] 强大的 Org mode(3): 表格的基本操作及公式、绘图 
+- [X] [[https://www.zmonster.me/2018/02/28/org-mode-capture.html][强大的 Org mode(4): 使用 capture 功能快速记录]]
+
