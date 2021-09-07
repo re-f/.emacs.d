@@ -43,7 +43,7 @@
   )
 #+end_src
 
-*** org-capture & agenda设置
+*** org capture 设置
 :PROPERTIES:
 :ID:       28B3A3F2-DF48-42A0-B7DF-3A00777A4513
 :END:
@@ -85,6 +85,7 @@ zmonster[fn:1]
 #+end_src
 
 *** org agenda设置
+agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql 是通过查询找到想要的TODO，org-super-agenda 是给传入的TODO 列表进行分类
 :PROPERTIES:
 
 :END:
@@ -546,6 +547,7 @@ With prefix argument, also display headlines without a TODO keyword."
 
     ;; (with-eval-after-load 'org
   ;;     (add-to-list 'org-modules 'org-habit 'org-id))
+  (require 'org-ql)
 #+end_src
 
 * 编辑/操作习惯配置

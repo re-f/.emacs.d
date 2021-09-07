@@ -1,3 +1,7 @@
+# Ref config
+pyim/dict
+pyim/dcache
+
 *.bak
 *.data
 *.db
