@@ -335,7 +335,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
 
   ;; recursively add org file
   (setq org-agenda-files (directory-files-recursively centaur-org-directory "^[^\\.][^#].*\\.org$"))
-
+  (setq org-agenda-files (append org-agenda-files '("~/.emacs.d/custom-post.org")))
   ;; Custom agenda command definitions
   (setq org-agenda-custom-commands
         (quote (("n" "Notes" tags "NOTE+CATEGORY=\"inbox\"-TODO=\"DONE\"-TODO=\"CANCELLED\""
@@ -751,7 +751,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
 (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
 (setq default-input-method "pyim")
-(setq pyim-punctuation-translate-p '(no auto yes)) ;; 默认使用半角符号
 #+end_src
 
 *** 统计emacs常用命令调用
