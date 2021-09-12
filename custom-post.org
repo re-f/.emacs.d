@@ -10,16 +10,21 @@
 :ID:       7900ABE1-B064-4B47-89E0-EB65B9D43154
 :END:
 ** 使用说明
+:PROPERTIES:
+:ID:       1C7B1DF4-877E-40ED-93F3-BD6A923045C0
+:END:
 本文档作为 [[http://doc.norang.ca/org-mode.org][org 文件]] 提供，您可以在 Emacs 中加载它并通过 =C-c C-v C-t=  （org-babel-tangle） 导出 custom-post.el，文件中包含本文档中所有 emacs 配置的 elisp 代码，可以将它放到你的Emacs配置目录中
 
 #+begin_src emacs-lisp :tangle yes
 (require 'init-ref)
 #+end_src
+
 ** org-mode
 *** 配置 org TODO 状态
 :PROPERTIES:
 :ID:       835E8AB4-81B5-46FE-BCA0-E73E6B7EDDCB
 :END:
+
 注意事项
 1. TODO 关键字尽量不要使用中文, 因为 =org-tag-view= 无法支持中文
 2. TODO 关键字尽量不要使用 =+/-= 之类的符号,会导致 =org-tag-view= 的快捷搜索功能( =/TODO关键字= 的搜索方式)无法搜索,只能使用 =TODO = "TODO关键字"= 的搜索方式,也许转义能使用,但是我没找到转义字符时哪个
@@ -84,6 +89,9 @@ zmonster[fn:1]
 #+end_src
 
 *** org agenda设置
+    :PROPERTIES:
+    :ID:       882C7B36-442B-481C-872F-4F2F524BB0B3
+    :END:
 agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查询语句找到符合条件的TODO，org-super-agenda 是给传入的TODO 列表进行分类
 :PROPERTIES:
 
@@ -417,6 +425,9 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
   #+end_src
 
 *** org mode 其它配置
+:PROPERTIES:
+:ID:       3DDB2384-4F39-470A-BA19-4CA8E28BFAC9
+:END:
 标签配置：需要区分生活和工作
 :PROPERTIES:
 :END:
@@ -517,10 +528,15 @@ With prefix argument, also display headlines without a TODO keyword."
 ** 针对使用场景的配置
 *** Project 配置
 **** 编辑习惯
+:PROPERTIES:
+:ID:       8DE580EA-173B-4CAC-9FDC-4E869897252F
+:END:
 - 模板配置
-  理论来说，应该使用 =(setq yas-snippet-dirs (append yas-snippet-dirs (concat org-directory "/config/snippets")))= 但是这条命令的执行结果是 =("~/emacs.d/snippets" . "/Users/monster/Dropbox/knowledgebase-blog/content-org/config/snippets")= 中间总是多了一个“.”， 目前来说只能hardcode了
+  理论来说，应该使用 =(setq yas-snippet-dirs (append yas-snippet-dirs (concat org-directory "/config/snippets")))= 但是这条命令的执行结果是 =("~/emacs.d/snippets" . "/Users/monster/Dropbox/knowledgebase-blog/content-org/.config/snippets")= 中间总是多了一个“.”， 目前来说只能hardcode了
+  
 #+begin_src emacs-lisp :tangle yes
-(setq yas-snippet-dirs (append yas-snippet-dirs '("~/Dropbox/knowledgebase-blog/content-org/config/snippet")))
+
+  (setq yas-snippet-dirs (append '("~/Dropbox/knowledgebase-blog/content-org/.config/snippets") yas-snippet-dirs ))
 #+end_src
 *** 追踪公司项目进展
 :PROPERTIES:
@@ -627,6 +643,9 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 
 ** 显示配置
+:PROPERTIES:
+:ID:       335C2BB4-0A69-4F25-B9BE-49D87491D382
+:END:
 - 将完成的 TODO Headline 上加上删除线，[[https://liangjun.work/posts/c5c41e4d/][参考]]
 - 垂直分屏
 默认垂直分屏，要换成水平分屏，参考： [[https://cloud.tencent.com/developer/ask/105836]]，
@@ -751,6 +770,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
 (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
 (setq default-input-method "pyim")
+(setq pyim-punctuation-translate-p '(no yes auto)) ;; 默认使用半角符号)
 #+end_src
 
 *** 统计emacs常用命令调用
@@ -794,6 +814,15 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 #+end_src
 
+*** 快速搜索 headline
+:PROPERTIES:
+:ID:       6B65775A-0C6C-4DB3-8F95-705B32731BEC
+:END:
+#+begin_src emacs-lisp :tangle yes
+(setq  helm-org-ql-actions
+   '(("Show heading in source buffer" . helm-org-ql-show-marker)))
+#+end_src
+
 * Test 
 :PROPERTIES:
 :ID:       609FA27E-AC07-4385-A050-9DC1491FB0F6
@@ -804,6 +833,10 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 
 * 快捷键配置
+:PROPERTIES:
+:ID:       C7AE3866-7A3E-406B-9609-C60E4BE9E680
+:END:
+
 #+begin_src emacs-lisp :tangle yes
 
 (global-set-key (kbd "<f1>") 'count-words)  
@@ -820,6 +853,8 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 (global-set-key (kbd "s-F") 'color-rg-search-symbol)
 ;;(define-key isearch-mode-map (kbd "M-s M-s") 'isearch-toggle-color-rg)
+(global-set-key (kbd "M-s-f") 'helm-org-ql-agenda-files)
+
 
 (global-set-key (kbd "C-M-s-a") 'bh/show-org-agenda) 
 #+end_src
