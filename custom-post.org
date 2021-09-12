@@ -1,5 +1,5 @@
 #+startup: content
-#+STARTUP: hideblocks
+#+startup: hideblocks
 
 
 * 为什么要学习emacs
@@ -11,6 +11,10 @@
 :END:
 ** 使用说明
 本文档作为 [[http://doc.norang.ca/org-mode.org][org 文件]] 提供，您可以在 Emacs 中加载它并通过 =C-c C-v C-t=  （org-babel-tangle） 导出 custom-post.el，文件中包含本文档中所有 emacs 配置的 elisp 代码，可以将它放到你的Emacs配置目录中
+
+#+begin_src emacs-lisp :tangle yes
+(require 'init-ref)
+#+end_src
 ** org-mode
 *** 配置 org TODO 状态
 :PROPERTIES:
@@ -52,12 +56,7 @@ zmonster[fn:1]
     ;; 设置 stuck project ，参考：https://oomake.com/question/2338872
   (setq org-stuck-projects
           '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
-  (defun ref/create-org-file ()
-      "Create an org file in org-directory"
-      (interactive)
-      (let ((name (read-string "Filename: ")))
-        (expand-file-name (format "%s.org"
-                                  name) org-directory)))
+
   (setq org-capture-templates
         `(
           ("t" "TODO" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
@@ -85,7 +84,7 @@ zmonster[fn:1]
 #+end_src
 
 *** org agenda设置
-agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql 是通过查询找到想要的TODO，org-super-agenda 是给传入的TODO 列表进行分类
+agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查询语句找到符合条件的TODO，org-super-agenda 是给传入的TODO 列表进行分类
 :PROPERTIES:
 
 :END:
@@ -422,55 +421,61 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql 是通过查
 :PROPERTIES:
 :END:
 #+begin_src emacs-lisp :tangle yes
-  (setq org-tag-alist '((:startgroup)
-                        ("#work" . ?w) ("#life" . ?h)
-                        (:endgroup )))
-  ;; when predefined tags, need to set org-complete-tags-always-offer-all-agenda-tags,  to extend this default list to all tags used in all agenda files
-  (setq org-complete-tags-always-offer-all-agenda-tags t)
+      (setq org-tag-alist '((:startgroup)
+                            ("#work" . ?w) ("#life" . ?h)
+                            (:endgroup )))
+      ;; when predefined tags, need to set org-complete-tags-always-offer-all-agenda-tags,  to extend this default list to all tags used in all agenda files
+      (setq org-complete-tags-always-offer-all-agenda-tags t)
 
 
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-  ;; config keyboard shortcuts
+      ;; config keyboard shortcuts
 
-  
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
-  (with-eval-after-load 'org-roam
-    (require 'org-roam-protocol))
 
-  (setq org-roam-capture-templates
-        '(
-          ("d" "default" plain (function org-roam-capture--get-point)
-           "%?"
-           :file-name "%<%Y%m%d%H%M%S>-${slug}"
-           :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:\n\n")
-          ("1" "Person" plain (function org-roam-capture--get-point)
-           "%?"
-           :file-name "person/${slug}"
-           :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/person\n#+hugo_base_dir: ../..\n\n${title}\n%?")
-          ("2" "Project" entry (function org-roam-capture--get-point)
-           "** ${slug} \n  :PROPERTIES: \n :项目经理: %^{项目经理} \n :区域: %^{区域}\n :END:  \n %?"
-           :file-name "project/项目信息"
-           :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/project\n#+hugo_base_dir: ../..\n\n%?"
-           :olp ("Projects")
-           :unnarrowed t
-           :empty-lines 1)
-          ("p" "new post" plain (function org-roam-capture--get-point)
-           "%?"
-           :file-name "${slug}/_index"
-           :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
-          ))
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
+      (with-eval-after-load 'org-roam
+        (require 'org-roam-protocol))
 
-  ;; 配置 dired
-  (put 'dired-find-alternate-file 'disabled nil)
-  (with-eval-after-load 'dired
-    
+      (setq org-roam-capture-templates
+            '(
+              ("d" "default" plain (function org-roam-capture--get-point)
+               "%?"
+               :file-name "%<%Y%m%d%H%M%S>-${slug}"
+               :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:\n\n")
+              ("1" "Person" plain (function org-roam-capture--get-point)
+               "%?"
+               :file-name "person/${slug}"
+               :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/person\n#+hugo_base_dir: ../..\n\n${title}\n%?")
+              ("2" "Project" entry (function org-roam-capture--get-point)
+               "** ${slug} \n  :PROPERTIES: \n :项目经理: %^{项目经理} \n :区域: %^{区域}\n :END:  \n %?"
+               :file-name "project/项目信息"
+               :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/project\n#+hugo_base_dir: ../..\n\n%?"
+               :olp ("Projects")
+               :unnarrowed t
+               :empty-lines 1)
+              ("p" "new post" plain (function org-roam-capture--get-point)
+               "%?"
+               :file-name "${slug}/_index"
+               :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
+              ))
 
-  ;; 在 dired 列表中，忽略一些文件
-  (setq dired-omit-files
-        (concat dired-omit-files
-                "\\|^.obsidian*\\|\\.organice-bak$"))
+      ;; 配置 dired
+      (put 'dired-find-alternate-file 'disabled nil)
+      (with-eval-after-load 'dired
+
+
+      ;; 在 dired 列表中，忽略obsidian 和 organice 的文件
+      (setq dired-omit-files
+            (concat dired-omit-files
+                    "\\|^.obsidian*\\|\\.organice-bak$"))
+    ;; dire 初始化的配置中， 会隐藏当前目录和上级目录，导致目录跳转不方便，因此放出来
+
+       (setq dired-omit-files(replace-regexp-in-string
+   "\\\\`\\[\\.\\]\\[\\.\\]\\?\\\\'\\\\\|" "" dired-omit-files))
+     ;; 修改 dired 展示样式 https://oremacs.com/2015/01/13/dired-options/
+       (setq dired-listing-switches "-laGh1v")
 #+end_src
 **** 链接至 agenda
 :PROPERTIES:
@@ -510,6 +515,13 @@ With prefix argument, also display headlines without a TODO keyword."
 #+end_src 
 
 ** 针对使用场景的配置
+*** Project 配置
+**** 编辑习惯
+- 模板配置
+  理论来说，应该使用 =(setq yas-snippet-dirs (append yas-snippet-dirs (concat org-directory "/config/snippets")))= 但是这条命令的执行结果是 =("~/emacs.d/snippets" . "/Users/monster/Dropbox/knowledgebase-blog/content-org/config/snippets")= 中间总是多了一个“.”， 目前来说只能hardcode了
+#+begin_src emacs-lisp :tangle yes
+(setq yas-snippet-dirs (append yas-snippet-dirs '("~/Dropbox/knowledgebase-blog/content-org/config/snippet")))
+#+end_src
 *** 追踪公司项目进展
 :PROPERTIES:
 :ID:       651564B1-F4F3-4DF5-BD32-8FC8A5769EF1
@@ -557,22 +569,13 @@ With prefix argument, also display headlines without a TODO keyword."
 emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emacs/manual/html_node/emacs/Mark.html][The Mark and the Region]]
  通用的方式：=smart region= mark，如何通过光标移动，如C-f/b等开始选择区域，如何就能针对这个区域开始调用命令
 
-** 垂直分屏
-:PROPERTIES:
-:ID:       15941A19-30EA-4D25-B024-B23962DF6685
-:END:
-默认垂直分屏，要换成水平分屏，参考： [[https://cloud.tencent.com/developer/ask/105836]]，
-  
-#+begin_src emacs-lisp :tangle yes
-;; 新建buffer时水平分割
-  (setq split-width-threshold 1 )
-#+end_src
-
 ** [[https://github.com/knu/easy-kill-extras.el][easy-kill]]
 :PROPERTIES:
 :ID:       F253C7CC-DF16-48B8-881A-56FED4BAD759
 :END:
-重要功能: 快速选中（并复制）；选中行，选中list，选中引号内的内容，选中括号内的内容，甚至是选中当前buffer的文件名。如果使用的是easy－kill的功能，选中时，就会复制到剪贴板等等。
+重要功能:
+- 快速选中（并复制）；选中行，选中list，选中引号内的内容，选中括号内的内容，甚至是选中当前buffer的文件名。如果使用的是easy－kill的功能，选中时，就会复制到剪贴板等等。
+- 快速选中 =er/expand-region=  (=C-== ) ： 选中后可以使用 =+-0=  快速扩大或者所有选取
 同类型的插件有：[[https://github.com/manateelazycat/thing-edit][things-edit]]
 增加 easy-kill 配置：
 #+begin_src emacs-lisp :tangle yes
@@ -583,6 +586,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   ;; 选中 '' 中的内容
     (add-to-list 'easy-kill-alist '(?\" dquoted-string "") t)
 #+end_src
+
 ** 多光标编辑：[[https://github.com/magnars/multiple-cursors.el][multiple-cousor]]
 :PROPERTIES:
 :ID:       09CCDB32-D709-4DBF-96CE-A44D19F8BDA6
@@ -623,13 +627,16 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 
 ** 显示配置
-:PROPERTIES:
-:ID:       7FDBAA8A-B0A6-40DF-AA7F-F111A19F9A90
-:END:
-将完成的 TODO Headline 上加上删除线，[[https://liangjun.work/posts/c5c41e4d/][参考]]
+- 将完成的 TODO Headline 上加上删除线，[[https://liangjun.work/posts/c5c41e4d/][参考]]
+- 垂直分屏
+默认垂直分屏，要换成水平分屏，参考： [[https://cloud.tencent.com/developer/ask/105836]]，
 
 #+begin_src emacs-lisp :tangle yes
-(setq org-fontify-done-headline t)
+;; 新建buffer时水平分割
+  (setq split-width-threshold 1 )
+;; 在Headline 上加删除线
+  (setq org-fontify-done-headline t)
+
 #+end_src
 
 
@@ -803,16 +810,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 (global-set-key (kbd "<f1>") 'count-words)  
 (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
 
-(defun ref/newline-return ()
-  "append (open) a new line below the current line, and execute return"
-  (interactive)
-    (move-end-of-line 1)
-  (org-newline-and-indent))
-(defun ref/newline-meta-return ()
-  "append (open) a new line below the current line, org-meta-return"
-  (interactive)
-    (move-end-of-line 1)
-  (org-meta-return))
+
 (define-key org-mode-map (kbd "C-j") 'ref/newline-return)
 (define-key org-mode-map (kbd "C-M-j") 'ref/newline-meta-return)
 
