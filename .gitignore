@@ -2,6 +2,7 @@
 pyim/dict
 pyim/dcache
 .#*.org
+.#*.el
 
 *.bak
 *.data
