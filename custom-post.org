@@ -486,7 +486,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
        (setq dired-omit-files(replace-regexp-in-string
    "\\\\`\\[\\.\\]\\[\\.\\]\\?\\\\'\\\\\|" "" dired-omit-files))
      ;; 修改 dired 展示样式 https://oremacs.com/2015/01/13/dired-options/
-       (setq dired-listing-switches "-laGh1v")
+;;       (setq dired-listing-switches "-laGh1v")
 #+end_src
 **** 链接至 agenda
 :PROPERTIES:
@@ -576,6 +576,8 @@ With prefix argument, also display headlines without a TODO keyword."
     ;; (with-eval-after-load 'org
   ;;     (add-to-list 'org-modules 'org-habit 'org-id))
   (require 'org-ql)
+  (setq org-ql-ask-unsafe-queries nil)
+
 #+end_src
 
 * 编辑/操作习惯配置
@@ -742,16 +744,16 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :ID:       03445261-50A4-48ED-8147-1200ADEFA118
 :END:
 
-+ 中文下表格对齐
+- 中文下表格对齐
   ;; 解决在中文下，表格无法自动对齐的问题
-#+begin_src emacs-lisp :tangle yes
+ #+begin_src emacs-lisp :tangle yes
   (with-eval-after-load 'org
     (require 'valign))
   (add-hook 'org-mode-hook #'valign-mode)
 #+end_src
-+ 支持中文分词
+- 支持中文分词
   参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
-  #+begin_src emacs-lisp :tangle yes
+ #+begin_src emacs-lisp :tangle yes
   (add-to-list 'load-path "~/.emacs.d/lisp/chinese-word-segmentation")
   (setq cns-prog "~/.emacs.d/lisp/chinese-word-segmentation/chinese-word-segmentation")
   (setq cns-dict-directory "~/.emacs.d/lisp/chinese-word-segmentation/dict")
@@ -762,16 +764,41 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     (add-hook 'find-file-hook 'cns-auto-enable))
   #+end_src
 
-+ 使用内置的中文输入法
- https://github.com/tumashu/pyim，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用emacs的快捷键
+- 使用内置的中文输入法
+   https://github.com/tumashu/pyim，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用emacs的快捷键
+  #+begin_src emacs-lisp :tangle yes
 
-#+begin_src emacs-lisp :tangle yes
-(require 'pyim)
-(require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
-(pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
-(setq default-input-method "pyim")
-(setq pyim-punctuation-translate-p '(no yes auto)) ;; 默认使用半角符号)
+  (require 'pyim)
+  (require 'pyim-basedict) ; 拼音词库设置，五笔用户 *不需要* 此行设置
+  (pyim-basedict-enable)   ; 拼音词库，五笔用户 *不需要* 此行设置
+  (setq default-input-method "pyim")
+  (setq pyim-punctuation-translate-p '(no yes auto)) ;; 默认使用半角符号,只有在custom中配置才生效
+  (global-set-key (kbd "C-M-\\") 'pyim-convert-string-at-point)
+  
+  (setq-default pyim-english-input-switch-functions
+                '(pyim-probe-isearch-mode
+                   pyim-probe-program-mode
+                    pyim-probe-org-structure-template
+                    pyim-probe-auto-english
+
+  ))
+
+  (setq-default pyim-punctuation-half-width-functions
+                '(pyim-probe-punctuation-line-beginning
+                  pyim-probe-punctuation-after-punctuation))
+
 #+end_src
+测试：
+  #+begin_src emacs-lisp :tangle no
+(pyim-char-before-to-string 1);;ceshi
+;; 测试
+(pyim-string-match-p "\\cc"  "a")
+(pyim-string-match-p "\\cc"  "测")
+(pyim-string-match-p "\\cc"  ".")
+(pyim-string-match-p "\\cc"  "。")
+(> (point) (save-excursion (back-to-indentation)
+                                     (point)))
+#+end_src 
 
 *** 统计emacs常用命令调用
 :PROPERTIES:
@@ -836,11 +863,11 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :PROPERTIES:
 :ID:       C7AE3866-7A3E-406B-9609-C60E4BE9E680
 :END:
-
+      
 #+begin_src emacs-lisp :tangle yes
 
 (global-set-key (kbd "<f1>") 'count-words)  
-(define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)）
+(define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
 
 
 (define-key org-mode-map (kbd "C-j") 'ref/newline-return)
@@ -864,7 +891,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :ID:       2D64F1B5-2995-4EAB-9844-CD106DE68160
 :END:
 #+begin_src emacs-lisp :tangle yes
-（message "custom-post load finished")
+(message "custom-post load finished")
 ;;; custom-post.el ends here
 
 #+end_src
