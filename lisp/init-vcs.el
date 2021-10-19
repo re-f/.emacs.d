@@ -67,15 +67,17 @@
   (when (executable-find "cc")
     (use-package forge
       :demand
-      :init (setq forge-topic-list-columns
-                  '(("#" 5 forge-topic-list-sort-by-number (:right-align t) number nil)
-                    ("Title" 60 t nil title  nil)
-                    ("State" 6 t nil state nil)
-                    ("Updated" 10 t nil updated nil)))))
+      :init
+      (setq forge-topic-list-columns
+            '(("#" 5 forge-topic-list-sort-by-number (:right-align t) number nil)
+              ("Title" 60 t nil title  nil)
+              ("State" 6 t nil state nil)
+              ("Updated" 10 t nil updated nil)))))
 
   ;; Show TODOs in magit
   (when emacs/>=25.2p
     (use-package magit-todos
+      :bind ("C-c C-t" . ivy-magit-todos)
       :init
       (setq magit-todos-nice (if (executable-find "nice") t nil))
       (let ((inhibit-message t))
@@ -94,44 +96,30 @@
     :hook (after-init . transient-posframe-mode)
     :init
     (setq transient-posframe-border-width 3
-          transient-posframe-min-height 22
-          transient-posframe-min-width nil
+          transient-posframe-min-height nil
+          transient-posframe-min-width 80
+          transient-posframe-poshandler 'posframe-poshandler-frame-center
           transient-posframe-parameters '((left-fringe . 8)
                                           (right-fringe . 8)))
     :config
-    (add-hook 'after-load-theme-hook
-              (lambda ()
-                (custom-set-faces
-                 '(transient-posframe ((t (:inherit tooltip))))
-                 `(transient-posframe-border ((t (:background ,(face-foreground 'font-lock-comment-face nil t))))))))
+    (add-hook
+     'after-load-theme-hook
+     (lambda ()
+       (custom-set-faces
+        '(transient-posframe ((t (:inherit tooltip))))
+        `(transient-posframe-border ((t (:background ,(face-foreground 'font-lock-comment-face nil t))))))))
 
     (with-no-warnings
-      (defun my-transient-posframe--show-buffer (buffer _alist)
-        "Show BUFFER in posframe and we do not use _ALIST at this period."
-        (when (posframe-workable-p)
-          (let ((posframe (posframe-show
-                           buffer
-			               :font transient-posframe-font
-			               :position (point)
-			               :poshandler transient-posframe-poshandler
-			               :background-color (face-attribute 'transient-posframe :background nil t)
-			               :foreground-color (face-attribute 'transient-posframe :foreground nil t)
-			               :min-width (or transient-posframe-min-width (round (* (frame-width) 0.62)))
-			               :min-height transient-posframe-min-height
-                           :lines-truncate t
-			               :internal-border-width transient-posframe-border-width
-			               :internal-border-color (face-attribute 'transient-posframe-border :background nil t)
-			               :override-parameters transient-posframe-parameters)))
-            (frame-selected-window posframe))))
-      (advice-add #'transient-posframe--show-buffer :override #'my-transient-posframe--show-buffer)
-
-      (defun my-transient-posframe--render-buffer ()
+      (defun my-transient-posframe--prettify-frame ()
         (with-current-buffer (get-buffer-create transient--buffer-name)
-          (goto-char (point-min))
-          (insert (propertize "\n" 'face '(:height 0.3)))
-          (goto-char (point-max))
-          (insert (propertize "\n\n" 'face '(:height 0.3)))))
-      (advice-add #'transient--show :after #'my-transient-posframe--render-buffer))))
+          (when posframe--frame
+            (goto-char (point-min))
+            (insert (propertize "\n" 'face '(:height 0.3)))
+            (goto-char (point-max))
+            (delete-char -3)          ; delete separate
+            (insert (propertize "\n" 'face '(:height 0.5)))
+            (posframe--set-frame-size posframe--frame nil nil nil nil))))
+      (advice-add #'transient--show :after #'my-transient-posframe--prettify-frame))))
 
 ;; Walk through git revisions of a file
 (use-package git-timemachine
@@ -140,9 +128,12 @@
   (git-timemachine-minibuffer-detail-face ((t (:inherit warning))))
   :bind (:map vc-prefix-map
          ("t" . git-timemachine))
-  :hook (before-revert . (lambda ()
-                           (when (bound-and-true-p git-timemachine-mode)
-                             (user-error "Cannot revert the timemachine buffer")))))
+  :hook ((git-timemachine-mode . (lambda ()
+                                   "Display different colors in mode-line."
+                                   (face-remap-add-relative 'mode-line 'custom-saved)))
+         (before-revert . (lambda ()
+                            (when (bound-and-true-p git-timemachine-mode)
+                              (user-error "Cannot revert the timemachine buffer"))))))
 
 ;; Pop up last commit information of current line
 (use-package git-messenger
@@ -212,6 +203,8 @@
                                                 (propertize "\n" 'face '(:height 0.3)))
                                 :left-fringe 8
                                 :right-fringe 8
+                                :width (round (* (frame-width) 0.62))
+                                :height (round (* (frame-height) 0.62))
                                 :internal-border-width 1
                                 :internal-border-color (face-foreground 'font-lock-comment-face nil t)
                                 :background-color (face-background 'tooltip nil t))

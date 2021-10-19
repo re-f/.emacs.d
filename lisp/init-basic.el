@@ -38,8 +38,8 @@
 (setq user-full-name centaur-full-name
       user-mail-address centaur-mail-address)
 
-;; Key Modifiers
 (with-no-warnings
+  ;; Key Modifiers
   (cond
    (sys/win32p
     ;; make PC keyboard's Win key or other to type Super or Hyper
@@ -58,7 +58,31 @@
                ([(super s)] . save-buffer)
                ([(super v)] . yank)
                ([(super w)] . delete-frame)
-               ([(super z)] . undo)))))
+               ([(super z)] . undo))))
+
+  ;; Optimization
+  (when sys/win32p
+    (setq w32-get-true-file-attributes nil   ; decrease file IO workload
+          w32-pipe-read-delay 0              ; faster IPC
+          w32-pipe-buffer-size (* 64 1024))) ; read more at a time (was 4K)
+  (unless sys/macp
+    (setq command-line-ns-option-alist nil))
+  (unless sys/linuxp
+    (setq command-line-x-option-alist nil))
+
+  ;; Increase how much is read from processes in a single chunk (default is 4kb)
+  (setq read-process-output-max #x10000)  ; 64kb
+
+  ;; Don't ping things that look like domain names.
+  (setq ffap-machine-p-known 'reject)
+
+  ;; Garbage Collector Magic Hack
+  (use-package gcmh
+    :diminish
+    :init
+    (setq gcmh-idle-delay 5
+          gcmh-high-cons-threshold #x1000000) ; 16MB
+    (gcmh-mode 1)))
 
 ;; Encoding
 ;; UTF-8 as the default coding system
@@ -81,10 +105,11 @@
 (modify-coding-system-alist 'process "*" 'utf-8)
 
 ;; Environment
-(when (or sys/mac-x-p sys/linux-x-p)
+(when (or sys/mac-x-p sys/linux-x-p (daemonp))
   (use-package exec-path-from-shell
     :init
-    (setq exec-path-from-shell-variables '("PATH" "MANPATH"))
+    (setq exec-path-from-shell-variables '("PATH" "MANPATH")
+          exec-path-from-shell-arguments '("-l"))
     (exec-path-from-shell-initialize)))
 
 ;; Start server
@@ -143,12 +168,106 @@
   (defun enable-trailing-whitespace ()
     "Show trailing spaces and delete on saving."
     (setq show-trailing-whitespace t)
-    (add-hook 'before-save-hook #'delete-trailing-whitespace nil t)))
+    (add-hook 'before-save-hook #'delete-trailing-whitespace nil t))
+
+  ;; Prettify the process list
+  (with-no-warnings
+    (define-derived-mode process-menu-mode tabulated-list-mode "Process Menu"
+      "Major mode for listing the processes called by Emacs."
+      (setq tabulated-list-format `[("" ,(if (icons-displayable-p) 2 0))
+                                    ("Process" 25 t)
+			                        ("PID"      7 t)
+			                        ("Status"   7 t)
+                                    ;; 25 is the length of the long standard buffer
+                                    ;; name "*Async Shell Command*<10>" (bug#30016)
+			                        ("Buffer"  25 t)
+			                        ("TTY"     12 t)
+			                        ("Thread"  12 t)
+			                        ("Command"  0 t)])
+      (make-local-variable 'process-menu-query-only)
+      (setq tabulated-list-sort-key (cons "Process" nil))
+      (add-hook 'tabulated-list-revert-hook 'list-processes--refresh nil t))
+
+    (defun list-processes--refresh ()
+      "Recompute the list of processes for the Process List buffer.
+Also, delete any process that is exited or signaled."
+      (setq tabulated-list-entries nil)
+      (dolist (p (process-list))
+        (cond ((memq (process-status p) '(exit signal closed))
+	           (delete-process p))
+	          ((or (not process-menu-query-only)
+	               (process-query-on-exit-flag p))
+	           (let* ((icon
+                       (or
+                        (and (icons-displayable-p)
+                             (all-the-icons-octicon "zap"
+                                                    :height 1.0 :v-adjust -0.05
+                                                    :face 'all-the-icons-lblue))
+                        ""))
+                      (buf (process-buffer p))
+		              (type (process-type p))
+		              (pid  (if (process-id p) (format "%d" (process-id p)) "--"))
+		              (name (process-name p))
+                      (status (process-status p))
+		              (status `(,(symbol-name status)
+                                face ,(if (memq status '(stop exit closed failed))
+                                          'error
+                                        'success)))
+		              (buf-label (if (buffer-live-p buf)
+				                     `(,(buffer-name buf)
+				                       face link
+				                       help-echo ,(format-message
+					                               "Visit buffer `%s'"
+					                               (buffer-name buf))
+				                       follow-link t
+				                       process-buffer ,buf
+				                       action process-menu-visit-buffer)
+			                       "--"))
+		              (tty `(,(or (process-tty-name p) "--")
+                             face font-lock-doc-face))
+		              (thread
+                       `(,(cond
+                           ((or
+                             (null (process-thread p))
+                             (not (fboundp 'thread-name))) "--")
+                           ((eq (process-thread p) main-thread) "Main")
+		                   ((thread-name (process-thread p)))
+		                   (t "--"))
+                         face font-lock-doc-face))
+		              (cmd
+		               `(,(if (memq type '(network serial pipe))
+		                      (let ((contact (process-contact p t t)))
+			                    (if (eq type 'network)
+			                        (format "(%s %s)"
+				                            (if (plist-get contact :type)
+					                            "datagram"
+				                              "network")
+				                            (if (plist-get contact :server)
+					                            (format
+                                                 "server on %s"
+					                             (if (plist-get contact :host)
+                                                     (format "%s:%s"
+						                                     (plist-get contact :host)
+                                                             (plist-get
+                                                              contact :service))
+					                               (plist-get contact :local)))
+				                              (format "connection to %s:%s"
+					                                  (plist-get contact :host)
+					                                  (plist-get contact :service))))
+			                      (format "(serial port %s%s)"
+				                          (or (plist-get contact :port) "?")
+				                          (let ((speed (plist-get contact :speed)))
+				                            (if speed
+					                            (format " at %s b/s" speed)
+				                              "")))))
+		                    (mapconcat 'identity (process-command p) " "))
+                         face completions-annotations)))
+	             (push (list p (vector icon name pid status buf-label tty thread cmd))
+		               tabulated-list-entries)))))
+      (tabulated-list-init-header))))
 
 (use-package time
   :ensure nil
-  :unless (display-graphic-p)
-  :hook (after-init . display-time-mode)
   :init (setq display-time-24hr-format t
               display-time-day-and-date t))
 

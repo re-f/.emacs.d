@@ -38,15 +38,16 @@
   (pcase centaur-lsp
     ('eglot
      (use-package eglot
-       :hook (prog-mode . eglot-ensure)))
+       :hook (prog-mode . (lambda ()
+                            (unless (derived-mode-p 'emacs-lisp-mode 'lisp-mode 'makefile-mode)
+                              (eglot-ensure))))))
 
     ('lsp-mode
      ;; Emacs client for the Language Server Protocol
      ;; https://github.com/emacs-lsp/lsp-mode#supported-languages
      (use-package lsp-mode
        :diminish
-       :defines (lsp-clients-python-library-directories
-                 lsp-rust-server)
+       :defines lsp-clients-python-library-directories
        :commands (lsp-enable-which-key-integration
                   lsp-format-buffer
                   lsp-organize-imports
@@ -77,9 +78,8 @@
        (lsp-headerline-breadcrumb-symbols-hint-face
         ((t :inherit lsp-headerline-breadcrumb-symbols-face
             :underline (:style wave :color ,(face-foreground 'success)))))
-
        :hook ((prog-mode . (lambda ()
-                             (unless (derived-mode-p 'emacs-lisp-mode 'lisp-mode)
+                             (unless (derived-mode-p 'emacs-lisp-mode 'lisp-mode 'makefile-mode)
                                (lsp-deferred))))
               (lsp-mode . (lambda ()
                             ;; Integrate `which-key'
@@ -103,6 +103,7 @@
              lsp-modeline-code-actions-enable nil
              lsp-modeline-diagnostics-enable nil
              lsp-modeline-workspace-status-enable nil
+             lsp-headerline-breadcrumb-enable nil
 
              lsp-enable-file-watchers nil
              lsp-enable-folding nil
@@ -116,11 +117,39 @@
        (setq lsp-clients-python-library-directories '("/usr/local/" "/usr/"))
        :config
        (with-no-warnings
+         ;; Disable `lsp-mode' in `git-timemachine-mode'
          (defun my-lsp--init-if-visible (fn &rest args)
-           "Not enabling lsp in `git-timemachine-mode'."
            (unless (bound-and-true-p git-timemachine-mode)
              (apply fn args)))
-         (advice-add #'lsp--init-if-visible :around #'my-lsp--init-if-visible))
+         (advice-add #'lsp--init-if-visible :around #'my-lsp--init-if-visible)
+
+         ;; Enable `lsp-mode' in sh/bash/zsh
+         (defun my-lsp-bash-check-sh-shell (&rest _)
+           (and (eq major-mode 'sh-mode)
+                (memq sh-shell '(sh bash zsh))))
+         (advice-add #'lsp-bash-check-sh-shell :override #'my-lsp-bash-check-sh-shell)
+
+         ;; Only display icons in GUI
+         (defun my-lsp-icons-get-symbol-kind (fn &rest args)
+           (when (and centaur-icon (display-graphic-p))
+             (apply fn args)))
+         (advice-add #'lsp-icons-get-by-symbol-kind :around #'my-lsp-icons-get-symbol-kind)
+
+         (defun my-lsp-icons-get-by-file-ext (fn &rest args)
+           (when (and centaur-icon (display-graphic-p))
+             (apply fn args)))
+         (advice-add #'lsp-icons-get-by-file-ext :around #'my-lsp-icons-get-by-file-ext)
+
+         (defun my-lsp-icons-all-the-icons-material-icon (icon-name face fallback &optional feature)
+           (if (and centaur-icon
+                    (display-graphic-p)
+                    (functionp 'all-the-icons-material)
+                    (lsp-icons--enabled-for-feature feature))
+               (all-the-icons-material icon-name
+                                       :face face)
+             (propertize fallback 'face face)))
+         (advice-add #'lsp-icons-all-the-icons-material-icon
+                     :override #'my-lsp-icons-all-the-icons-material-icon))
 
        (defun lsp-update-server ()
          "Update LSP server."
@@ -185,10 +214,13 @@
        :bind (("C-c u" . lsp-ui-imenu)
               :map lsp-ui-mode-map
               ("M-<f6>" . lsp-ui-hydra/body)
-              ("M-RET" . lsp-ui-sideline-apply-code-actions))
+              ("M-RET" . lsp-ui-sideline-apply-code-actions)
+              ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+              ([remap xref-find-references] . lsp-ui-peek-find-references))
        :hook (lsp-mode . lsp-ui-mode)
        :init (setq lsp-ui-sideline-show-diagnostics nil
                    lsp-ui-sideline-ignore-duplicate t
+                   lsp-ui-doc-delay 0.1
                    lsp-ui-doc-position 'at-point
                    lsp-ui-doc-border (face-foreground 'font-lock-comment-face nil t)
                    lsp-ui-imenu-colors `(,(face-foreground 'font-lock-keyword-face)
@@ -196,6 +228,31 @@
                                          ,(face-foreground 'font-lock-constant-face)
                                          ,(face-foreground 'font-lock-variable-name-face)))
        :config
+       (with-no-warnings
+         (defun my-lsp-ui-doc--handle-hr-lines nil
+           (let (bolp next before after)
+             (goto-char 1)
+             (while (setq next (next-single-property-change (or next 1) 'markdown-hr))
+               (when (get-text-property next 'markdown-hr)
+                 (goto-char next)
+                 (setq bolp (bolp)
+                       before (char-before))
+                 (delete-region (point) (save-excursion (forward-visible-line 1) (point)))
+                 (setq after (char-after (1+ (point))))
+                 (insert
+                  (concat
+                   (and bolp (not (equal before ?\n)) (propertize "\n" 'face '(:height 0.5)))
+                   (propertize "\n" 'face '(:height 0.5))
+                   (propertize " "
+                               ;; :align-to is added with lsp-ui-doc--fix-hr-props
+                               'display '(space :height (1))
+                               'lsp-ui-doc--replace-hr t
+                               'face `(:background ,(face-foreground 'font-lock-comment-face)))
+                   ;; :align-to is added here too
+                   (propertize " " 'display '(space :height (1)))
+                   (and (not (equal after ?\n)) (propertize " \n" 'face '(:height 0.5)))))))))
+         (advice-add #'lsp-ui-doc--handle-hr-lines :override #'my-lsp-ui-doc--handle-hr-lines))
+
        ;; `C-g'to close doc
        (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide)
 
@@ -496,9 +553,7 @@
 
      ;; Swift/C/C++/Objective-C
      (when sys/macp
-       (use-package lsp-sourcekit
-         :init (setq lsp-sourcekit-executable
-                     "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp")))
+       (use-package lsp-sourcekit))
 
      ;; Julia support
      (use-package lsp-julia
@@ -509,7 +564,7 @@
        (use-package lsp-java
          :hook (java-mode . (lambda () (require 'lsp-java)))))))
 
-  (when centaur-lsp
+  (when (memq centaur-lsp '(lsp-mode eglot))
     ;; Enable LSP in org babel
     ;; https://github.com/emacs-lsp/lsp-mode/issues/377
     (cl-defmacro lsp-org-babel-enable (lang)
@@ -519,17 +574,19 @@
              (intern-pre (intern (format "lsp--%s" (symbol-name edit-pre)))))
         `(progn
            (defun ,intern-pre (info)
-             (let ((file-name (->> info caddr (alist-get :file))))
-               (unless file-name
-                 (user-error "LSP:: specify `:file' property to enable"))
-
-               (setq buffer-file-name file-name)
-               (pcase centaur-lsp
-                 ('eglot
-                  (and (fboundp 'eglot-ensure) (eglot-ensure)))
-                 ('lsp-mode
-                  (and (fboundp 'lsp-deferred) (lsp-deferred)))
-                 (_ (user-error "LSP:: invalid `centaur-lsp' type")))))
+             (setq buffer-file-name (or (->> info caddr (alist-get :file))
+                                        "org-src-babel.tmp"))
+             (pcase centaur-lsp
+               ('eglot
+                (when (fboundp 'eglot-ensure)
+                  (eglot-ensure)))
+               ('lsp-mode
+                (when (fboundp 'lsp-deferred)
+                  ;; Avoid headerline conflicts
+                  (setq-local lsp-headerline-breadcrumb-enable nil)
+                  (lsp-deferred)))
+               (_
+                (user-error "LSP:: invalid `centaur-lsp' type"))))
            (put ',intern-pre 'function-documentation
                 (format "Enable `%s' in the buffer of org source block (%s)."
                         centaur-lsp (upcase ,lang)))
@@ -547,8 +604,7 @@
       '("go" "python" "ipython" "ruby" "js" "css" "sass" "C" "rust" "java"))
     (add-to-list 'org-babel-lang-list (if emacs/>=26p "shell" "sh"))
     (dolist (lang org-babel-lang-list)
-      (eval `(lsp-org-babel-enable ,lang))))
-  )
+      (eval `(lsp-org-babel-enable ,lang)))))
 
 (provide 'init-lsp)
 

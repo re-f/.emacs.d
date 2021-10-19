@@ -137,11 +137,14 @@ of the buffer text to be displayed in the popup"
   :bind (:map persistent-scratch-mode-map
          ([remap kill-buffer] . (lambda (&rest _)
                                   (interactive)
-                                  (user-error "Scrach buffer cannot be killed")))
+                                  (user-error "Scratch buffer cannot be killed")))
          ([remap revert-buffer] . persistent-scratch-restore)
          ([remap revert-this-buffer] . persistent-scratch-restore))
   :hook ((after-init . persistent-scratch-autosave-mode)
-         (lisp-interaction-mode . persistent-scratch-mode)))
+         (lisp-interaction-mode . persistent-scratch-mode))
+  :init (setq persistent-scratch-backup-file-name-format "%Y-%m-%d"
+              persistent-scratch-backup-directory
+              (expand-file-name "persistent-scratch" user-emacs-directory)))
 
 ;; Search tools
 ;; Writable `grep' buffer
@@ -157,8 +160,6 @@ of the buffer text to be displayed in the popup"
   :bind (:map rg-global-map
          ("c" . rg-dwim-current-dir)
          ("f" . rg-dwim-current-file)
-         ("m" . rg-menu)
-         :map rg-mode-map
          ("m" . rg-menu))
   :init (setq rg-group-result t
               rg-show-columns t)
@@ -166,82 +167,7 @@ of the buffer text to be displayed in the popup"
   (cl-pushnew '("tmpl" . "*.tmpl") rg-custom-type-aliases)
 
   (with-eval-after-load 'projectile
-    (defalias 'projectile-ripgrep #'rg-project)
-    (bind-key "s R" #'rg-project projectile-command-map))
-
-  (with-eval-after-load 'counsel
-    (bind-keys
-     :map rg-global-map
-     ("R" . counsel-rg)
-     ("F" . counsel-fzf))))
-
-;; Dictionary
-(when sys/macp
-  (use-package osx-dictionary
-    :bind (("C-c D" . osx-dictionary-search-pointer))))
-
-;; Youdao Dictionary
-(use-package youdao-dictionary
-  :commands youdao-dictionary-play-voice-of-current-word
-  :bind (("C-c y" . my-youdao-dictionary-search-at-point)
-         ("C-c Y" . youdao-dictionary-search-at-point)
-         :map youdao-dictionary-mode-map
-         ("h" . youdao-dictionary-hydra/body)
-         ("?" . youdao-dictionary-hydra/body))
-  :init
-  (setq url-automatic-caching t
-        youdao-dictionary-use-chinese-word-segmentation t) ; 中文分词
-
-  (defun my-youdao-dictionary-search-at-point ()
-    "Search word at point and display result with `posframe', `pos-tip', or buffer."
-    (interactive)
-    (if (display-graphic-p)
-        (if emacs/>=26p
-            (youdao-dictionary-search-at-point-posframe)
-          (youdao-dictionary-search-at-point-tooltip))
-      (youdao-dictionary-search-at-point)))
-  :config
-  (with-eval-after-load 'hydra
-    (defhydra youdao-dictionary-hydra (:color blue)
-      ("p" youdao-dictionary-play-voice-of-current-word "play voice of current word")
-      ("y" youdao-dictionary-play-voice-at-point "play voice at point")
-      ("q" quit-window "quit")
-      ("C-g" nil nil)
-      ("h" nil nil)
-      ("?" nil nil)))
-
-  (with-no-warnings
-    (defun my-youdao-dictionary--posframe-tip (string)
-      "Show STRING using posframe-show."
-      (unless (and (require 'posframe nil t) (posframe-workable-p))
-        (error "Posframe not workable"))
-
-      (let ((word (youdao-dictionary--region-or-word)))
-        (if word
-            (progn
-              (with-current-buffer (get-buffer-create youdao-dictionary-buffer-name)
-                (let ((inhibit-read-only t))
-                  (erase-buffer)
-                  (youdao-dictionary-mode)
-                  (insert (propertize "\n" 'face '(:height 0.5)))
-                  (insert string)
-                  (insert (propertize "\n" 'face '(:height 0.5)))
-                  (set (make-local-variable 'youdao-dictionary-current-buffer-word) word)))
-              (posframe-show youdao-dictionary-buffer-name
-                             :position (point)
-                             :left-fringe 16
-                             :right-fringe 16
-                             :background-color (face-background 'tooltip nil t)
-                             :internal-border-color (face-foreground 'font-lock-comment-face nil t)
-                             :internal-border-width 1)
-              (unwind-protect
-                  (push (read-event) unread-command-events)
-                (progn
-                  (posframe-hide youdao-dictionary-buffer-name)
-                  (other-frame 0))))
-          (message "Nothing to look up"))))
-    (advice-add #'youdao-dictionary--posframe-tip
-                :override #'my-youdao-dictionary--posframe-tip)))
+    (bind-key "s R" #'rg-project projectile-command-map)))
 
 ;; A Simple and cool pomodoro timer
 (use-package pomidor
@@ -358,17 +284,6 @@ of the buffer text to be displayed in the popup"
               erc-lurker-hide-list '("JOIN" "PART" "QUIT")
               erc-autojoin-channels-alist '(("freenode.net" "#emacs"))))
 
-;; Browse devdocs.io documents using EWW
-(when emacs/>=27p
-  (use-package devdocs-browser))
-
-;; A stackoverflow and its sisters' sites reader
-(when emacs/>=26p
-  (use-package howdoyou
-    :bind (:map howdoyou-mode-map
-           ("q" . kill-buffer-and-window))
-    :hook (howdoyou-mode . read-only-mode)))
-
 ;; text mode directory tree
 (use-package ztree
   :custom-face
@@ -409,8 +324,6 @@ of the buffer text to be displayed in the popup"
 
 ;; Misc
 (use-package copyit)                    ; copy path, url, etc.
-(use-package diffview)                  ; side-by-side diff view
-(use-package esup)                      ; Emacs startup profiler
 (use-package focus)                     ; Focus on the current region
 (use-package list-environment)
 (use-package memory-usage)

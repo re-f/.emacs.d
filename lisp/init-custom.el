@@ -42,12 +42,12 @@
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-full-name "Vincent Zhang"
+(defcustom centaur-full-name user-full-name
   "Set user full name."
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-mail-address "seagle0128@gmail.com"
+(defcustom centaur-mail-address user-mail-address
   "Set user email address."
   :group 'centaur
   :type 'string)
@@ -58,7 +58,12 @@
   :type 'string)
 
 (defcustom centaur-proxy "127.0.0.1:1087"
-  "Set network proxy."
+  "Set HTTP/HTTPS proxy."
+  :group 'centaur
+  :type 'string)
+
+(defcustom centaur-socks-proxy "127.0.0.1:1086"
+  "Set SOCKS proxy."
   :group 'centaur
   :type 'string)
 
@@ -67,7 +72,7 @@
   :group 'centaur
   :type 'boolean)
 
-(defcustom centaur-icon (display-graphic-p)
+(defcustom centaur-icon (or (display-graphic-p) (daemonp))
   "Display icons or not."
   :group 'centaur
   :type 'boolean)
@@ -173,13 +178,13 @@ For example:
                     centaur-theme-alist)
                  symbol))
 
-(defcustom centaur-completion-style 'minibuffer
+(defcustom centaur-completion-style 'childframe
   "Completion display style."
   :group 'centaur
   :type '(choice (const :tag "Minibuffer" minibuffer)
                  (const :tag "Child Frame" childframe)))
 
-(defcustom centaur-dashboard t
+(defcustom centaur-dashboard (not (daemonp))
   "Use dashboard at startup or not.
 If Non-nil, use dashboard, otherwise will restore previous session."
   :group 'centaur
@@ -192,13 +197,19 @@ If Non-nil, save and restore the frame's geometry."
   :type 'boolean)
 
 (defcustom centaur-lsp 'lsp-mode
-  "Set language server."
+  "Set language server.
+
+`lsp-mode': See https://github.com/emacs-lsp/lsp-mode.
+`eglot': See https://github.com/joaotavora/eglot.
+tags: Use tags file instead of language server. See https://github.com/universal-ctags/citre.
+nil means disabled."
   :group 'centaur
   :type '(choice (const :tag "LSP Mode" lsp-mode)
                  (const :tag "Eglot" eglot)
                  (const :tag "Disable" nil)))
 
-(defcustom centaur-lsp-format-on-save-ignore-modes '(c-mode c++-mode python-mode)
+(defcustom centaur-lsp-format-on-save-ignore-modes
+  '(c-mode c++-mode python-mode)
   "The modes that don't auto format and organize imports while saving the buffers.
 `prog-mode' means ignoring all derived modes.
 "

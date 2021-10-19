@@ -1,8 +1,11 @@
 # Centaur Emacs
 
 [![Build Status](https://github.com/seagle0128/.emacs.d/workflows/CI/badge.svg?branch=master)](https://github.com/seagle0128/.emacs.d/actions)
-[![Release Tag](https://img.shields.io/github/tag/seagle0128/.emacs.d.svg?label=release)](https://github.com/seagle0128/.emacs.d/releases/latest)
-[![License](http://img.shields.io/:license-gpl3-blue.svg)](LICENSE)
+[![Release Tag](https://img.shields.io/github/tag/seagle0128/.emacs.d.svg?label=Release)](https://github.com/seagle0128/.emacs.d/releases)
+[![License](http://img.shields.io/:License-GPL3-blue.svg)](License)
+[![Windows](https://img.shields.io/badge/-Windows-lightblue?logo=windows&style=flat&logoColor=blue)](Windows)
+[![Linux](https://img.shields.io/badge/-Linux-fcc624?logo=linux&style=flat&logoColor=black)](Linux)
+[![macOS](https://img.shields.io/badge/-macOS-lightgrey?logo=apple&style=flat&logoColor=white)](macOS)
 
 ![Centaur Emacs](logo.png)
 
@@ -49,7 +52,7 @@ latest stable release - currently **27.2**.
 - Support multiple programming languages
     - C/C++/Object-C/C#/Java
     - Python/Ruby/Perl/PHP/Shell/Powershell/Bat
-    - Javascript/Typescript/JSON/YAML
+    - JavaScript/Typescript/JSON/YAML
     - HTML/CSS/XML
     - Golang/Swift/Rust/Dart/Elixir
     - ...
@@ -154,15 +157,16 @@ For Example:
 (setq centaur-logo nil)                        ; Logo file or nil (official logo)
 (setq centaur-full-name "user name")           ; User full name
 (setq centaur-mail-address "user@email.com")   ; Email address
-(setq centaur-proxy "127.0.0.1:1080")          ; Network proxy
+(setq centaur-proxy "127.0.0.1:1087")          ; HTTP/HTTPS proxy
+(setq centaur-socks-proxy "127.0.0.1:1086")    ; SOCKS proxy
 (setq centaur-server t)                        ; Enable `server-mode' or not: t or nil
 (setq centaur-icon t)                          ; Display icons or not: t or nil
 (setq centaur-package-archives 'melpa)         ; Package repo: melpa, emacs-china, netease, ustc, tencent or tuna
 (setq centaur-theme 'auto)                     ; Color theme: auto, random, system, default, pro, dark, light, warm, cold, day or night
-(setq centaur-completion-style 'childframe)    ; Completion display style: minibuffer or childframe
-(setq centaur-dashboard t)                     ; Use dashboard at startup or not: t or nil
+(setq centaur-completion-style 'minibuffer)    ; Completion display style: minibuffer or childframe
+(setq centaur-dashboard nil)                   ; Use dashboard at startup or not: t or nil
 (setq centaur-restore-frame-geometry nil)      ; Restore the frame's geometry at startup: t or nil
-(setq centaur-lsp 'lsp-mode)                   ; Set LSP client: lsp-mode, eglot or nil
+(setq centaur-lsp 'eglot)                      ; Set LSP client: lsp-mode, eglot or nil
 (setq centaur-lsp-format-on-save-ignore-modes '(c-mode c++-mode python-mode)) ; Ignore format on save for some languages
 (setq centaur-chinese-calendar nil)            ; Use Chinese calendar or not: t or nil
 (setq centaur-prettify-symbols-alist nil)      ; Alist of symbol prettifications. Nil to use font supports ligatures.
@@ -218,7 +222,7 @@ For the personal configurations, you could put to `~/.emacs.d/custom-post.org`
 
 ## FAQ
 
-1. How to display icons correctly in `Centaur Emacs`?
+1. How to display icons correctly in Centaur Emacs?
 
     Generally you just use `M-x centaur-install-fonts` to install all necessary
     fonts. The manual steps are below.
@@ -287,11 +291,11 @@ For the personal configurations, you could put to `~/.emacs.d/custom-post.org`
    and terminal?
 
     Please refer to #33. You should instead set environment variables in startup
-    files like .profile, .bash_profile or .zshenv, then `Centaur Emacs` is able
-    to recognize and import the environment variables.
+    files like `.profile`, `.bash_profile` or `.zshenv`, then `Centaur Emacs` is
+    able to recognize and import the environment variables.
 
 1. How to use [zoom-window](https://github.com/syohex/emacs-zoom-window) in
-   `Centaur Emacs`?
+   Centaur Emacs?
 
    See [#169](https://github.com/seagle0128/.emacs.d/issues/169#issuecomment-590035527).
 

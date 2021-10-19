@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'init-custom)
+(require 'init-const)
 
 ;; Prettify Symbols
 ;; e.g. display “lambda” as “λ”
@@ -40,6 +41,25 @@
   :init
   (setq-default prettify-symbols-alist centaur-prettify-symbols-alist)
   (setq prettify-symbols-unprettify-at-point 'right-edge))
+
+;; Cross-referencing commands
+(use-package xref
+  :ensure nil
+  :init
+  (when (and (boundp 'xref-search-program) (executable-find "rg"))
+    (setq xref-search-program 'ripgrep))
+
+  (with-no-warnings
+    (if emacs/>=28p
+        (setq xref-show-xrefs-function #'xref-show-definitions-completing-read
+              xref-show-definitions-function #'xref-show-definitions-completing-read)
+      ;; Select from xref candidates with Ivy
+      (use-package ivy-xref
+        :after ivy
+        :init
+        (when emacs/>=27p
+          (setq xref-show-definitions-function #'ivy-xref-show-defs))
+        (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)))))
 
 ;; Jump to definition
 (use-package dumb-jump
@@ -66,14 +86,70 @@
   (setq dumb-jump-prefer-searcher 'rg
         dumb-jump-selector 'ivy))
 
+;; Code styles
 (use-package editorconfig
   :diminish
   :hook (after-init . editorconfig-mode))
+
+;; Code formatting
+;; Install: npm -g install prettier
+(use-package prettier
+  :diminish
+  :hook (after-init . global-prettier-mode)
+  :init (setq prettier-mode-sync-config-flag nil))
 
 ;; Run commands quickly
 (use-package quickrun
   :bind (("C-<f5>" . quickrun)
          ("C-c X" . quickrun)))
+
+;; Browse devdocs.io documents using EWW
+(when emacs/>=27p
+  (use-package devdocs
+    :bind (:map prog-mode-map
+           ("M-<f1>" . devdocs-dwim))
+    :init
+    (defvar devdocs-major-mode-docs-alist
+      '((c-mode . ("C"))
+        (c++-mode . ("C++"))
+        (python-mode . ("Python 3.9" "Python 3.8"))
+        (ruby-mode . ("Ruby 3"))
+        (go-mode . ("Go"))
+        (rustic-mode . ("Rust"))
+        (css-mode . ("CSS"))
+        (html-mode . ("HTML"))
+        (js-mode . ("JavaScript" "JQuery"))
+        (js2-mode . ("JavaScript" "JQuery"))
+        (emacs-lisp-mode . ("Elisp")))
+      "Alist of MAJOR-MODE and list of docset names.")
+
+    (mapc
+     (lambda (e)
+       (add-hook (intern (format "%s-hook" (car e)))
+                 (lambda ()
+                   (setq-local devdocs-current-docs (cdr e)))))
+     devdocs-major-mode-docs-alist)
+
+    (defun devdocs-dwim()
+      "Look up a DevDocs documentation entry.
+
+Install the doc if it's not installed."
+      (interactive)
+      ;; Install the doc if it's not installed
+      (mapc
+       (lambda (str)
+         (let* ((docs (split-string str " "))
+                (doc (if (length= docs 1)
+                         (downcase (car docs))
+                       (concat (downcase (car docs)) "~" (downcase (cdr docs))))))
+           (unless (and (file-directory-p devdocs-data-dir)
+                        (directory-files devdocs-data-dir nil "^[^.]"))
+             (message "Installing %s..." str)
+             (devdocs-install doc))))
+       (alist-get major-mode devdocs-major-mode-docs-alist))
+
+      ;; Lookup the symbol at point
+      (devdocs-lookup nil (thing-at-point 'symbol t)))))
 
 (use-package cask-mode)
 (use-package csharp-mode)

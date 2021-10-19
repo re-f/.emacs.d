@@ -149,20 +149,35 @@
   :defines (org-mode-map
             gnus-summary-mode-map
             gnus-article-mode-map
-            ert-results-mode-map)
+            ert-results-mode-map
+            paradox-menu-mode-map
+            elfeed-show-mode-map)
   :bind ("M-o" . ace-link-addr)
   :hook (after-init . ace-link-setup-default)
   :config
   (with-eval-after-load 'org
     (bind-key "M-o" #'ace-link-org org-mode-map))
+
   (with-eval-after-load 'gnus
     (bind-keys
      :map gnus-summary-mode-map
      ("M-o" . ace-link-gnus)
      :map gnus-article-mode-map
      ("M-o" . ace-link-gnus)))
+
   (with-eval-after-load 'ert
-    (bind-key "o" #'ace-link-help ert-results-mode-map)))
+    (bind-key "o" #'ace-link-help ert-results-mode-map))
+
+  (bind-keys
+   :map package-menu-mode-map
+   ("o" . ace-link-help)
+   :map process-menu-mode-map
+   ("o" . ace-link-help))
+  (with-eval-after-load 'paradox
+    (bind-key "o" #'ace-link-help paradox-menu-mode-map))
+
+  (with-eval-after-load 'elfeed
+    (bind-key "o" #'ace-link elfeed-show-mode-map)))
 
 ;; Jump to Chinese characters
 (use-package ace-pinyin
@@ -206,12 +221,11 @@
 ;; Redefine M-< and M-> for some modes
 (when emacs/>=25.3p
   (use-package beginend
-    :diminish (beginend-mode beginend-global-mode)
+    :diminish beginend-global-mode
     :hook (after-init . beginend-global-mode)
-    :config
-    (mapc (lambda (pair)
-            (add-hook (car pair) (lambda () (diminish (cdr pair)))))
-          beginend-modes)))
+    :config (mapc (lambda (pair)
+                    (diminish (cdr pair)))
+                  beginend-modes)))
 
 ;; An all-in-one comment command to rule them all
 (use-package comment-dwim-2
@@ -304,7 +318,8 @@
 (use-package hungry-delete
   :diminish
   :hook (after-init . global-hungry-delete-mode)
-  :config (setq-default hungry-delete-chars-to-skip " \t\f\v"))
+  :init (setq hungry-delete-except-modes
+              '(help-mode minibuffer-mode minibuffer-inactive-mode calc-mode)))
 
 ;; Framework for mode-specific buffer indexes
 (use-package imenu
@@ -373,16 +388,20 @@
   ((:title (pretty-hydra-title "Origami" 'octicon "fold" :height 1.1 :v-adjust -0.05)
     :color amaranth :quit-key "q")
    ("Node"
-    ((":" origami-recursively-toggle-node "toggle recursively")
+    ((";" origami-recursively-toggle-node "toggle recursively")
      ("a" origami-toggle-all-nodes "toggle all")
      ("t" origami-toggle-node "toggle current")
-     ("o" origami-show-only-node "only show current"))
+     ("o" origami-open-node "open current")
+     ("c" origami-close-node "close current")
+     ("s" origami-show-only-node "only show current"))
     "Actions"
     (("u" origami-undo "undo")
      ("d" origami-redo "redo")
-     ("r" origami-reset "reset"))))
+     ("r" origami-reset "reset")
+     ("n" origami-next-fold "next fold")
+     ("p" origami-previous-fold "previous fold"))))
   :bind (:map origami-mode-map
-         ("C-`" . origami-hydra/body))
+         ("C-~" . origami-hydra/body))
   :hook (prog-mode . origami-mode)
   :init (setq origami-show-fold-header t)
   :config (face-spec-reset-face 'origami-fold-header-face))

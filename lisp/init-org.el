@@ -213,6 +213,9 @@ prepended to the element after the #+HEADER: tag."
   (use-package ob-go
     :init (cl-pushnew '(go . t) load-language-list))
 
+  (use-package ob-rust
+    :init (cl-pushnew '(rust . t) load-language-list))
+
   ;; Use mermadi-cli: npm install -g @mermaid-js/mermaid-cli
   (use-package ob-mermaid
     :init (cl-pushnew '(mermaid . t) load-language-list))
@@ -235,6 +238,15 @@ prepended to the element after the #+HEADER: tag."
            ("C-c M-o" . org-mime-htmlize)
            :map org-mode-map
            ("C-c M-o" . org-mime-org-buffer-htmlize)))
+
+  ;; Add graphical view of agenda
+  (use-package org-timeline
+    :hook (org-agenda-finalize . org-timeline-insert-timeline))
+
+  ;; Auto-toggle Org LaTeX fragments
+  (use-package org-fragtog
+    :diminish
+    :hook (org-mode . org-fragtog-mode))
 
   ;; Preview
   (use-package org-preview-html
@@ -275,36 +287,31 @@ prepended to the element after the #+HEADER: tag."
     (org-pomodoro-mode-line ((t (:inherit warning))))
     (org-pomodoro-mode-line-overtime ((t (:inherit error))))
     (org-pomodoro-mode-line-break ((t (:inherit success))))
-    :bind (:map org-agenda-mode-map
-           ("P" . org-pomodoro))))
+    :bind (:map org-mode-map
+           ("C-c C-x m" . org-pomodoro))
+    :init
+    (with-eval-after-load 'org-agenda
+      (bind-keys :map org-agenda-mode-map
+        ("K" . org-pomodoro)
+        ("C-c C-x m" . org-pomodoro)))))
 
 ;; Roam
 (when (and emacs/>=26p (executable-find "cc"))
   (use-package org-roam
     :diminish
-    :custom (org-roam-directory (file-truename centaur-org-directory))
-    :hook (after-init . org-roam-mode)
-    :bind (:map org-roam-mode-map
-           (("C-c n l" . org-roam)
-            ("C-c n f" . org-roam-find-file)
-            ("C-c n g" . org-roam-graph))
-           :map org-mode-map
-           (("C-c n i" . org-roam-insert))
-           (("C-c n I" . org-roam-insert-immediate)))
+    :hook (after-init . org-roam-db-autosync-enable)
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n g" . org-roam-graph)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n c" . org-roam-capture)
+           ("C-c n j" . org-roam-dailies-capture-today))
+    :init
+    (setq org-roam-directory (file-truename centaur-org-directory)
+          org-roam-v2-ack t)
     :config
     (unless (file-exists-p org-roam-directory)
-      (make-directory org-roam-directory)))
-
-  (use-package org-roam-server
-    :functions xwidget-buffer xwidget-webkit-current-session
-    :hook (org-roam-server-mode . org-roam-server-browse)
-    :init
-    (defun org-roam-server-browse ()
-      (when org-roam-server-mode
-        (let ((url (format "http://%s:%d" org-roam-server-host org-roam-server-port)))
-          (if (featurep 'xwidget-internal)
-              (centaur-webkit-browse-url url t)
-            (browse-url url)))))))
+      (make-directory org-roam-directory))))
 
 (provide 'init-org)
 

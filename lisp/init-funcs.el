@@ -329,9 +329,11 @@ Return the fastest package archive."
 
 ;; WORKAROUND: fix blank screen issue on macOS.
 (defun fix-fullscreen-cocoa ()
-  "Address blank screen issue with child-frame in fullscreen."
+  "Address blank screen issue with child-frame in fullscreen.
+This issue has been addressed in 28."
   (and sys/mac-cocoa-p
        emacs/>=26p
+       (not emacs/>=28p)
        (bound-and-true-p ns-use-native-fullscreen)
        (setq ns-use-native-fullscreen nil)))
 
@@ -589,7 +591,7 @@ If SYNC is non-nil, the updating process is synchronous."
                   "Load theme: "
                   `(auto
                     random
-                    ,(if (boundp 'ns-system-appearance) 'system "")
+                    ,(if (bound-and-true-p ns-system-appearance) 'system "")
                     ,@(mapcar #'car centaur-theme-alist))))))
   ;; Set option
   (centaur-set-variable 'centaur-theme theme no-save)
@@ -606,11 +608,13 @@ If SYNC is non-nil, the updating process is synchronous."
        :init (circadian-setup)))
     ('system
      ;; System-appearance themes
-     (if (boundp 'ns-system-appearance)
+     (if (bound-and-true-p ns-system-appearance)
          (progn
            (centaur--load-system-theme ns-system-appearance)
            (add-hook 'ns-system-appearance-change-functions #'centaur--load-system-theme))
-       (warn "The system theme is unavailable on this platform!")))
+       (progn
+         (message "The `system' theme is unavailable on this platform. Using `default' theme...")
+         (centaur--load-theme (centaur--theme-name 'default)))))
     ('random (centaur-load-random-theme))
     (_ (centaur--load-theme (centaur--theme-name theme)))))
 (global-set-key (kbd "C-c T") #'centaur-load-theme)
@@ -652,7 +656,7 @@ If SYNC is non-nil, the updating process is synchronous."
   (interactive)
   (when (fboundp 'cadddr)                ; defined 25.2+
     (if (bound-and-true-p socks-noproxy)
-        (message "Current SOCKS%d proxy is %s:%d"
+        (message "Current SOCKS%d proxy is %s:%s"
                  (cadddr socks-server) (cadr socks-server) (caddr socks-server))
       (message "No SOCKS proxy"))))
 
@@ -661,16 +665,20 @@ If SYNC is non-nil, the updating process is synchronous."
   (interactive)
   (require 'socks)
   (setq url-gateway-method 'socks
-        socks-noproxy '("localhost")
-        socks-server '("Default server" "127.0.0.1" 1086 5))
-  (setenv "all_proxy" (concat "socks5://" centaur-proxy))
+        socks-noproxy '("localhost"))
+  (let* ((proxy (split-string centaur-socks-proxy ":"))
+         (host (car proxy))
+         (port (cadr  proxy)))
+    (setq socks-server `("Default server" ,host ,port 5)))
+  (setenv "all_proxy" (concat "socks5://" centaur-socks-proxy))
   (proxy-socks-show))
 
 (defun proxy-socks-disable ()
   "Disable SOCKS proxy."
   (interactive)
   (setq url-gateway-method 'native
-        socks-noproxy nil)
+        socks-noproxy nil
+        socks-server nil)
   (setenv "all_proxy" "")
   (proxy-socks-show))
 

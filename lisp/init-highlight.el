@@ -103,7 +103,7 @@ FACE defaults to inheriting from default and highlight."
          ("M-P" . symbol-overlay-switch-backward)
          ("M-C" . symbol-overlay-remove-all)
          ([M-f3] . symbol-overlay-remove-all))
-  :hook ((prog-mode . symbol-overlay-mode)
+  :hook (((prog-mode yaml-mode) . symbol-overlay-mode)
          (iedit-mode . turn-off-symbol-overlay)
          (iedit-mode-end . turn-on-symbol-overlay))
   :init (setq symbol-overlay-idle-time 0.1)
@@ -128,61 +128,53 @@ FACE defaults to inheriting from default and highlight."
   (defun turn-on-symbol-overlay (&rest _)
     "Turn on symbol highlighting."
     (interactive)
-    (when (derived-mode-p 'prog-mode)
+    (when (derived-mode-p 'prog-mode 'yaml-mode)
       (symbol-overlay-mode 1)))
   (advice-add #'deactivate-mark :after #'turn-on-symbol-overlay))
 
 ;; Highlight indentions
-(when (display-graphic-p)
-  (use-package highlight-indent-guides
-    :diminish
-    :functions (macrostep-expand macrostep-collapse)
-    :hook (prog-mode . highlight-indent-guides-mode)
-    :init (setq highlight-indent-guides-method 'character
-                highlight-indent-guides-responsive 'top)
-    :config
-    ;; WORKAROUND: Reset the faces after changing theme
-    (add-hook 'after-load-theme-hook
-              (lambda ()
-                "Re-render indentations after changing theme."
-                (when highlight-indent-guides-mode
-                  (highlight-indent-guides-auto-set-faces))))
+(use-package highlight-indent-guides
+  :diminish
+  :hook ((prog-mode yaml-mode) . highlight-indent-guides-mode)
+  :init (setq highlight-indent-guides-method 'character
+              highlight-indent-guides-responsive 'top
+              highlight-indent-guides-suppress-auto-error t)
+  :config
+  (with-no-warnings
+    ;; Don't display first level of indentation
+    (defun my-indent-guides-for-all-but-first-column (level responsive display)
+      (unless (< level 1)
+        (highlight-indent-guides--highlighter-default level responsive display)))
+    (setq highlight-indent-guides-highlighter-function
+          #'my-indent-guides-for-all-but-first-column)
 
-    (with-no-warnings
-      ;; Don't display first level of indentation
-      (defun my-indent-guides-for-all-but-first-column (level responsive display)
-        (unless (< level 1)
-          (highlight-indent-guides--highlighter-default level responsive display)))
-      (setq highlight-indent-guides-highlighter-function
-            #'my-indent-guides-for-all-but-first-column)
+    ;; Disable in `macrostep' expanding
+    (with-eval-after-load 'macrostep
+      (advice-add #'macrostep-expand
+                  :after (lambda (&rest _)
+                           (when highlight-indent-guides-mode
+                             (highlight-indent-guides-mode -1))))
+      (advice-add #'macrostep-collapse
+                  :after (lambda (&rest _)
+                           (when (derived-mode-p 'prog-mode 'yaml-mode)
+                             (highlight-indent-guides-mode 1)))))
 
-      ;; Disable in `macrostep' expanding
-      (with-eval-after-load 'macrostep
-        (advice-add #'macrostep-expand
-                    :after (lambda (&rest _)
-                             (when highlight-indent-guides-mode
-                               (highlight-indent-guides-mode -1))))
-        (advice-add #'macrostep-collapse
-                    :after (lambda (&rest _)
-                             (when (derived-mode-p 'prog-mode)
-                               (highlight-indent-guides-mode 1)))))
-
-      ;; Don't display indentations in `swiper'
-      ;; https://github.com/DarthFennec/highlight-indent-guides/issues/40
-      (with-eval-after-load 'ivy
-        (defun my-ivy-cleanup-indentation (str)
-          "Clean up indentation highlighting in ivy minibuffer."
-          (let ((pos 0)
-                (next 0)
-                (limit (length str))
-                (prop 'highlight-indent-guides-prop))
-            (while (and pos next)
-              (setq next (text-property-not-all pos limit prop nil str))
-              (when next
-                (setq pos (text-property-any next limit prop nil str))
-                (ignore-errors
-                  (remove-text-properties next pos '(display nil face nil) str))))))
-        (advice-add #'ivy-cleanup-string :after #'my-ivy-cleanup-indentation)))))
+    ;; Don't display indentations in `swiper'
+    ;; https://github.com/DarthFennec/highlight-indent-guides/issues/40
+    (with-eval-after-load 'ivy
+      (defun my-ivy-cleanup-indentation (str)
+        "Clean up indentation highlighting in ivy minibuffer."
+        (let ((pos 0)
+              (next 0)
+              (limit (length str))
+              (prop 'highlight-indent-guides-prop))
+          (while (and pos next)
+            (setq next (text-property-not-all pos limit prop nil str))
+            (when next
+              (setq pos (text-property-any next limit prop nil str))
+              (ignore-errors
+                (remove-text-properties next pos '(display nil face nil) str))))))
+      (advice-add #'ivy-cleanup-string :after #'my-ivy-cleanup-indentation))))
 
 ;; Colorize color names in buffers
 (use-package rainbow-mode
@@ -218,7 +210,8 @@ FACE defaults to inheriting from default and highlight."
          ([C-f3] . hl-todo-occur)
          ("C-c t p" . hl-todo-previous)
          ("C-c t n" . hl-todo-next)
-         ("C-c t o" . hl-todo-occur))
+         ("C-c t o" . hl-todo-occur)
+         ("C-c t i" . hl-todo-insert))
   :hook (after-init . global-hl-todo-mode)
   :config
   (dolist (keyword '("BUG" "DEFECT" "ISSUE"))
@@ -261,10 +254,7 @@ FACE defaults to inheriting from default and highlight."
         '(center t)))
     (setq diff-hl-fringe-bmp-function #'my-diff-hl-fringe-bmp-function)
 
-    (unless (display-graphic-p)
-      (setq diff-hl-margin-symbols-alist
-            '((insert . " ") (delete . " ") (change . " ")
-              (unknown . " ") (ignored . " ")))
+    (when (or (not (display-graphic-p)) (daemonp))
       ;; Fall back to the display margin since the fringe is unavailable in tty
       (diff-hl-margin-mode 1)
       ;; Avoid restoring `diff-hl-margin-mode'
