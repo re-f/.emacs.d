@@ -31,25 +31,26 @@
 #+begin_src emacs-lisp :tangle yes
   (setq org-todo-keywords
         (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d@/!)")
-                (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)")
+                (sequence "WAITING(w@/!)" "HANGUP(h@/!)" "|" "CANCELLED(c@/!)")
                 ))
-              
+
         org-todo-keyword-faces (quote (
                                        ("NEXT" :foreground "blue" :weight bold)
                                        ("WAITING" . warning)
-                                       ("HOLD" :foreground "magenta" :weight bold)
+                                       ("HANGUP" :foreground "magenta" :weight bold)
                                        ))
 
         org-use-fast-todo-selection t
         org-treat-S-cursor-todo-selection-as-state-change nil
         org-todo-state-tags-triggers      (quote (("CANCELLED" ("CANCELLED" . t))
-                                                  ("WAITING" ("WAITING???" . t))
-                                                  ("HOLD" ("WAITING") ("HOLD" . t))
-                                                  (done ("WAITING") ("HOLD"))
-                                                  ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
-                                                  ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
-                                                  ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
-  )
+                                                  ("WAITING" ("WAITING" . t))
+                                                  ("HANGUP" ("WAITING") ("HANGUP" . t))
+                                                  (done ("WAITING") ("HANGUP"))
+                                                  ("TODO" ("WAITING") ("CANCELLED") ("HANGUP"))
+                                                  ("NEXT" ("WAITING") ("CANCELLED") ("HANGUP"))
+                                                  ("DONE" ("WAITING") ("CANCELLED") ("HANGUP"))))
+
+        )
 #+end_src
 
 *** org capture 设置
@@ -347,26 +348,26 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
   ;; Custom agenda command definitions
   (setq org-agenda-custom-commands
         (quote (("n" "Notes" tags "NOTE+CATEGORY=\"inbox\"-TODO=\"DONE\"-TODO=\"CANCELLED\""
-                 ((org-agenda-overriding-header "Notes")
+                  ((org-agenda-overriding-header "Notes")
                   (org-tags-match-list-sublevels t)))
                 ("g" "Agenda"
-                 ((agenda "" nil)
+                  ((agenda "" nil)
                   (tags "REFILE"
                         ((org-agenda-overriding-header "Tasks to Refile")
-                         (org-tags-match-list-sublevels nil)))
+                          (org-tags-match-list-sublevels nil)))
                   (tags-todo "-CANCELLED/!"
-                             ((org-agenda-overriding-header "Stuck Projects")
+                              ((org-agenda-overriding-header "Stuck Projects")
                               (org-agenda-skip-function 'bh/skip-non-stuck-projects)
                               (org-agenda-sorting-strategy
-                               '(category-keep))))
-                  (tags-todo "-HOLD-CANCELLED/!"
-                             ((org-agenda-overriding-header "Projects")
+                                '(category-keep))))
+                  (tags-todo "-HANGUP-CANCELLED/!"
+                              ((org-agenda-overriding-header "Projects")
                               (org-agenda-skip-function 'bh/skip-non-projects)
                               (org-tags-match-list-sublevels 'indented)
                               (org-agenda-sorting-strategy
-                               '(category-keep))))
+                                '(category-keep))))
                   (tags-todo "-CANCELLED/!NEXT"
-                             ((org-agenda-overriding-header (concat "Project Next Tasks"
+                              ((org-agenda-overriding-header (concat "Project Next Tasks"
                                                                     (if bh/hide-scheduled-and-waiting-next-tasks
                                                                         ""
                                                                       " (including WAITING and SCHEDULED tasks)")))
@@ -377,9 +378,9 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
                               (org-agenda-todo-ignore-with-date bh/hide-scheduled-and-waiting-next-tasks)
                               (org-agenda-auto-exclude-function 'bh/org-auto-exclude-function)
                               (org-agenda-sorting-strategy
-                               '(todo-state-down effort-up category-keep))))
-                  (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!"
-                             ((org-agenda-overriding-header (concat "Project Subtasks"
+                                '(todo-state-down effort-up category-keep))))
+                  (tags-todo "-REFILE-CANCELLED-WAITING-HANGUP/!"
+                              ((org-agenda-overriding-header (concat "Project Subtasks"
                                                                     (if bh/hide-scheduled-and-waiting-next-tasks
                                                                         ""
                                                                       " (including WAITING and SCHEDULED tasks)")))
@@ -388,9 +389,9 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
                               (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)
                               (org-agenda-todo-ignore-with-date bh/hide-scheduled-and-waiting-next-tasks)
                               (org-agenda-sorting-strategy
-                               '(category-keep))))
-                  (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!+TODO"
-                             ((org-agenda-overriding-header (concat "Standalone Tasks"
+                                '(category-keep))))
+                  (tags-todo "-REFILE-CANCELLED-WAITING-HANGUP/!+TODO"
+                              ((org-agenda-overriding-header (concat "Standalone Tasks"
                                                                     (if bh/hide-scheduled-and-waiting-next-tasks
                                                                         ""
                                                                       " (including WAITING and SCHEDULED tasks)")))
@@ -399,9 +400,9 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
                               (org-agenda-todo-ignore-deadlines bh/hide-scheduled-and-waiting-next-tasks)
                               (org-agenda-todo-ignore-with-date bh/hide-scheduled-and-waiting-next-tasks)
                               (org-agenda-sorting-strategy
-                               '(category-keep))))
-                  (tags-todo "-CANCELLED+WAITING|HOLD/!"
-                             ((org-agenda-overriding-header (concat "Waiting and Postponed Tasks"
+                                '(category-keep))))
+                  (tags-todo "-CANCELLED+WAITING|HANGUP/!"
+                              ((org-agenda-overriding-header (concat "Waiting and Postponed Tasks"
                                                                     (if bh/hide-scheduled-and-waiting-next-tasks
                                                                         ""
                                                                       " (including WAITING and SCHEDULED tasks)")))
@@ -545,12 +546,11 @@ With prefix argument, also display headlines without a TODO keyword."
    状态流程: 售前（PreSale）/交付中（InDelivery）/被阻塞[HOLD(h@/!)]/终止（Terminated）/结束[DONE(@/!)]
 
 #+begin_src emacs-lisp :tangle yes
-  (add-to-list 'org-todo-keywords '(sequence "PreSale(s)"  "InDelivery(j)" "HOLD(h@/!)" "|" "Terminated(@/!)" "DONE(@/!)"))
-  (setq org-todo-state-tags-triggers (append '(("PreSale" ("项目" . t)  ("WAITING") ("CANCELLED") ("HOLD") )
+  (add-to-list 'org-todo-keywords '(sequence "PreSale(s)"  "InDelivery(j)" "HANGUP(h@/!)" "|" "Terminated(@/!)" "DONE(@/!)"))
+  (setq org-todo-state-tags-triggers (append '(("PreSale" ("项目" . t)  ("WAITING") ("CANCELLED") ("HANGUP") )
                                                ("Terminated" ("项目" . t) )
-                                               ("InDelivery"  ("项目" . t) ("WAITING") ("CANCELLED") ("HOLD")))
+                                               ("InDelivery"  ("项目" . t) ("WAITING") ("CANCELLED") ("HANGUP")))
                                              org-todo-state-tags-triggers))
-
 #+end_src
 
 * 未整理的内容
