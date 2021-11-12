@@ -126,7 +126,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
 
   (defun bh/is-project-subtree-p ()
     "Any task with a todo keyword that is in a project subtree.
-  Callers of this function already widen the buffer view."
+    Callers of this function already widen the buffer view."
     (let ((task (save-excursion (org-back-to-heading 'invisible-ok)
                                 (point))))
       (save-excursion
@@ -765,36 +765,33 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
    https://github.com/tumashu/pyim，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用emacs的快捷键
   #+begin_src emacs-lisp :tangle yes
 
-(use-package pyim
-  :ensure t
-  :config
-                :config 
-  :config
-  (use-package pyim-basedict
-    :ensure t
-    :requires pyim
-    :config
-    (pyim-basedict-enable))
+    (use-package pyim
+      :ensure t
+      :config
+    )
+    (use-package pyim-basedict
+      :ensure t
+      :requires pyim
+      :config
+      (pyim-basedict-enable)
+      )
+    (require 'pyim)
+      (setq default-input-method "pyim")
+      (setq-default pyim-english-input-switch-functions
+                    '(pyim-probe-isearch-mode
+                      pyim-probe-program-mode
+                      pyim-probe-org-structure-template
+                      pyim-probe-auto-english
+                      ))
+      (setq-default pyim-punctuation-half-width-functions
+                    '(pyim-probe-punctuation-line-beginning
+                      pyim-probe-punctuation-after-punctuation))
+    ;; 开启拼音搜索功能
+    (pyim-isearch-mode 1)
 
-  (setq default-input-method "pyim")
-  (setq-default pyim-english-input-switch-functions
-                '(pyim-probe-isearch-mode
-                  pyim-probe-program-mode
-                  pyim-probe-org-structure-template
-                  pyim-probe-auto-english
-                  ))
-  (setq-default pyim-punctuation-half-width-functions
-                '(pyim-probe-punctuation-line-beginning
-                  pyim-probe-punctuation-after-punctuation))
-  (pyim-isearch-mode 1)
-
-  ;; 让 Emacs 启动时自动加载 pyim 词库
-  (add-hook 'emacs-startup-hook
-            #'(lambda () (pyim-restart-1 t)))
-  :bind
-  ("C-M-\\" . pyim-convert-code-at-point) ;与 pyim-probe-dynamic-english 配合
-  )
-  
+    (global-set-key (kbd "C-M-\\") 'pyim-convert-string-at-point) ;与 pyim-probe-dynamic-english 配合
+    (require 'pyim-basedict)
+    (pyim-basedict-enable)
   #+end_src
 测试：
   #+begin_src emacs-lisp :tangle no
