@@ -1,11 +1,11 @@
-#+startup: content
+#+startup: show2levels
 #+startup: hideblocks
 
 
 * 为什么要学习emacs
  todo 和 文档还有项目的规划是在同一个语言体系(系统)下;个人很多todo 都是是在写规划或者文章时，所生产.过往的GTD 工具碰到的最难受的问题就是总是需要手工关联任务和文章
-
-* Ref的Emacs 自定义设置
+ 
+* Ref的 Emacs 自定义设置
 :PROPERTIES:
 :ID:       7900ABE1-B064-4B47-89E0-EB65B9D43154
 :END:
@@ -94,9 +94,7 @@ zmonster[fn:1]
     :ID:       882C7B36-442B-481C-872F-4F2F524BB0B3
     :END:
 agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查询语句找到符合条件的TODO，org-super-agenda 是给传入的TODO 列表进行分类
-:PROPERTIES:
 
-:END:
 #+begin_src emacs-lisp :tangle yes
   ;; 从 org-mode xx 复制过来的
   (defvar bh/hide-scheduled-and-waiting-next-tasks t)
@@ -165,7 +163,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
 
   (defun bh/list-sublevels-for-projects-indented ()
     "Set org-tags-match-list-sublevels so when restricted to a subtree we list all subtasks.
-    This is normally used by skipping functions where this variable is already local to the agenda."
+      This is normally used by skipping functions where this variable is already local to the agenda."
     (if (marker-buffer org-agenda-restrict-begin)
         (setq org-tags-match-list-sublevels 'indented)
       (setq org-tags-match-list-sublevels nil))
@@ -173,7 +171,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
 
   (defun bh/list-sublevels-for-projects ()
     "Set org-tags-match-list-sublevels so when restricted to a subtree we list all subtasks.
-    This is normally used by skipping functions where this variable is already local to the agenda."
+      This is normally used by skipping functions where this variable is already local to the agenda."
     (if (marker-buffer org-agenda-restrict-begin)
         (setq org-tags-match-list-sublevels t)
       (setq org-tags-match-list-sublevels nil))
@@ -440,47 +438,44 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
       (setq org-complete-tags-always-offer-all-agenda-tags t)
 
 
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-      ;; config keyboard shortcuts
+  ;; config keyboard shortcuts
 
 
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
-      (with-eval-after-load 'org-roam
-        (require 'org-roam-protocol))
+          ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
+  (with-eval-after-load 'org-roam
+    (require 'org-roam-protocol))
 
-(add-to-list 'load-path "~/.emacs.d/site-lisp/org-roam-ui")
-(load-library "org-roam-ui")
+  (add-to-list 'load-path "~/.emacs.d/site-lisp/org-roam-ui")
+  (load-library "org-roam-ui")
 
-(setq org-roam-capture-templates
-      '(
-        ("1" "Person" entry                 "\n\n* ${title}\n :PROPERTIES: \n :ID: %(org-id-uuid)\n :区域: %^{区域}\n:END:\n%?"
-          :target (file+head "person/${slug}.org"
-          "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias: ${title}\n\n#+hugo_section: posts/person\n#+hugo_base_dir: ../..\n\n"))
-        ("2" "Project" entry "* ${title}\n :PROPERTIES: \n :ID: %(org-id-uuid)\n :项目经理: %^{项目经理} \n :区域: %^{区域}\n   :END:  \n %?"
-          :target (file+olp "project/项目信息.org" ("Projects")))
-        ("p" "new post" plain (function org-roam-capture--get-point)
-          "%?"
-          :file-name "${slug}/_index"
-          :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
-        ))
+  (setq org-roam-capture-templates
+        '(
+          ("1" "Person" entry                 "\n\n* ${title}\n :PROPERTIES: \n :ID: %(org-id-uuid)\n :区域: %^{区域}\n:END:\n%?"
+            :target (file+head "person/${slug}.org"
+            "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias: ${title}\n\n#+hugo_section: posts/person\n#+hugo_base_dir: ../..\n\n"))
+          ("2" "Project" entry "* ${title}\n :PROPERTIES: \n :ID: %(org-id-uuid)\n :项目经理: %^{项目经理} \n :区域: %^{区域}\n   :END:  \n %?"
+            :target (file+olp "project/项目信息.org" ("Projects")))
+          ("p" "new post" plain (function org-roam-capture--get-point)
+            "%?"
+            :file-name "${slug}/_index"
+            :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
+          ))
 
-      ;; 配置 dired
-      (put 'dired-find-alternate-file 'disabled nil)
-      (with-eval-after-load 'dired
-
-
-      ;; 在 dired 列表中，忽略obsidian 和 organice 的文件
-      (setq dired-omit-files
-            (concat dired-omit-files
-                    "\\|^.obsidian*\\|\\.organice-bak$"))
-    ;; dire 初始化的配置中， 会隐藏当前目录和上级目录，导致目录跳转不方便，因此放出来
-
-       (setq dired-omit-files(replace-regexp-in-string
-   "\\\\`\\[\\.\\]\\[\\.\\]\\?\\\\'\\\\\|" "" dired-omit-files))
-     ;; 修改 dired 展示样式 https://oremacs.com/2015/01/13/dired-options/
-;;       (setq dired-listing-switches "-laGh1v")
+        ;; 配置 dired
+        (put 'dired-find-alternate-file 'disabled nil)
+        (with-eval-after-load 'dired
+        ;; 在 dired 列表中，忽略obsidian 和 organice 的文件
+        (setq dired-omit-files
+              (concat dired-omit-files
+                      "\\|^.obsidian*\\|\\.organice-bak$"))
+      ;; dire 初始化的配置中， 会隐藏当前目录和上级目录，导致目录跳转不方便，因此放出来
+          (setq dired-omit-files(replace-regexp-in-string
+      "\\\\`\\[\\.\\]\\[\\.\\]\\?\\\\'\\\\\|" "" dired-omit-files)))
+        ;; 修改 dired 展示样式 https://oremacs.com/2015/01/13/dired-options/
+  ;;       (setq dired-listing-switches "-laGh1v")
 #+end_src
 
 **** 链接至 agenda
@@ -582,7 +577,7 @@ With prefix argument, also display headlines without a TODO keyword."
 :ID:       3E488FC1-8740-4A28-8486-FC988BE84AF1
 :END:
 emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emacs/manual/html_node/emacs/Mark.html][The Mark and the Region]]
- 通用的方式：=smart region= mark，如何通过光标移动，如C-f/b等开始选择区域，如何就能针对这个区域开始调用命令
+通用的方式：=smart region= mark，如何通过光标移动，如C-f/b等开始选择区域，如何就能针对这个区域开始调用命令
 
 ** [[https://github.com/knu/easy-kill-extras.el][easy-kill]]
 :PROPERTIES:
@@ -594,12 +589,13 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 同类型的插件有：[[https://github.com/manateelazycat/thing-edit][things-edit]]
 增加 easy-kill 配置：
 #+begin_src emacs-lisp :tangle yes
-; 配置 easy-kill 
+
+  ;; 配置 easy-kill
   ;; 选中 "" 中的内容
-    (add-to-list 'easy-kill-alist '(?\' squoted-string "") t)
+  (add-to-list 'easy-kill-alist '(?\' squoted-string "") t)
 
   ;; 选中 '' 中的内容
-    (add-to-list 'easy-kill-alist '(?\" dquoted-string "") t)
+  (add-to-list 'easy-kill-alist '(?\" dquoted-string "") t)
 #+end_src
 
 ** 多光标编辑：[[https://github.com/magnars/multiple-cursors.el][multiple-cousor]]
@@ -903,6 +899,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 
 (global-set-key (kbd "C-M-s-a") 'bh/show-org-agenda) 
+
 #+end_src
 
 * End
