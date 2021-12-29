@@ -19,6 +19,8 @@
 (require 'init-ref)
 #+end_src
 
+需要自己下载的 package 有： valigin,chinese-word-segmentation
+
 ** org-mode
 *** 配置 org TODO 状态
 :PROPERTIES:
@@ -554,22 +556,20 @@ With prefix argument, also display headlines without a TODO keyword."
 :END:
 #+begin_src emacs-lisp :tangle yes
 
-    ;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
-    ;; ref: https://emacs-china.org/t/org-mode/13248
-    (use-package ox-hugo
-      :ensure t            ;Auto-install the package from Melpa (optional)
-      :after ox)
-    ;; (setq org-hugo-default-section-directory "knowledgebase")
+  ;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
+  ;; ref: https://emacs-china.org/t/org-mode/13248
+  (use-package ox-hugo
+    :ensure t            ;Auto-install the package from Melpa (optional)
+    :after ox)
 
+  (use-package org-ql
+    :ensure t
+    :after org
+    :config
+    (setq org-ql-ask-unsafe-queries nil))
 
-    ;; (with-eval-after-load 'org
-  ;;     (add-to-list 'org-modules 'org-habit 'org-id))
-(use-package org-ql
-  :ensure t
-  :after org
-  :config
-  (setq org-ql-ask-unsafe-queries nil))
-
+  (use-package helm-org-ql
+    :ensure t)
 #+end_src
 
 * 编辑/操作习惯配置
@@ -865,9 +865,8 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :ID:       609FA27E-AC07-4385-A050-9DC1491FB0F6
 :END:
 #+begin_src emacs-lisp :tangle yes
-(use-package  whole-line-or-region
-  :ensure t
-  )
+  (use-package  whole-line-or-region
+    :ensure t)
 #+end_src
 
 
