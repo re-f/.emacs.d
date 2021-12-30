@@ -433,10 +433,19 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
 :PROPERTIES:
 :END:
 #+begin_src emacs-lisp :tangle yes
-      (setq org-tag-alist '((:startgroup)
-                            ("#work" . ?w) ("#life" . ?h)
-                            (:endgroup )))
-      ;; when predefined tags, need to set org-complete-tags-always-offer-all-agenda-tags,  to extend this default list to all tags used in all agenda files
+  (setq org-tag-alist '((:startgroup)
+                        ("#work" . ?w) ("#life" . ?h)
+                        (:endgroup )
+                        ;; work
+                        ("项目" . nil) ("故障" . nil) ("产品" . nil)
+                        ;;GTD
+                        ("记录" . nil)
+                        ("REVIEW" . ?r);; 回顾，验收前期结果
+                        ("Retro" . nil) ;; 回顾，专注流程和持续流程改进
+                        ("元数据" . ?m)
+                        ("NOTE" . ?n)
+                        ("PRIVATE" . ?p) ;; 需要隐藏的信息
+                        ))
       (setq org-complete-tags-always-offer-all-agenda-tags t)
 
 
