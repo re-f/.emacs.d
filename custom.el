@@ -93,7 +93,7 @@
  '(jdee-db-requested-breakpoint-face-colors (cons "#10151C" "#8BD49C"))
  '(jdee-db-spec-breakpoint-face-colors (cons "#10151C" "#41505E"))
  '(objed-cursor-color "#D95468")
- '(org-id-link-to-org-use-id t)
+ '(org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
  '(org-modules '(org-crypt org-habit org-id))
  '(org-sidebar-default-fns
    '(org-sidebar--upcoming-items my/org-sidebar org-sidebar--todo-items))
