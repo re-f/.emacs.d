@@ -664,6 +664,92 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 
 
+** Org-mode 编辑/阅读
+*** hightlight
+- 简易版本 symbol 跳转和高亮
+  高亮定义（也可以是单词），并可在当前 buffer 中跳转，[[https://zhuanlan.zhihu.com/p/26471685][symbol-overlay]]
+  #+begin_src emacs-lisp :tangle no
+    ;; 本部分在init-highlight 中定义，因此 tangle=no
+    ("M-i" . symbol-overlay-put)
+    ("M-n" . symbol-overlay-jump-next)
+    ("M-p" . symbol-overlay-jump-prev)
+    ("M-N" . symbol-overlay-switch-forward)
+    ("M-P" . symbol-overlay-switch-backward)
+    ("M-C" . symbol-overlay-remove-all)
+    ([M-f3] . symbol-overlay-remove-all)
+  #+end_src
+
+
+
+*** headline 跳转和操作
+#+begin_src emacs-lisp :tangle yes
+    ;; 使用 org-speed-commands
+  (custom-set-variables
+   '(org-speed-commands
+     '(("Outline Navigation")
+       ("n" org-speed-move-safe 'org-next-visible-heading)
+       ("p" org-speed-move-safe 'org-previous-visible-heading)
+       ("f" org-speed-move-safe 'org-forward-heading-same-level)
+       ("b" org-speed-move-safe 'org-backward-heading-same-level)
+       ("F" . org-next-block)
+       ("B" . org-previous-block)
+       ("u" org-speed-move-safe 'outline-up-heading)
+       ("j" . org-goto)
+       ("g" org-refile
+        '(4))
+       ("Outline Visibility")
+       ("c" . org-cycle)
+       ("C" . org-shifttab)
+       (" " . org-display-outline-path)
+       ("s" . org-toggle-narrow-to-subtree)
+       ("k" . org-cut-subtree)
+       ("=" . org-columns)
+       ("Meta Data Editing")
+       ("t" . org-todo)
+       ("," org-priority)
+       ("0" org-priority 32)
+       ("Show headline level")
+       ("1" progn
+        (org-content (+ 1 (org-outline-level)))
+        )
+       ("2" progn
+        (org-content (+ 2 (org-outline-level)))
+        )
+       ("3" progn
+        (org-content (+ 3 (org-outline-level)))
+        )
+       ("4" progn
+        (org-content (+ 4 (org-outline-level)))
+        )
+       ("5" progn
+        (org-content (+ 5 (org-outline-level)))
+        )
+       ("Outline Structure Editing")
+       ("U" . org-metaup)
+       ("D" . org-metadown)
+       ("r" . org-metaright)
+       ("l" . org-metaleft)
+       ("R" . org-shiftmetaright)
+       ("L" . org-shiftmetaleft)
+       ("i" progn
+        (forward-char 1)
+        (call-interactively 'org-insert-heading-respect-content))
+       ("w" . org-refile)
+       ("a" . org-archive-subtree-default-with-confirmation)
+       ("@" . org-mark-subtree)
+       ("#" . org-toggle-comment)
+       ("Agenda Views etc")
+       ("v" . org-agenda)
+       ("/" . org-sparse-tree)
+       ("Misc")
+       ("o" . org-open-at-point)
+       ("?" . org-speed-command-help)
+       ("<" org-agenda-set-restriction-lock 'subtree)
+       (">" org-agenda-remove-restriction-lock)))
+   '(org-use-speed-commands t)
+   )
+
+#+end_src
 
 ** 实用的工具
 *** 在其它的App 中打开当前buffer的文件
@@ -871,72 +957,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   ;; 搜索 headline?
   (setq  helm-org-ql-actions
          '(("Show heading in source buffer" . helm-org-ql-show-marker)))
-  ;; 使用 org-speed-commands
-
-  (custom-set-variables
-   '(org-speed-commands
-     '(("Outline Navigation")
-       ("n" org-speed-move-safe 'org-next-visible-heading)
-       ("p" org-speed-move-safe 'org-previous-visible-heading)
-       ("f" org-speed-move-safe 'org-forward-heading-same-level)
-       ("b" org-speed-move-safe 'org-backward-heading-same-level)
-       ("F" . org-next-block)
-       ("B" . org-previous-block)
-       ("u" org-speed-move-safe 'outline-up-heading)
-       ("j" . org-goto)
-       ("g" org-refile
-        '(4))
-       ("Outline Visibility")
-       ("c" . org-cycle)
-       ("C" . org-shifttab)
-       (" " . org-display-outline-path)
-       ("s" . org-toggle-narrow-to-subtree)
-       ("k" . org-cut-subtree)
-       ("=" . org-columns)
-       ("Meta Data Editing")
-       ("t" . org-todo)
-       ("," org-priority)
-       ("0" org-priority 32)
-       ("Show headline level")
-       ("1" progn
-        (org-content (+ 1 (org-outline-level)))
-        )
-       ("2" progn
-        (org-content (+ 2 (org-outline-level)))
-        )
-       ("3" progn
-        (org-content (+ 3 (org-outline-level)))
-        )
-       ("4" progn
-        (org-content (+ 4 (org-outline-level)))
-        )
-       ("5" progn
-        (org-content (+ 5 (org-outline-level)))
-        )
-       ("Outline Structure Editing")
-       ("U" . org-metaup)
-       ("D" . org-metadown)
-       ("r" . org-metaright)
-       ("l" . org-metaleft)
-       ("R" . org-shiftmetaright)
-       ("L" . org-shiftmetaleft)
-       ("i" progn
-        (forward-char 1)
-        (call-interactively 'org-insert-heading-respect-content))
-       ("w" . org-refile)
-       ("a" . org-archive-subtree-default-with-confirmation)
-       ("@" . org-mark-subtree)
-       ("#" . org-toggle-comment)
-       ("Agenda Views etc")
-       ("v" . org-agenda)
-       ("/" . org-sparse-tree)
-       ("Misc")
-       ("o" . org-open-at-point)
-       ("?" . org-speed-command-help)
-       ("<" org-agenda-set-restriction-lock 'subtree)
-       (">" org-agenda-remove-restriction-lock)))
-   '(org-use-speed-commands t)
-   )
 #+end_src
 
 * Test 
@@ -956,25 +976,26 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
       
 #+begin_src emacs-lisp :tangle yes
 
-(global-set-key (kbd "<f1>") 'count-words)  
-(define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file))
 
 
-(define-key org-mode-map (kbd "C-j") 'ref/newline-return)
-(define-key org-mode-map (kbd "C-M-j") 'ref/newline-meta-return)
-
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-(global-set-key (kbd "C->") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-
-(global-set-key (kbd "s-F") 'color-rg-search-symbol)
-;;(define-key isearch-mode-map (kbd "M-s M-s") 'isearch-toggle-color-rg)
-(global-set-key (kbd "M-s-f") 'helm-org-ql-agenda-files)
+  (global-set-key (kbd "<f1>") 'count-words)
+  (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
 
 
-(global-set-key (kbd "C-M-s-a") 'bh/show-org-agenda) 
+  (define-key org-mode-map (kbd "C-j") 'ref/newline-return)
+  (define-key org-mode-map (kbd "C-M-j") 'ref/newline-meta-return)
 
+  (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+
+  (global-set-key (kbd "s-F") 'color-rg-search-symbol)
+  ;;(define-key isearch-mode-map (kbd "M-s M-s") 'isearch-toggle-color-rg)
+  (global-set-key (kbd "M-s-f") 'helm-org-ql-agenda-files)
+
+
+  (global-set-key (kbd "C-M-s-a") 'bh/show-org-agenda)
 #+end_src
 
 * End
