@@ -116,6 +116,31 @@
      ("s" . org-toggle-narrow-to-subtree)
      ("k" . org-cut-subtree)
      ("=" . org-columns)
+     ("Meta Data Editing")
+     ("t" . org-todo)
+     ("," org-priority)
+     ("0" org-priority 32)
+     ("Show headline level")
+     ("1" progn
+      (org-content
+       (+ 1
+          (org-outline-level))))
+     ("2" progn
+      (org-content
+       (+ 2
+          (org-outline-level))))
+     ("3" progn
+      (org-content
+       (+ 3
+          (org-outline-level))))
+     ("4" progn
+      (org-content
+       (+ 4
+          (org-outline-level))))
+     ("5" progn
+      (org-content
+       (+ 5
+          (org-outline-level))))
      ("Outline Structure Editing")
      ("U" . org-metaup)
      ("D" . org-metadown)
@@ -131,25 +156,6 @@
      ("a" . org-archive-subtree-default-with-confirmation)
      ("@" . org-mark-subtree)
      ("#" . org-toggle-comment)
-     ("Clock Commands")
-     ("I" . org-clock-in)
-     ("O" . org-clock-out)
-     ("Meta Data Editing")
-     ("t" . org-todo)
-     ("," org-priority)
-     ("0" org-priority 32)
-     ("1" org-content 1)
-     ("2" org-content 2)
-     ("3" org-content 3)
-     (":" . org-set-tags-command)
-     ("e" . org-set-effort)
-     ("E" . org-inc-effort)
-     ("W" lambda
-      (m)
-      (interactive "sMinutes before warning: ")
-      (org-entry-put
-       (point)
-       "APPT_WARNTIME" m))
      ("Agenda Views etc")
      ("v" . org-agenda)
      ("/" . org-sparse-tree)

@@ -558,6 +558,32 @@ With prefix argument, also display headlines without a TODO keyword."
                                                ("InDelivery"  ("项目" . t) ("WAITING") ("CANCELLED") ("HANGUP")))
                                              org-todo-state-tags-triggers))
 #+end_src
+*** ox-hugo 博客维护
+#+begin_src emacs-lisp :tangle yes
+  ;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
+  ;; ref: https://emacs-china.org/t/org-mode/13248
+  (use-package ox-hugo
+    :ensure t            ;Auto-install the package from Melpa (optional)
+    :after ox)
+
+  (setq org-id-extra-files (directory-files-recursively org-roam-directory "\.org$"))
+
+  (with-eval-after-load 'org
+  (defun org-link-evernote-export-link (link desc format)
+    "Create export version of LINK and DESC to FORMAT."
+    (let ((link (concat "evernote:" link)))
+      (cond
+       ((eq format 'html)
+        (format "<a href=\"%s\">%s</a>" link desc))
+       ((eq format 'latex)
+        (format "\\href{%s}{%s}" link desc))
+       (t                               ;`ascii', `md', `hugo', etc.
+        (format "[%s](%s)" desc link)))))
+  (org-link-set-parameters "evernote" :export #'org-link-evernote-export-link))
+
+#+end_src
+
+
 
 * 未整理的内容
 :PROPERTIES:
@@ -565,12 +591,7 @@ With prefix argument, also display headlines without a TODO keyword."
 :END:
 #+begin_src emacs-lisp :tangle yes
 
-  ;; visual alignment for Org Mode, Markdown and table.el tables on GUI Emacs.
-  ;; ref: https://emacs-china.org/t/org-mode/13248
-  (use-package ox-hugo
-    :ensure t            ;Auto-install the package from Melpa (optional)
-    :after ox)
-
+  
   (use-package org-ql
     :ensure t
     :after org
@@ -707,7 +728,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
        ("Meta Data Editing")
        ("t" . org-todo)
        ("," org-priority)
-       ("0" org-priority 32)
+       ("0" org-priority-up)
        ("Show headline level")
        ("1" progn
         (org-content (+ 1 (org-outline-level)))
@@ -958,6 +979,37 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   (setq  helm-org-ql-actions
          '(("Show heading in source buffer" . helm-org-ql-show-marker)))
 #+end_src
+
+*** dired sidebar
+#+begin_src emacs-lisp :tangle yes
+
+
+  (use-package dired-sidebar
+    :bind (("C-x C-n" . dired-sidebar-toggle-sidebar))
+    :ensure t
+    :commands (dired-sidebar-toggle-sidebar)
+    :init
+    (add-hook 'dired-sidebar-mode-hook
+              (lambda ()
+                (unless (file-remote-p default-directory)
+                  (auto-revert-mode))))
+    :config
+    (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
+    (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
+
+    (setq dired-sidebar-subtree-line-prefix "__")
+    (setq dired-sidebar-theme 'vscode)
+    (setq dired-sidebar-use-term-integration t)
+    (setq dired-sidebar-use-custom-font t))
+
+  (use-package vscode-icon
+    :ensure t
+    :commands (vscode-icon-for-file))
+
+#+end_src
+
+#+RESULTS:
+: vscode-icon-for-file
 
 * Test 
 :PROPERTIES:
