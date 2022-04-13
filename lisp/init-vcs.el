@@ -1,6 +1,6 @@
 ;; init-vcs.el --- Initialize version control system configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2021 Vincent Zhang
+;; Copyright (C) 2016-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -67,6 +67,7 @@
   (when (executable-find "cc")
     (use-package forge
       :demand
+      :defines forge-topic-list-columns
       :init
       (setq forge-topic-list-columns
             '(("#" 5 forge-topic-list-sort-by-number (:right-align t) number nil)
@@ -77,14 +78,16 @@
   ;; Show TODOs in magit
   (when emacs/>=25.2p
     (use-package magit-todos
+      :defines magit-todos-nice
       :bind ("C-c C-t" . ivy-magit-todos)
       :init
       (setq magit-todos-nice (if (executable-find "nice") t nil))
       (let ((inhibit-message t))
         (magit-todos-mode 1))
       :config
-      (transient-append-suffix 'magit-status-jump '(0 0 -1)
-        '("T " "Todos" magit-todos-jump-to-todos)))))
+      (with-eval-after-load 'magit-status
+        (transient-append-suffix 'magit-status-jump '(0 0 -1)
+          '("t " "Todos" magit-todos-jump-to-todos))))))
 
 ;; Display transient in child frame
 (when (childframe-workable-p)
@@ -110,16 +113,10 @@
         `(transient-posframe-border ((t (:background ,(face-foreground 'font-lock-comment-face nil t))))))))
 
     (with-no-warnings
-      (defun my-transient-posframe--prettify-frame ()
-        (with-current-buffer (get-buffer-create transient--buffer-name)
-          (when posframe--frame
-            (goto-char (point-min))
-            (insert (propertize "\n" 'face '(:height 0.3)))
-            (goto-char (point-max))
-            (delete-char -3)          ; delete separate
-            (insert (propertize "\n" 'face '(:height 0.5)))
-            (posframe--set-frame-size posframe--frame nil nil nil nil))))
-      (advice-add #'transient--show :after #'my-transient-posframe--prettify-frame))))
+      (defun my-transient-posframe--hide ()
+        "Hide transient posframe."
+        (posframe-hide transient--buffer-name))
+      (advice-add #'transient-posframe--delete :override #'my-transient-posframe--hide))))
 
 ;; Walk through git revisions of a file
 (use-package git-timemachine
@@ -129,8 +126,19 @@
   :bind (:map vc-prefix-map
          ("t" . git-timemachine))
   :hook ((git-timemachine-mode . (lambda ()
-                                   "Display different colors in mode-line."
-                                   (face-remap-add-relative 'mode-line 'custom-saved)))
+                                   "Improve `git-timemachine' buffers."
+                                   ;; Display different colors in mode-line
+                                   (face-remap-add-relative 'mode-line 'custom-state)
+
+                                   ;; Highlight symbols in elisp
+                                   (and (derived-mode-p 'emacs-lisp-mode)
+                                        (fboundp 'highlight-defined-mode)
+                                        (highlight-defined-mode t))
+
+                                   ;; Display line numbers
+                                   (and (derived-mode-p 'prog-mode 'yaml-mode)
+                                        (fboundp 'display-line-numbers-mode)
+                                        (display-line-numbers-mode t))))
          (before-revert . (lambda ()
                             (when (bound-and-true-p git-timemachine-mode)
                               (user-error "Cannot revert the timemachine buffer"))))))
@@ -203,8 +211,8 @@
                                                 (propertize "\n" 'face '(:height 0.3)))
                                 :left-fringe 8
                                 :right-fringe 8
-                                :width (round (* (frame-width) 0.62))
-                                :height (round (* (frame-height) 0.62))
+                                :max-width (round (* (frame-width) 0.62))
+                                :max-height (round (* (frame-height) 0.62))
                                 :internal-border-width 1
                                 :internal-border-color (face-foreground 'font-lock-comment-face nil t)
                                 :background-color (face-background 'tooltip nil t))
@@ -264,17 +272,15 @@
                             (smerge-mode 1)))))
          (magit-diff-visit-file . (lambda ()
                                     (when smerge-mode
-                                      (hydra-smerge/body))))))
+                                      (smerge-mode-hydra/body))))))
 
 ;; Open github/gitlab/bitbucket page
 (use-package browse-at-remote
   :bind (:map vc-prefix-map
          ("B" . browse-at-remote)))
 
-;; Git related modes
-(use-package gitattributes-mode)
-(use-package gitconfig-mode)
-(use-package gitignore-mode)
+;; Git configuration modes
+(use-package git-modes)
 
 (provide 'init-vcs)
 

@@ -1,6 +1,6 @@
 ;;; init-persp.el --- Initialize perspectives configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2021 Vincent Zhang
+;; Copyright (C) 2018-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -75,19 +75,28 @@
   (defun persp-load-frame ()
     "Load frame with the previous frame's geometry."
     (interactive)
-    (when (and (display-graphic-p)
-               centaur-restore-frame-geometry
-               persp-mode)
-      (fix-fullscreen-cocoa)
+    (when (and (display-graphic-p) centaur-restore-frame-geometry persp-mode)
       (condition-case error
           (progn
+            (fix-fullscreen-cocoa)
             (load persp-frame-file)
 
-            ;; Handle multiple monitors gracefully
-            (when (or (>= (eval (frame-parameter nil 'left)) (display-pixel-width))
-                      (>= (eval (frame-parameter nil 'top)) (display-pixel-height)))
-              (set-frame-parameter nil 'left 0)
-              (set-frame-parameter nil 'top 0)))
+            ;; NOTE: Only usable in `emacs-startup-hook' while not `window-setup-hook'.
+            (add-hook 'emacs-startup-hook
+                      (lambda ()
+                        "Adjust initial frame position."
+                        ;; Handle multiple monitors gracefully
+                        (if (or (>= (eval (frame-parameter nil 'top)) (display-pixel-height))
+                                (>= (eval (frame-parameter nil 'left)) (display-pixel-width)))
+                            (progn
+                              (set-frame-parameter nil 'top 0)
+                              (set-frame-parameter nil 'left 0))
+                          (progn
+                            (set-frame-parameter nil 'top (cdr (assq 'top initial-frame-alist)))
+                            (set-frame-parameter nil 'left (cdr (assq 'left initial-frame-alist)))))
+
+                        (set-frame-parameter nil 'width (cdr (assq 'width initial-frame-alist)))
+                        (set-frame-parameter nil 'height (cdr (assq 'height initial-frame-alist))))))
         (error
          (warn "persp frame: %s" (error-message-string error))))))
 
@@ -134,12 +143,11 @@
   ;; Ivy Integration
   (with-eval-after-load 'ivy
     (add-to-list 'ivy-ignore-buffers
-                 #'(lambda (b)
-                     (when persp-mode
-                       (let ((persp (get-current-persp)))
-                         (if persp
-                             (not (persp-contain-buffer-p b persp))
-                           nil))))))
+                 (lambda (b)
+                   (when persp-mode
+                     (if-let ((persp (get-current-persp)))
+                         (not (persp-contain-buffer-p b persp))
+                       nil)))))
 
   ;; Eshell integration
   (persp-def-buffer-save/load

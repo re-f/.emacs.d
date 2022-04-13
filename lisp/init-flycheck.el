@@ -1,6 +1,6 @@
 ;; init-flycheck.el --- Initialize flycheck configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2021 Vincent Zhang
+;; Copyright (C) 2009-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -89,8 +89,8 @@
                  :position (point)
                  :left-fringe 8
                  :right-fringe 8
-                 :width (round (* (frame-width) 0.62))
-                 :height (round (* (frame-height) 0.62))
+                 :max-width (round (* (frame-width) 0.62))
+                 :max-height (round (* (frame-height) 0.62))
                  :internal-border-width flycheck-posframe-border-width
                  :internal-border-color (face-foreground 'flycheck-posframe-border-face nil t)
                  :poshandler poshandler

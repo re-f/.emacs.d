@@ -1,6 +1,6 @@
 ;; init-basic.el --- Better default configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -107,10 +107,7 @@
 ;; Environment
 (when (or sys/mac-x-p sys/linux-x-p (daemonp))
   (use-package exec-path-from-shell
-    :init
-    (setq exec-path-from-shell-variables '("PATH" "MANPATH")
-          exec-path-from-shell-arguments '("-l"))
-    (exec-path-from-shell-initialize)))
+    :init (exec-path-from-shell-initialize)))
 
 ;; Start server
 (use-package server
@@ -271,14 +268,13 @@ Also, delete any process that is exited or signaled."
   :init (setq display-time-24hr-format t
               display-time-day-and-date t))
 
-(when emacs/>=27p
-  (use-package so-long
-    :ensure nil
-    :hook (after-init . global-so-long-mode)
-    :config (setq so-long-threshold 400)))
+(use-package so-long
+  :hook (after-init . global-so-long-mode))
 
 ;; Misc
-(fset 'yes-or-no-p 'y-or-n-p)
+(if (boundp 'use-short-answers)
+    (setq use-short-answers t)
+  (fset 'yes-or-no-p 'y-or-n-p))
 (setq-default major-mode 'text-mode
               fill-column 80
               tab-width 4
@@ -294,15 +290,28 @@ Also, delete any process that is exited or signaled."
       adaptive-fill-regexp "[ t]+|[ t]*([0-9]+.|*+)[ t]*"
       adaptive-fill-first-line-regexp "^* *$"
       sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*"
-      sentence-end-double-space nil)
+      sentence-end-double-space nil
+      word-wrap-by-category t)
 
-;; Fullscreen
+;; Frame
 (when (display-graphic-p)
   (add-hook 'window-setup-hook #'fix-fullscreen-cocoa)
-  (bind-keys ("C-<f11>" . toggle-frame-fullscreen)
-             ("C-s-f" . toggle-frame-fullscreen) ; Compatible with macOS
-             ("S-s-<return>" . toggle-frame-fullscreen)
-             ("M-S-<return>" . toggle-frame-fullscreen)))
+  (bind-key "S-s-<return>" #'toggle-frame-fullscreen)
+  (and sys/mac-x-p (bind-key "C-s-f" #'toggle-frame-fullscreen))
+
+  ;; Resize and re-position frames conveniently
+  ;; Same keybindings as Rectangle on macOS
+  (bind-keys ("C-M-<return>" . centaur-frame-maximize)
+             ("C-M-<backspace>" . centaur-frame-restore)
+             ("C-M-<left>" . centaur-frame-left-half)
+             ("C-M-<right>" . centaur-frame-right-half)
+             ("C-M-<up>" . centaur-frame-top-half)
+             ("C-M-<down>" . centaur-frame-bottom-half)))
+
+;; Global keybindings
+(bind-keys ("s-r" . revert-this-buffer)
+           ("C-x K" . delete-this-file)
+           ("C-c C-l" . reload-init-file))
 
 (provide 'init-basic)
 

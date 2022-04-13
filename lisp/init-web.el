@@ -1,6 +1,6 @@
 ;; init-web.el --- Initialize web configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2021 Vincent Zhang
+;; Copyright (C) 2016-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -32,6 +32,44 @@
 
 (require 'init-custom)
 
+;; Webkit browser
+(use-package xwidget
+  :ensure nil
+  :if (featurep 'xwidget-internal)
+  :bind (("C-c C-z w" . xwidget-webkit-browse-url)
+         :map xwidget-webkit-mode-map
+         ("h" . xwidget-hydra/body))
+  :pretty-hydra
+  ((:title (pretty-hydra-title "Webkit" 'faicon "chrome" :face 'all-the-icons-blue)
+    :color amaranth :quit-key "q")
+   ("Navigate"
+    (("b" xwidget-webkit-back "back")
+     ("f" xwidget-webkit-forward "forward")
+     ("r" xwidget-webkit-reload "refresh")
+     ("SPC" xwidget-webkit-scroll-up "scroll up")
+     ("DEL" xwidget-webkit-scroll-down "scroll down")
+     ("S-SPC" xwidget-webkit-scroll-down "scroll down"))
+    "Zoom"
+    (("+" xwidget-webkit-zoom-in "zoom in")
+     ("=" xwidget-webkit-zoom-in "zoom in")
+     ("-" xwidget-webkit-zoom-out "zoom out"))
+    "Misc"
+    (("g" xwidget-webkit-browse-url "browse url" :exit t)
+     ("u" xwidget-webkit-current-url "show url" :exit t)
+     ("v" xwwp-follow-link "follow link" :exit t)
+     ("w" xwidget-webkit-current-url-message-kill "copy url" :exit t)
+     ("?" describe-mode "help" :exit t)
+     ("Q" quit-window "quit" :exit t))))
+  :init
+  ;; Link navigation
+  (use-package xwwp-follow-link-ivy
+    :after ivy
+    :bind (("C-c C-z x" . xwwp)
+           :map xwidget-webkit-mode-map
+           ("v" . xwwp-follow-link))
+    :init (setq xwwp-follow-link-completion-system 'ivy)))
+
+;; CSS mode
 (use-package css-mode
   :ensure nil
   :init (setq css-indent-offset 2))
@@ -78,6 +116,14 @@
     :diminish
     :hook (js2-mode . js2-refactor-mode)
     :config (js2r-add-keybindings-with-prefix "C-c C-m")))
+
+;; Format HTML, CSS and JavaScript/JSON
+;; Install: npm -g install prettier
+(use-package prettier-js
+  :diminish
+  :hook ((js-mode js2-mode json-mode web-mode css-mode sgml-mode html-mode)
+         .
+         prettier-js-mode))
 
 ;; Live browser JavaScript, CSS, and HTML interaction
 (use-package skewer-mode

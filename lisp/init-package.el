@@ -1,6 +1,6 @@
 ;;; init-package.el --- Initialize package configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -61,21 +61,23 @@
 
 ;; Load custom-post file
 (defun load-custom-post-file ()
-"Load custom-post file."
-(cond ((file-exists-p centaur-custom-post-org-file)
-       (and (fboundp 'org-babel-load-file)
-            (org-babel-load-file centaur-custom-post-org-file)))
-      ((file-exists-p centaur-custom-post-file)
-       (load centaur-custom-post-file))))
+  "Load custom-post file."
+  (cond ((file-exists-p centaur-custom-post-org-file)
+         (and (fboundp 'org-babel-load-file)
+              (org-babel-load-file centaur-custom-post-org-file)))
+        ((file-exists-p centaur-custom-post-file)
+         (load centaur-custom-post-file))))
 (add-hook 'after-init-hook #'load-custom-post-file)
 
-;; HACK: DO NOT copy package-selected-packages to init/custom file forcibly.
+;; HACK: DO NOT save package-selected-packages to `custom-file'.
 ;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
-(defun my-save-selected-packages (&optional value)
+(defun my-package--save-selected-packages (&optional value)
   "Set `package-selected-packages' to VALUE but don't save to `custom-file'."
   (when value
-    (setq package-selected-packages value)))
-(advice-add 'package--save-selected-packages :override #'my-save-selected-packages)
+    (setq package-selected-packages value))
+  (unless after-init-time
+    (add-hook 'after-init-hook #'my-package--save-selected-packages)))
+(advice-add 'package--save-selected-packages :override #'my-package--save-selected-packages)
 
 ;; Set ELPA packages
 (set-package-archives centaur-package-archives nil nil t)
@@ -109,10 +111,25 @@
 
 ;; A modern Packages Menu
 (use-package paradox
+  :custom-face
+  (paradox-archive-face ((t (:inherit font-lock-doc-face))))
+  (paradox-description-face ((t (:inherit completions-annotations))))
   :hook (after-init . paradox-enable)
   :init (setq paradox-execute-asynchronously t
               paradox-github-token t
-              paradox-display-star-count nil)
+              paradox-display-star-count nil
+              paradox-status-face-alist ;
+              '(("built-in"  . font-lock-builtin-face)
+                ("available" . success)
+                ("new"       . (success bold))
+                ("held"      . font-lock-constant-face)
+                ("disabled"  . font-lock-warning-face)
+                ("avail-obso" . font-lock-comment-face)
+                ("installed" . font-lock-comment-face)
+                ("dependency" . font-lock-comment-face)
+                ("incompat"  . font-lock-comment-face)
+                ("deleted"   . font-lock-comment-face)
+                ("unsigned"  . font-lock-warning-face)))
   :config
   (when (fboundp 'page-break-lines-mode)
     (add-hook 'paradox-after-execute-functions

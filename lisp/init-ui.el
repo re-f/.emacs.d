@@ -1,6 +1,6 @@
 ;; init-ui.el --- Better lookings and appearances.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -77,10 +77,10 @@
         :hook (after-load-theme . solaire-global-mode))
 
       (use-package doom-themes
+        :bind ("C-c T" . centaur-load-theme)
         :custom-face
         (doom-modeline-buffer-file ((t (:inherit (mode-line bold)))))
-        :custom
-        (doom-themes-treemacs-theme "doom-colors")
+        :custom (doom-themes-treemacs-theme "doom-colors")
         :init (centaur-load-theme centaur-theme t)
         :config
         ;; Enable flashing mode-line on errors
@@ -226,6 +226,10 @@
 (use-package hide-mode-line
   :hook (((completion-list-mode
            completion-in-region-mode
+           eshell-mode
+           shell-mode
+           term-mode
+           vterm-mode
            pdf-annot-list-mode
            flycheck-error-list-mode) . hide-mode-line-mode)))
 
@@ -239,7 +243,7 @@
 (use-package all-the-icons
   :if (and centaur-icon (display-graphic-p))
   :init (unless (or sys/win32p (font-installed-p "all-the-icons"))
-          (all-the-icons-install-fonts t))
+          (centaur-install-fonts))
   :config
   (with-no-warnings
     (defun all-the-icons-reset ()
@@ -324,7 +328,8 @@
 (if (fboundp 'display-line-numbers-mode)
     (use-package display-line-numbers
       :ensure nil
-      :hook ((prog-mode yaml-mode) . display-line-numbers-mode))
+      :hook ((prog-mode yaml-mode) . display-line-numbers-mode)
+      :init (setq display-line-numbers-width-start t))
   (use-package linum-off
     :demand
     :defines linum-format
@@ -374,13 +379,14 @@
       scroll-preserve-screen-position t)
 
 ;; Good pixel line scrolling
-(when (and emacs/>=27p
-           (not sys/macp))
-  (use-package good-scroll
-    :diminish
-    :hook (after-init . good-scroll-mode)
-    :bind (([remap next] . good-scroll-up-full-screen)
-           ([remap prior] . good-scroll-down-full-screen))))
+(if (fboundp 'pixel-scroll-precision-mode)
+    (pixel-scroll-precision-mode t)
+  (when (and emacs/>=27p (not sys/macp))
+    (use-package good-scroll
+      :diminish
+      :hook (after-init . good-scroll-mode)
+      :bind (([remap next] . good-scroll-up-full-screen)
+             ([remap prior] . good-scroll-down-full-screen)))))
 
 ;; Smooth scrolling over images
 (when emacs/>=26p
@@ -416,7 +422,8 @@
         (cons (/ (- (plist-get info :parent-frame-width)
                     (plist-get info :posframe-width))
                  2)
-              (/ (plist-get info :parent-frame-height)
+              (/ (+ (plist-get info :parent-frame-height)
+                    (* 2 (plist-get info :font-height)))
                  2))))))
 
 (with-no-warnings

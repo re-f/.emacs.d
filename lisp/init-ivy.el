@@ -1,6 +1,6 @@
 ;;; init-ivy.el --- Initialize ivy configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2021 Vincent Zhang
+;; Copyright (C) 2016-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -234,7 +234,8 @@
 
     (defun my-ivy-switch-to-rg-dwim (&rest _)
       "Switch to `rg-dwim' with the current input."
-      (rg-dwim default-directory))
+      (ivy-quit-and-run
+        (rg-dwim default-directory)))
 
     (defun my-ivy-switch-to-counsel-rg (&rest _)
       "Switch to `counsel-rg' with the current input."
@@ -297,22 +298,6 @@
       (ivy-quit-and-run
         (counsel-fzf (or ivy-text "") default-directory)))
     (bind-key "<C-return>" #'my-counsel-find-file-toggle-fzf counsel-find-file-map)
-
-    (defun my-swiper-toggle-rg-dwim ()
-      "Toggle `rg-dwim' with the current input."
-      (interactive)
-      (ivy-quit-and-run (my-ivy-switch-to-rg-dwim)))
-    (bind-key "<M-return>" #'my-swiper-toggle-rg-dwim swiper-map)
-    (bind-key "<M-return>" #'my-swiper-toggle-rg-dwim counsel-ag-map)
-
-    (defun my-swiper-toggle-swiper-isearch ()
-      "Toggle `swiper' and `swiper-isearch' with the current input."
-      (interactive)
-      (ivy-quit-and-run
-        (if (eq (ivy-state-caller ivy-last) 'swiper-isearch)
-            (my-ivy-switch-to-swiper)
-          (my-ivy-switch-to-swiper-isearch))))
-    (bind-key "<s-return>" #'my-swiper-toggle-swiper-isearch swiper-map)
 
     ;; More actions
     (ivy-add-actions
@@ -418,14 +403,7 @@ This is for use in `ivy-re-builders-alist'."
             (counsel-unicode-char . ivy-prescient-non-fuzzy)
             (t . ivy-prescient-re-builder))
           ivy-prescient-sort-commands
-          '(:not swiper swiper-isearch ivy-switch-buffer
-            lsp-ivy-workspace-symbol ivy-resume ivy--restore-session
-            counsel-grep counsel-git-grep counsel-rg counsel-ag
-            counsel-ack counsel-fzf counsel-pt counsel-imenu
-            counsel-org-capture counsel-outline counsel-org-goto
-            counsel-load-theme counsel-yank-pop
-            counsel-recentf counsel-buffer-or-recentf
-            centaur-load-theme))
+          '(counsel-M-x execute-extended-command execute-extended-command-for-buffer))
 
     (ivy-prescient-mode 1))
 

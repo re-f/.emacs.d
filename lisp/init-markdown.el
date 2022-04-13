@@ -1,6 +1,6 @@
 ;; init-markdown.el --- Initialize markdown configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2021 Vincent Zhang
+;; Copyright (C) 2009-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -101,9 +101,13 @@ mermaid.initialize({
   ;; Preview via `grip'
   ;; Install: pip install grip
   (use-package grip-mode
+    :defines org-mode-map
     :bind (:map markdown-mode-command-map
            ("g" . grip-mode))
     :init
+    (with-eval-after-load 'org
+      (bind-key "C-c C-g" #'grip-mode org-mode-map))
+
     (setq grip-update-after-change nil)
     (when-let ((credential (auth-source-user-and-password "api.github.com")))
       (setq grip-github-user (car credential)

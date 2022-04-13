@@ -1,6 +1,6 @@
 ;; init-edit.el --- Initialize editing configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -47,6 +47,8 @@
   :init
   (with-eval-after-load 'org
     (bind-key "<s-return>" #'rect-hydra/body org-mode-map))
+  (with-eval-after-load 'wgrep
+    (bind-key "<C-return>" #'rect-hydra/body wgrep-mode-map))
   (with-eval-after-load 'wdired
     (bind-key "<C-return>" #'rect-hydra/body wdired-mode-map))
   :pretty-hydra
@@ -92,33 +94,6 @@
   :init
   (with-eval-after-load 'dired
     (bind-key "C-c C-z f" #'browse-url-of-file dired-mode-map)))
-
-(use-package xwidget
-  :ensure nil
-  :if (featurep 'xwidget-internal)
-  :bind (("C-c C-z w" . xwidget-webkit-browse-url)
-         :map xwidget-webkit-mode-map
-         ("?" . xwidget-hydra/body))
-  :pretty-hydra
-  ((:title (pretty-hydra-title "Webkit" 'faicon "chrome" :face 'all-the-icons-blue)
-    :color amaranth :quit-key "q")
-   ("Navigate"
-    (("b" xwidget-webkit-back "back")
-     ("f" xwidget-webkit-forward "forward")
-     ("r" xwidget-webkit-reload "refresh")
-     ("SPC" xwidget-webkit-scroll-up "scroll up")
-     ("DEL" xwidget-webkit-scroll-down "scroll down")
-     ("S-SPC" xwidget-webkit-scroll-down "scroll down"))
-    "Zoom"
-    (("+" xwidget-webkit-zoom-in "zoom in")
-     ("=" xwidget-webkit-zoom-in "zoom in")
-     ("-" xwidget-webkit-zoom-out "zoom out"))
-    "Misc"
-    (("g" xwidget-webkit-browse-url "browse url" :exit t)
-     ("u" xwidget-webkit-current-url "show url" :exit t)
-     ("w" xwidget-webkit-current-url-message-kill "copy url" :exit t)
-     ("h" describe-mode "help" :exit t)
-     ("Q" quit-window "quit" :exit t)))))
 
 ;; Click to browse URL or to send to e-mail address
 (use-package goto-addr
@@ -318,7 +293,8 @@
 (use-package hungry-delete
   :diminish
   :hook (after-init . global-hungry-delete-mode)
-  :init (setq hungry-delete-except-modes
+  :init (setq hungry-delete-chars-to-skip " \t\f\v"
+              hungry-delete-except-modes
               '(help-mode minibuffer-mode minibuffer-inactive-mode calc-mode)))
 
 ;; Framework for mode-specific buffer indexes

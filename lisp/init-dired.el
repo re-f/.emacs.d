@@ -1,6 +1,6 @@
 ;; init-dired.el --- Initialize dired configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -111,8 +111,8 @@
                                                 (when all-the-icons-dired-monochrome
                                                   `(:face ,(face-at-point))))))))
                       (if (member file '("." ".."))
-                          (all-the-icons-dired--add-overlay (point) "   \t")
-                        (all-the-icons-dired--add-overlay (point) (concat " " icon "\t"))))))
+                          (all-the-icons-dired--add-overlay (dired-move-to-filename) "   \t")
+                        (all-the-icons-dired--add-overlay (dired-move-to-filename) (concat " " icon "\t"))))))
                 (forward-line 1)))
           (message "Not display icons because of too many items.")))
       (advice-add #'all-the-icons-dired--refresh :override #'my-all-the-icons-dired--refresh)))

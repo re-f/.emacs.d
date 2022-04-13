@@ -1,6 +1,6 @@
 ;; init-reader.el --- Initialize readers.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2021 Vincent Zhang
+;; Copyright (C) 2019-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -32,15 +32,19 @@
 
 (require 'init-const)
 
+(bind-key "M-<f7>" #'centaur-read-mode)
+
 ;; PDF reader
 (when (display-graphic-p)
   (use-package pdf-view
     :ensure pdf-tools
-    :diminish (pdf-view-midnight-minor-mode pdf-view-printer-minor-mode)
+    :diminish (pdf-view-themed-minor-mode
+               pdf-view-midnight-minor-mode
+               pdf-view-printer-minor-mode)
     :defines pdf-annot-activate-created-annotations
-    :functions (my-pdf-view-set-midnight-colors my-pdf-view-set-dark-theme)
-    :hook ((pdf-view-mode . pdf-view-midnight-minor-mode)
-           (pdf-view-mode . pdf-isearch-minor-mode))
+    :hook (;(pdf-tools-enabled . pdf-view-themed-minor-mode)
+           (pdf-tools-enabled . pdf-view-auto-slice-minor-mode)
+           (pdf-tools-enabled . pdf-isearch-minor-mode))
     :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
     :magic ("%PDF" . pdf-view-mode)
     :bind (:map pdf-view-mode-map
@@ -49,42 +53,16 @@
     (setq pdf-view-use-scaling t
           pdf-view-use-imagemagick nil
           pdf-annot-activate-created-annotations t)
-
-    ;; Set dark theme
-    (defun my-pdf-view-set-midnight-colors ()
-      "Set pdf-view midnight colors."
-      (setq pdf-view-midnight-colors
-            `(,(face-foreground 'default) . ,(face-background 'solaire-default-face nil t))))
-    (my-pdf-view-set-midnight-colors)
-
-    (defun my-pdf-view-set-dark-theme ()
-      "Set pdf-view midnight theme as color theme."
-      (my-pdf-view-set-midnight-colors)
-      (dolist (buf (buffer-list))
-        (with-current-buffer buf
-          (when (eq major-mode 'pdf-view-mode)
-            (pdf-view-midnight-minor-mode (if pdf-view-midnight-minor-mode 1 -1))))))
-    (add-hook 'after-load-theme-hook #'my-pdf-view-set-dark-theme)
     :config
-    (with-no-warnings
-      ;; Build pdfinfo if needed, locking until it's complete
-      (defun my-pdf-tools-install ()
-        (unless (file-executable-p pdf-info-epdfinfo-program)
-          (let ((wconf (current-window-configuration)))
-            (pdf-tools-install t)
-            (message "Building epdfinfo. Please wait for a moment...")
-            (while compilation-in-progress
-              ;; Block until `pdf-tools-install' is done
-              (sleep-for 1))
-            (when (file-executable-p pdf-info-epdfinfo-program)
-              (set-window-configuration wconf)))))
-      (advice-add #'pdf-view-decrypt-document :before #'my-pdf-tools-install)
+    ;; Activate the package
+    (pdf-tools-install t nil t nil)
 
+    (with-no-warnings
       ;; Highlight matches
       (defun my-pdf-isearch-hl-matches (current matches &optional occur-hack-p)
         "Highlighting edges CURRENT and MATCHES."
         (cl-destructuring-bind (fg1 bg1 fg2 bg2)
-          (pdf-isearch-current-colors)
+            (pdf-isearch-current-colors)
           (let* ((width (car (pdf-view-image-size)))
                  (page (pdf-view-current-page))
                  (window (selected-window))
@@ -140,10 +118,10 @@
 
     ;; Recover last viewed position
     (use-package saveplace-pdf-view
-      :commands (saveplace-pdf-view-find-file-advice saveplace-pdf-view-to-alist-advice)
-      :init
-      (advice-add 'save-place-find-file-hook :around #'saveplace-pdf-view-find-file-advice)
-      (advice-add 'save-place-to-alist :around #'saveplace-pdf-view-to-alist-advice))))
+      :config
+      (with-no-warnings
+        (advice-add 'save-place-find-file-hook :around #'saveplace-pdf-view-find-file-advice)
+        (advice-add 'save-place-to-alist :around #'saveplace-pdf-view-to-alist-advice)))))
 
 ;; Epub reader
 (use-package nov
@@ -214,7 +192,9 @@
                                ("http://www.masteringemacs.org/feed/" mastering)
                                ("https://oremacs.com/atom.xml" oremacs)
                                ("https://pinecast.com/feed/emacscast" emacscast)
-                               ("https://www.reddit.com/r/emacs.rss" reddit)))
+                               ("https://emacstil.com/feed.xml" Emacs TIL)
+                               ;; ("https://www.reddit.com/r/emacs.rss" reddit)
+                               ))
     :config
     ;; Ignore db directory in recentf
     (push elfeed-db-directory recentf-exclude)
@@ -267,7 +247,9 @@ browser defined by `browse-url-generic-program'."
                 ("Mastering Emacs" "http://www.masteringemacs.org/feed/")
                 ("Oremacs" "https://oremacs.com/atom.xml")
                 ("EmacsCast" "https://pinecast.com/feed/emacscast")
-                ("Emacs Reddit" "https://www.reddit.com/r/emacs.rss"))))
+                ("Emacs TIL" "https://emacstil.com/feed.xml")
+                ;; ("Emacs Reddit" "https://www.reddit.com/r/emacs.rss")
+                )))
 
 (provide 'init-reader)
 
