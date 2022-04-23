@@ -67,6 +67,9 @@ zmonster[fn:1]
 
   (setq org-capture-templates
         `(
+          ("l" "PLAN" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+                             ,(concat org-directory "/inbox.org"))
+           "* TODO 计划 \n:PROPERTIES:\n:Create: %U\n:END:\n%^{来源||来源：%a}\n - [ ] %?" :tree-type week)
           ("t" "TODO" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                              ,(concat org-directory "/inbox.org"))
            "* TODO %^{任务标题} %^{context||:#life:} \n:PROPERTIES:\n:Create: %U\n:Assignee: %^{指派给}\n:END:\n%^{来源||来源：%a}\n%?" :tree-type week)
@@ -87,7 +90,6 @@ zmonster[fn:1]
                               ,(concat org-directory "/reading-notes.org"))
            "* Topic: %^{Description}  %^g %? Added: %U")
           ))
-
 
 #+end_src
 
@@ -446,7 +448,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
                         ("NOTE" . ?n)
                         ("PRIVATE" . ?p) ;; 需要隐藏的信息
                         ))
-      (setq org-complete-tags-always-offer-all-agenda-tags t)
+  (setq org-complete-tags-always-offer-all-agenda-tags t)
 
 
           ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -455,24 +457,48 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
   ;; config keyboard shortcuts
 
 
-          ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
-  (with-eval-after-load 'org-roam
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
+  (use-package org-roam
+    :ensure t
+    :after org
+    :custom
+    (org-roam-directory (file-truename centaur-org-directory ))
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n g" . org-roam-graph)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n c" . org-roam-capture)
+           ;; Dailies
+           ("C-c n j" . org-roam-dailies-capture-today))
+    :config
+    ;; If you're using a vertical completion framework, you might want a more informative completion interface
+    (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+    (org-roam-db-autosync-mode)
+    ;; If using org-roam-protocol
     (require 'org-roam-protocol))
 
-  (add-to-list 'load-path "~/.emacs.d/site-lisp/org-roam-ui")
-  (load-library "org-roam-ui")
+  (use-package org-roam-ui
+    :ensure t
+    :after org-roam
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start t)
+    )
+
 
   (setq org-roam-capture-templates
         '(
-          ("1" "Person" entry                 "\n\n* ${title}\n :PROPERTIES: \n :ID: %(org-id-uuid)\n :区域: %^{区域}\n:END:\n%?"
-            :target (file+head "person/${slug}.org"
-            "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias: ${title}\n\n#+hugo_section: posts/person\n#+hugo_base_dir: ../..\n\n"))
+          ("1" "Person" entry                 "\n\n* ${title}\n :PROPERTIES: \n :ID: %(org-id-uuid)\n :company: %^{公司}\n:END:\n%?"
+           :target (file+head "person/_index.org"
+                              "* ${title}"))
           ("2" "Project" entry "* ${title}\n :PROPERTIES: \n :ID: %(org-id-uuid)\n :项目经理: %^{项目经理} \n :区域: %^{区域}\n   :END:  \n %?"
-            :target (file+olp "project/项目信息.org" ("Projects")))
+           :target (file+olp "project/项目信息.org" ("Projects")))
           ("p" "new post" plain (function org-roam-capture--get-point)
-            "%?"
-            :file-name "${slug}/_index"
-            :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
+           "%?"
+           :file-name "${slug}/_index"
+           :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
           ))
 
     ;; 配置 dired
@@ -683,6 +709,14 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 #+end_src
 
+#+begin_src emacs-lisp :tangle yes
+  (use-package gruvbox-theme
+    
+    :ensure t
+    :config
+  )
+  (centaur-load-theme 'gruvbox t)
+#+end_src
 
 
 ** Org-mode 编辑/阅读
