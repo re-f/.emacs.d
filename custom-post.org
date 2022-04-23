@@ -890,9 +890,14 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 - 中文下表格对齐
   ;; 解决在中文下，表格无法自动对齐的问题
  #+begin_src emacs-lisp :tangle yes
-  (with-eval-after-load 'org
-    (require 'valign))
-  (add-hook 'org-mode-hook #'valign-mode)
+
+   (use-package valign
+     :ensure t
+     :after org
+     :config
+     (add-hook 'org-mode-hook #'valign-mode)
+     )
+
 #+end_src
 - 支持中文分词
   参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
