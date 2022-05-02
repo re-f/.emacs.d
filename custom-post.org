@@ -19,7 +19,8 @@
 (require 'init-ref)
 #+end_src
 
-需要自己下载的 package 有： valigin,chinese-word-segmentation
+需要自己下载的 package 有：
+chinese-word-segmentation: git clone git@github.com:kanglmf/emacs-chinese-word-segmentation.git
 
 ** org-mode
 *** 配置 org TODO 状态
@@ -61,36 +62,52 @@
 :END:
 zmonster[fn:1]
 #+begin_src emacs-lisp :tangle yes
-    ;; 设置 stuck project ，参考：https://oomake.com/question/2338872
+  ;; 设置 stuck project ，参考：https://oomake.com/question/2338872
   (setq org-stuck-projects
-          '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
+        '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
 
   (setq org-capture-templates
         `(
-          ("l" "PLAN" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+          (;; 依据福格行为模型创建习惯：写每日计划
+           "l" "PLAN: 每日计划" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+                                       ,(concat org-directory "/inbox.org"))
+           "* TODO 计划 \nSCHEDULED:%U\n:PROPERTIES:\n:Create: %U\n:END:\n - [ ] %?" :tree-type week)
+          (;;
+           "t" "TODO" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                              ,(concat org-directory "/inbox.org"))
-           "* TODO 计划 \n:PROPERTIES:\n:Create: %U\n:END:\n%^{来源||来源：%a}\n - [ ] %?" :tree-type week)
-          ("t" "TODO" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                             ,(concat org-directory "/inbox.org"))
-           "* TODO %^{任务标题} %^{context||:#life:} \n:PROPERTIES:\n:Create: %U\n:Assignee: %^{指派给}\n:END:\n%^{来源||来源：%a}\n%?" :tree-type week)
-          ("s" "Task " entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                              ,(concat org-directory "/inbox.org"))
-           "* TODO \%^{任务标题}  %^{context||:#life:} \n:PROPERTIES:\n:Create: %U\n:Assignee: %^{指派给}\n:END:\nSCHEDULED:%^t\n%^{来源||来源：%a}\n%?" :tree-type week)
+           "* TODO %^{任务标题} \n:PROPERTIES:\n:Create: %U\n:END:\n%?" :tree-type week)
+          (;; 有计划时间的叫计划
+           "s" "Task 有计划时间的TODO " entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+                                               ,(concat org-directory "/inbox.org"))
+           "* TODO \%^{任务标题} \n:PROPERTIES:\n:Create: %U\n:Assignee: %^{指派给}\n:END:\nSCHEDULED:%^t\n%^{来源||来源：%a}\n%?" :tree-type week)
           ("r" "Notes" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                               ,(concat org-directory "/inbox.org"))
            "*  %^{标题} :NOTE:%^g \n :PROPERTIES:\n:Create: %u\n:END: \n%a\n "  :tree-type week :jump-to-captured t)
-          ("p" "Create Project" plain (file ref/create-org-file )
-           "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured t)
-          ("l" "log" entry (file+olp, (concat org-directory "2021年团队规划.org"), "完成日志" )
-           "* %u 开始字数： %? 完成字数：  ")
+          ("h" "Headline 任意地方插入带 :Create: 的 headline" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+                                                            ,(concat org-directory "/inbox.org"))
+           "*  %^{标题} \n :PROPERTIES:\n:Create: %u\n:END: \n%?\n " :jump-to-captured t)
           ("g" "预留的组")
           ("gi" "Idea" entry (file ,(concat org-directory "/idea.org"))
            "*  %^{Title} %?\n%U\n%a\n")
           ("gb" "Book" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                               ,(concat org-directory "/reading-notes.org"))
            "* Topic: %^{Description}  %^g %? Added: %U")
+          ("gp" "Create Project 保留原因：template 创建文件" plain (file ref/create-org-file )
+           "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured t)
           ))
 
+  (defun org-capture-at-point ()
+    "Insert an org capture template at point."
+    (interactive)
+    (org-capture 0 "n"))
+
+  (define-key org-mode-map (kbd "C-c i") #'org-capture-at-point)
+
+  (global-set-key (kbd "C-c i") 'org-capture-at-point)
+
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (local-set-key (kbd "C-c i") 'org-capture-at-point)))
 #+end_src
 
 *** org agenda设置
@@ -575,10 +592,10 @@ With prefix argument, also display headlines without a TODO keyword."
 1. +所有的项目放在project/下,每次去扫目录下文件,完成的项目archieve+: 文件太多
 2. 为所有的项目标记 :项目: TAG ,并且有项目自身的状态流程
    标签: :项目:
-   状态流程: 售前（PreSale）/交付中（InDelivery）/被阻塞[HOLD(h@/!)]/终止（Terminated）/结束[DONE(@/!)]
+   状态流程: 售前（PreSale）/交付中（InDelivery）/被阻塞[HOLD(h@/!)]/尾期(End)/终止（Terminated）/结束[DONE(@/!)]
 
 #+begin_src emacs-lisp :tangle yes
-  (add-to-list 'org-todo-keywords '(sequence "PreSale(s)"  "InDelivery(j)" "HANGUP(h@/!)" "|" "Terminated(@/!)" "DONE(@/!)"))
+  (add-to-list 'org-todo-keywords '(sequence "PreSale(s)"  "InDelivery(j)" "HANGUP(h@/!)" "End(e@/!)"  "|" "Terminated(@/!)" "DONE(@/!)"))
   (setq org-todo-state-tags-triggers (append '(("PreSale" ("项目" . t)  ("WAITING") ("CANCELLED") ("HANGUP") )
                                                ("Terminated" ("项目" . t) )
                                                ("InDelivery"  ("项目" . t) ("WAITING") ("CANCELLED") ("HANGUP")))
