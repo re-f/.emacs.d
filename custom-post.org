@@ -23,7 +23,7 @@
 chinese-word-segmentation: git clone git@github.com:kanglmf/emacs-chinese-word-segmentation.git
 
 ** org-mode
-*** 配置 org TODO 状态
+*** org TODO 设置
 :PROPERTIES:
 :ID:       835E8AB4-81B5-46FE-BCA0-E73E6B7EDDCB
 :END:
@@ -34,15 +34,7 @@ chinese-word-segmentation: git clone git@github.com:kanglmf/emacs-chinese-word-s
 #+begin_src emacs-lisp :tangle yes
   (setq org-todo-keywords
         (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d@/!)")
-                (sequence "WAITING(w@/!)" "HANGUP(h@/!)" "|" "CANCELLED(c@/!)")
-                ))
-
-        org-todo-keyword-faces (quote (
-                                       ("NEXT" :foreground "blue" :weight bold)
-                                       ("WAITING" . warning)
-                                       ("HANGUP" :foreground "magenta" :weight bold)
-                                       ))
-
+                (sequence "WAITING(w@/!)" "HANGUP(h@/!)" "|" "CANCELLED(c@/!)")))
         org-use-fast-todo-selection t
         org-treat-S-cursor-todo-selection-as-state-change nil
         org-todo-state-tags-triggers      (quote (("CANCELLED" ("CANCELLED" . t))
@@ -54,6 +46,16 @@ chinese-word-segmentation: git clone git@github.com:kanglmf/emacs-chinese-word-s
                                                   ("DONE" ("WAITING") ("CANCELLED") ("HANGUP"))))
 
         )
+
+
+  (setq org-modern-todo-faces
+        (quote (("TODO"    :foreground "white")
+                ("WAITING" :background "gray"
+                 :foreground "white")
+                ("NEXT" :foreground "blue" :weight bold)
+                ("WAITING" . warning)
+                ("HANGUP" :foreground "magenta" :weight bold)
+                )))
 #+end_src
 
 *** org capture 设置
@@ -97,7 +99,7 @@ zmonster[fn:1]
   ;;             (local-set-key (kbd "C-c i") 'org-capture-at-point)))
 #+end_src
 
-*** org agenda设置
+*** org agenda 设置
     :PROPERTIES:
     :ID:       882C7B36-442B-481C-872F-4F2F524BB0B3
     :END:
