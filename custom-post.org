@@ -68,10 +68,6 @@ zmonster[fn:1]
 
   (setq org-capture-templates
         `(
-          (;; 依据福格行为模型创建习惯：写每日计划
-           "l" "PLAN: 每日计划" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                                       ,(concat org-directory "/inbox.org"))
-           "* TODO 计划 \nSCHEDULED:%U\n:PROPERTIES:\n:Create: %U\n:END:\n - [ ] %?" :tree-type week)
           (;;
            "t" "TODO" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                              ,(concat org-directory "/inbox.org"))
@@ -84,7 +80,7 @@ zmonster[fn:1]
                               ,(concat org-directory "/inbox.org"))
            "*  %^{标题} :NOTE:%^g \n :PROPERTIES:\n:Create: %u\n:END: \n%a\n "  :tree-type week :jump-to-captured t)
           ("h" "Headline 任意地方插入带 :Create: 的 headline" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                                                            ,(concat org-directory "/inbox.org"))
+                                                                     ,(concat org-directory "/inbox.org"))
            "*  %^{标题} \n :PROPERTIES:\n:Create: %u\n:END: \n%?\n " :jump-to-captured t)
           ("g" "预留的组")
           ("gi" "Idea" entry (file ,(concat org-directory "/idea.org"))
@@ -93,21 +89,12 @@ zmonster[fn:1]
                               ,(concat org-directory "/reading-notes.org"))
            "* Topic: %^{Description}  %^g %? Added: %U")
           ("gp" "Create Project 保留原因：template 创建文件" plain (file ref/create-org-file )
-           "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured t)
+           "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured)
           ))
 
-  (defun org-capture-at-point ()
-    "Insert an org capture template at point."
-    (interactive)
-    (org-capture 0 "n"))
-
-  (define-key org-mode-map (kbd "C-c i") #'org-capture-at-point)
-
-  (global-set-key (kbd "C-c i") 'org-capture-at-point)
-
-  (add-hook 'org-mode-hook
-            (lambda ()
-              (local-set-key (kbd "C-c i") 'org-capture-at-point)))
+  ;; (add-hook 'org-mode-hook
+  ;;           (lambda ()
+  ;;             (local-set-key (kbd "C-c i") 'org-capture-at-point)))
 #+end_src
 
 *** org agenda设置
@@ -570,6 +557,30 @@ With prefix argument, also display headlines without a TODO keyword."
 #+end_src 
 
 ** 针对使用场景的配置
+*** GTD 设置
+#+begin_src emacs-lisp :tangle yes
+  (defun org-capture-at-point ()
+    "Insert an org capture template at point."
+    (interactive)
+    (org-capture 0 "n"))
+
+  (defun gtd-today-plan ()
+    "GTD-Flow: Today's plan."
+    (interactive)
+    (org-capture 1 "l"))
+
+  (define-key org-mode-map (kbd "M-g i") #'org-capture-at-point)
+  (define-key org-mode-map (kbd "M-g p") #'gtd-today-plan)
+
+  (add-to-list 'org-capture-templates
+               '(;; 依据福格行为模型创建习惯：写每日计划
+                 "l" "PLAN: 每日计划" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+                                             ,(concat org-directory "/inbox.org"))
+                 "* TODO 计划 \nSCHEDULED:%U\n:PROPERTIES:\n:Create: %U\n:END:\n - [ ] %?" :tree-type week))
+
+
+
+#+end_src
 *** Project 配置
 **** 编辑习惯
 :PROPERTIES:
