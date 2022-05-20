@@ -438,8 +438,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
 :ID:       3DDB2384-4F39-470A-BA19-4CA8E28BFAC9
 :END:
 标签配置：需要区分生活和工作
-:PROPERTIES:
-:END:
+
 #+begin_src emacs-lisp :tangle yes
   (setq org-tag-alist '((:startgroup)
                         ("#work" . ?w) ("#life" . ?h)
@@ -457,12 +456,8 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
   (setq org-complete-tags-always-offer-all-agenda-tags t)
 
 
-          ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; config keyboard shortcuts
-
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
   (use-package org-roam
     :ensure t
@@ -663,14 +658,14 @@ With prefix argument, also display headlines without a TODO keyword."
 :ID:       3E488FC1-8740-4A28-8486-FC988BE84AF1
 :END:
 emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emacs/manual/html_node/emacs/Mark.html][The Mark and the Region]]
-通用的方式：=smart region= mark，如何通过光标移动，如C-f/b等开始选择区域，如何就能针对这个区域开始调用命令
+通用的方式：=smart region= mark，如何通过光标移动，如C-f/b等开始选择区域，然后就能针对这个区域开始调用命令
 
 ** [[https://github.com/knu/easy-kill-extras.el][easy-kill]]
 :PROPERTIES:
 :ID:       F253C7CC-DF16-48B8-881A-56FED4BAD759
 :END:
 重要功能:
-- 快速选中（并复制）；选中行，选中list，选中引号内的内容，选中括号内的内容，甚至是选中当前buffer的文件名。如果使用的是easy－kill的功能，选中时，就会复制到剪贴板等等。
+- 快速选中（并复制）：选中行，选中list，选中引号内的内容，选中括号内的内容，甚至是选中当前buffer的文件名。如果使用的是easy－kill的功能，选中时，就会复制到剪贴板等等。
 - 快速选中 =er/expand-region=  (=C-== ) ： 选中后可以使用 =+-0=  快速扩大或者所有选取
 同类型的插件有：[[https://github.com/manateelazycat/thing-edit][things-edit]]
 增加 easy-kill 配置：
@@ -684,11 +679,12 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   (add-to-list 'easy-kill-alist '(?\" dquoted-string "") t)
 #+end_src
 
-** 多光标编辑：[[https://github.com/magnars/multiple-cursors.el][multiple-cousor]]
+** 多光标编辑：
 :PROPERTIES:
 :ID:       09CCDB32-D709-4DBF-96CE-A44D19F8BDA6
 :END:
 快捷键是参考 vscode
+[[https://github.com/magnars/multiple-cursors.el][multiple-cousor]]
 #+begin_src emacs-lisp :tangle yes
  
  
@@ -703,11 +699,14 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :PROPERTIES:
 :ID:       A743C4C5-5616-4645-A2FF-6F84F541B5E6
 :END:
+作用：
+=org-super-links-quick-insert-inline-link= 能快速搜索 headline ，并在光标当前位置插入链接，同时如果原 headline 没有 ID 还会自动为原 headline 生成 ID 。
+这个 package 存在的问题：会在原 headline 中生成一条 backlink ，简单修复方式：注释掉 [[https://github.com/toshism/org-super-links/blob/e10bd019851e0a2a5e3e94877de7b8d46b5f37cc/org-super-links.el#L345][org-super-links.el#L345]] 和 346 行
 快捷键注释调的原因： 未设置 C-c s 的 key－prefix，所以快捷键注册失败
 #+begin_src emacs-lisp :tangle yes
-  (add-to-list 'load-path "~/.emacs.d/lisp/org-super-links")
+  (add-to-list 'load-path "~/.emacs.d/site-lisp/org-super-links")
   (require 'org-super-links)
-  (setq org-super-links-related-into-drawer t
+  (setq org-super-links-related-into-drawer nil
           org-super-links-link-prefix 'org-super-links-link-prefix-timestamp)
   ;; (use-package org-super-links
   ;; ;;  :bind (("C-c s s" . org-super-links-link)
@@ -741,15 +740,14 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 #+begin_src emacs-lisp :tangle yes
   (use-package gruvbox-theme
-    
     :ensure t
-    :config
-  )
+    :config)
+
   (centaur-load-theme 'gruvbox t)
 #+end_src
 
 
-** Org-mode 编辑/阅读
+** org-mode 编辑/阅读
 *** hightlight
 - 简易版本 symbol 跳转和高亮
   高亮定义（也可以是单词），并可在当前 buffer 中跳转，[[https://zhuanlan.zhihu.com/p/26471685][symbol-overlay]]
@@ -767,6 +765,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 
 *** headline 跳转和操作
+[[https://orgmode.org/manual/Speed-Keys.html#:~:text=To%20activate%20Speed%20Keys%2C%20set,option%20org%2Dspeed%2Dcommands%20.][speed-command]]: 当在 headline 的行首时，可以使用 speed 快捷指令。 只定义了常用的几个，1-5是参考 ithougt 的快捷键配置，用处是展示当前 level 下的第 N 级 headline
 #+begin_src emacs-lisp :tangle yes
     ;; 使用 org-speed-commands
   (custom-set-variables
@@ -833,7 +832,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
        (">" org-agenda-remove-restriction-lock)))
    '(org-use-speed-commands t)
    )
-
 #+end_src
 
 ** 实用的工具
@@ -912,85 +910,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 #+end_src
 
-*** 中文支持
-:PROPERTIES:
-:ID:       03445261-50A4-48ED-8147-1200ADEFA118
-:END:
-
-- 中文下表格对齐
-  ;; 解决在中文下，表格无法自动对齐的问题
- #+begin_src emacs-lisp :tangle yes
-
-   (use-package valign
-     :ensure t
-     :after org
-     :config
-     (add-hook 'org-mode-hook #'valign-mode)
-     )
-
-#+end_src
-- 支持中文分词
-  参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
- #+begin_src emacs-lisp :tangle yes
-
-
-(add-to-list 'load-path "~/.emacs.d/lisp/chinese-word-segmentation")
-(require 'cns)
-(setq cns-prog "~/.emacs.d/lisp/chinese-word-segmentation/chinese-word-segmentation"
-      cns-dict-directory "~/.emacs.d/lisp/chinese-word-segmentation/dict"
-      cns-recent-segmentation-limit 20
-      cns-debug t  ;; disable debug output, default is t
-      )
-(when (featurep 'cns)
-  (add-hook 'find-file-hook 'cns-auto-enable))
-  
-  #+end_src
-
-- 使用内置的中文输入法
-   https://github.com/tumashu/pyim，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用emacs的快捷键
-  #+begin_src emacs-lisp :tangle yes
-
-    (use-package pyim
-      :ensure t
-      :config
-    )
-    (use-package pyim-basedict
-      :ensure t
-      :requires pyim
-      :config
-      (pyim-basedict-enable)
-      )
-    (require 'pyim)
-      (setq default-input-method "pyim")
-      (setq-default pyim-english-input-switch-functions
-                    '(pyim-probe-isearch-mode
-                      pyim-probe-program-mode
-                      pyim-probe-org-structure-template
-                      pyim-probe-org-speed-commands
-                      pyim-probe-auto-english
-                      ))
-      (setq-default pyim-punctuation-half-width-functions
-                    '(pyim-probe-punctuation-line-beginning
-                      pyim-probe-punctuation-after-punctuation))
-    ;; 开启拼音搜索功能
-    (pyim-isearch-mode 1)
-
-    (global-set-key (kbd "C-M-\\") 'pyim-convert-string-at-point) ;与 pyim-probe-dynamic-english 配合
-    (require 'pyim-basedict)
-    (pyim-basedict-enable)
-  #+end_src
-测试：
-  #+begin_src emacs-lisp :tangle no
-(pyim-char-before-to-string 1);;ceshi
-;; 测试
-(pyim-string-match-p "\\cc"  "a")
-(pyim-string-match-p "\\cc"  "测")
-(pyim-string-match-p "\\cc"  ".")
-(pyim-string-match-p "\\cc"  "。")
-(> (point) (save-excursion (back-to-indentation)
-                                     (point)))
-#+end_src 
-
 *** 统计emacs常用命令调用
 :PROPERTIES:
 :ID:       3F1A03DF-D53A-472C-99C2-8A9008C37563
@@ -1041,13 +960,90 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :PROPERTIES:
 :ID:       6B65775A-0C6C-4DB3-8F95-705B32731BEC
 :END:
-
-[[https://orgmode.org/manual/Speed-Keys.html#:~:text=To%20activate%20Speed%20Keys%2C%20set,option%20org%2Dspeed%2Dcommands%20.][speed-command]]: 当在 headline 的行首时，可以使用 speed 快捷指令。 只定义了常用的几个，1-5是参考 ithougt 的快捷键配置，用处是展示当前 level 下的第 N 级 headline
 #+begin_src emacs-lisp :tangle yes
   ;; 搜索 headline?
   (setq  helm-org-ql-actions
          '(("Show heading in source buffer" . helm-org-ql-show-marker)))
 #+end_src
+
+** 中文支持
+:PROPERTIES:
+:ID:       03445261-50A4-48ED-8147-1200ADEFA118
+:END:
+
+- 中文下表格对齐
+  ;; 解决在中文下，表格无法自动对齐的问题
+ #+begin_src emacs-lisp :tangle yes
+
+   (use-package valign
+     :ensure t
+     :after org
+     :config
+     (add-hook 'org-mode-hook #'valign-mode)
+     )
+
+#+end_src
+- 支持中文分词
+  参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
+ #+begin_src emacs-lisp :tangle yes
+
+
+(add-to-list 'load-path "~/.emacs.d/lisp/chinese-word-segmentation")
+(require 'cns)
+(setq cns-prog "~/.emacs.d/lisp/chinese-word-segmentation/chinese-word-segmentation"
+      cns-dict-directory "~/.emacs.d/lisp/chinese-word-segmentation/dict"
+      cns-recent-segmentation-limit 20
+      cns-debug t  ;; disable debug output, default is t
+      )
+(when (featurep 'cns)
+  (add-hook 'find-file-hook 'cns-auto-enable))
+  
+  #+end_src
+
+- 使用内置的中文输入法
+   [[https://github.com/tumashu/pyim]]，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用 emacs 的快捷键
+  #+begin_src emacs-lisp :tangle yes
+
+    (use-package pyim
+      :ensure t
+      :config
+    )
+    (use-package pyim-basedict
+      :ensure t
+      :requires pyim
+      :config
+      (pyim-basedict-enable)
+      )
+    (require 'pyim)
+      (setq default-input-method "pyim")
+      (setq-default pyim-english-input-switch-functions
+                    '(pyim-probe-isearch-mode
+                      pyim-probe-program-mode
+                      pyim-probe-org-structure-template
+                      pyim-probe-org-speed-commands
+                      pyim-probe-auto-english
+                      ))
+      (setq-default pyim-punctuation-half-width-functions
+                    '(pyim-probe-punctuation-line-beginning
+                      pyim-probe-punctuation-after-punctuation))
+    ;; 开启拼音搜索功能
+    (pyim-isearch-mode 1)
+
+    (global-set-key (kbd "C-M-\\") 'pyim-convert-string-at-point) ;与 pyim-probe-dynamic-english 配合
+    (require 'pyim-basedict)
+    (pyim-basedict-enable)
+  #+end_src
+测试：
+  #+begin_src emacs-lisp :tangle no
+(pyim-char-before-to-string 1);;ceshi
+;; 测试
+(pyim-string-match-p "\\cc"  "a")
+(pyim-string-match-p "\\cc"  "测")
+(pyim-string-match-p "\\cc"  ".")
+(pyim-string-match-p "\\cc"  "。")
+(> (point) (save-excursion (back-to-indentation)
+                                     (point)))
+#+end_src 
 
 
 * Test 
