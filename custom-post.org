@@ -578,17 +578,13 @@ With prefix argument, also display headlines without a TODO keyword."
 
 
 #+end_src
-*** Project 配置
-**** 编辑习惯
+*** 编辑习惯
 :PROPERTIES:
 :ID:       8DE580EA-173B-4CAC-9FDC-4E869897252F
 :END:
 - 模板配置
-  理论来说，应该使用 =(setq yas-snippet-dirs (append yas-snippet-dirs (concat org-directory "/config/snippets")))= 但是这条命令的执行结果是 =("~/emacs.d/snippets" . "~/content-org/.config/snippets")= 中间总是多了一个“.”， 目前来说只能hardcode了
-  
-#+begin_src emacs-lisp :tangle yes
-
-  (setq yas-snippet-dirs (append '("~/Dropbox/knowledgebase-blog/content-org/.config/snippets") yas-snippet-dirs ))
+  #+begin_src emacs-lisp :tangle yes
+  (push (concat org-directory "/.config/snippets") yas-snippet-dirs )
 #+end_src
 *** 追踪公司项目进展
 :PROPERTIES:
