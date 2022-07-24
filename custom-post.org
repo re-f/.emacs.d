@@ -667,12 +667,16 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 增加 easy-kill 配置：
 #+begin_src emacs-lisp :tangle yes
 
-  ;; 配置 easy-kill
-  ;; 选中 "" 中的内容
-  (add-to-list 'easy-kill-alist '(?\' squoted-string "") t)
 
-  ;; 选中 '' 中的内容
-  (add-to-list 'easy-kill-alist '(?\" dquoted-string "") t)
+  (use-package easy-kill-extras
+    :ensure t
+    :config
+    (add-to-list 'easy-kill-alist '(?\' squoted-string "") t)
+
+
+    ;; 选中 '' 中的内容
+    (add-to-list 'easy-kill-alist '(?\" dquoted-string "") t)
+    )
 #+end_src
 
 ** 多光标编辑：
