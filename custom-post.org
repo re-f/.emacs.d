@@ -70,14 +70,14 @@ zmonster[fn:1]
 
   (setq org-capture-templates
         `(
-          (;;
-           "t" "TODO" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                             ,(concat org-directory "/inbox.org"))
-           "* TODO %^{任务标题} \n:PROPERTIES:\n:Create: %U\n:END:\n%?" :tree-type week)
+          (;; 依据福格行为模型创建习惯：写每日计划
+           "l" "PLAN: 每日计划" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+                                       ,(concat org-directory "/inbox.org"))
+           "* TODO 计划 \nSCHEDULED:%U\n:PROPERTIES:\n:Create: %U\n:END:\n - [ ] %?" :tree-type week)
           (;; 有计划时间的叫计划
            "s" "Task 有计划时间的TODO " entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                                                ,(concat org-directory "/inbox.org"))
-           "* TODO \%^{任务标题} \n:PROPERTIES:\n:Create: %U\n:Assignee: %^{指派给}\n:END:\nSCHEDULED:%^t\n%^{来源||来源：%a}\n%?" :tree-type week)
+           "* TODO \%^{任务标题} \n:PROPERTIES:\n:Create: %U\n:END:\n%^{来源||来源：%a}\n%?" :tree-type week)
           ("r" "Notes" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
                               ,(concat org-directory "/inbox.org"))
            "*  %^{标题} :NOTE:%^g \n :PROPERTIES:\n:Create: %u\n:END: \n%a\n "  :tree-type week :jump-to-captured t)
@@ -491,6 +491,10 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
 
   (setq org-roam-capture-templates
         '(
+          (;; 依据福格行为模型创建习惯：写每日计划
+           "l" "PLAN: 每日计划" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+                                       ,(concat org-directory "/inbox.org"))
+           "* TODO 计划 \nSCHEDULED:%U\n:PROPERTIES:\n:Create: %U\n:END:\n - [ ] %?" :tree-type week)
           ("1" "Person" entry                 "\n\n* ${title}\n :PROPERTIES: \n :ID: %(org-id-uuid)\n :company: %^{公司}\n:END:\n%?"
            :target (file+head "person/_index.org"
                               "* ${title}"))
@@ -539,7 +543,7 @@ With prefix argument, also display headlines without a TODO keyword."
    :END:
 - State "DONE"       from "NEXT"       [2021-02-09 Tue 11:52] \\
   完成：能 refile ，并在refile中能挑选出所有我需要的target
-将 Headline 移到另一个 headlin 中，可以是本地的headline 也可以是其它文件的headline
+将 Headline 移到另一个 headline 中，可以是本地的headline 也可以是其它文件的headline
 - [[https://orgmode.org/manual/Refile-and-Copy.html][Manual]] 
 - [[https://blog.aaronbieber.com/2017/03/19/organizing-notes-with-refile.html][Organizing Notes With Refile]]
   - The main thing you can configure about Refile is where the target list comes from and how it is presented.
@@ -568,14 +572,6 @@ With prefix argument, also display headlines without a TODO keyword."
 
   (define-key org-mode-map (kbd "M-g i") #'org-capture-at-point)
   (define-key org-mode-map (kbd "M-g p") #'gtd-today-plan)
-
-  (add-to-list 'org-capture-templates
-               '(;; 依据福格行为模型创建习惯：写每日计划
-                 "l" "PLAN: 每日计划" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
-                                             ,(concat org-directory "/inbox.org"))
-                 "* TODO 计划 \nSCHEDULED:%U\n:PROPERTIES:\n:Create: %U\n:END:\n - [ ] %?" :tree-type week))
-
-
 
 #+end_src
 *** 编辑习惯
@@ -1052,7 +1048,10 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :END:
 #+begin_src emacs-lisp :tangle yes
   (use-package  whole-line-or-region
-    :ensure t)
+    :ensure t
+    :config
+    (setq whole-line-or-region-global-mode 't)
+    )
 #+end_src
 
 
