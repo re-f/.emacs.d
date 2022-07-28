@@ -79,24 +79,17 @@
       (condition-case error
           (progn
             (fix-fullscreen-cocoa)
-            (load persp-frame-file)
+            (load persp-frame-file nil t)
 
             ;; NOTE: Only usable in `emacs-startup-hook' while not `window-setup-hook'.
             (add-hook 'emacs-startup-hook
                       (lambda ()
                         "Adjust initial frame position."
                         ;; Handle multiple monitors gracefully
-                        (if (or (>= (eval (frame-parameter nil 'top)) (display-pixel-height))
-                                (>= (eval (frame-parameter nil 'left)) (display-pixel-width)))
-                            (progn
-                              (set-frame-parameter nil 'top 0)
-                              (set-frame-parameter nil 'left 0))
-                          (progn
-                            (set-frame-parameter nil 'top (cdr (assq 'top initial-frame-alist)))
-                            (set-frame-parameter nil 'left (cdr (assq 'left initial-frame-alist)))))
-
-                        (set-frame-parameter nil 'width (cdr (assq 'width initial-frame-alist)))
-                        (set-frame-parameter nil 'height (cdr (assq 'height initial-frame-alist))))))
+                        (when (or (>= (eval (frame-parameter nil 'top)) (display-pixel-height))
+                                  (>= (eval (frame-parameter nil 'left)) (display-pixel-width)))
+                          (set-frame-parameter nil 'top 0)
+                          (set-frame-parameter nil 'left 0)))))
         (error
          (warn "persp frame: %s" (error-message-string error))))))
 
@@ -162,9 +155,10 @@
 
 ;; Projectile integration
 (use-package persp-mode-projectile-bridge
+  :after (persp-mode projectile)
   :commands (persp-mode-projectile-bridge-find-perspectives-for-all-buffers
              persp-mode-projectile-bridge-kill-perspectives)
-  :hook ((persp-mode . persp-mode-projectile-bridge-mode)
+  :hook ((after-init . persp-mode-projectile-bridge-mode)
          (persp-mode-projectile-bridge-mode
           .
           (lambda ()

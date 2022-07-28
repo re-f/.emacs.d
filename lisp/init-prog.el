@@ -42,9 +42,8 @@
   (setq-default prettify-symbols-alist centaur-prettify-symbols-alist)
   (setq prettify-symbols-unprettify-at-point 'right-edge))
 
-;; Tree-sitter
-;; Only support with dynamic module
-(when (functionp 'module-load)
+;; Tree-sitter: need dynamic module feature
+(when (and centaur-tree-sitter (functionp 'module-load))
   (use-package tree-sitter
     :ensure tree-sitter-langs
     :diminish
@@ -55,14 +54,14 @@
 (use-package xref
   :ensure nil
   :init
-  (when (and (boundp 'xref-search-program) (executable-find "rg"))
+  (when (executable-find "rg")
     (setq xref-search-program 'ripgrep))
 
   (with-no-warnings
+    ;; Select from xref candidates with Ivy
     (if emacs/>=28p
-        (setq xref-show-xrefs-function #'xref-show-definitions-completing-read
-              xref-show-definitions-function #'xref-show-definitions-completing-read)
-      ;; Select from xref candidates with Ivy
+        (setq xref-show-definitions-function #'xref-show-definitions-completing-read
+              xref-show-xrefs-function #'xref-show-definitions-completing-read)
       (use-package ivy-xref
         :after ivy
         :init
@@ -103,7 +102,7 @@
 ;; Run commands quickly
 (use-package quickrun
   :bind (("C-<f5>" . quickrun)
-         ("C-c X" . quickrun)))
+         ("C-c X"  . quickrun)))
 
 ;; Browse devdocs.io documents using EWW
 (when emacs/>=27p
@@ -112,16 +111,16 @@
            ("M-<f1>" . devdocs-dwim))
     :init
     (defvar devdocs-major-mode-docs-alist
-      '((c-mode . ("C"))
-        (c++-mode . ("C++"))
-        (python-mode . ("Python 3.9" "Python 3.8"))
-        (ruby-mode . ("Ruby 3"))
-        (go-mode . ("Go"))
-        (rustic-mode . ("Rust"))
-        (css-mode . ("CSS"))
-        (html-mode . ("HTML"))
-        (js-mode . ("JavaScript" "JQuery"))
-        (js2-mode . ("JavaScript" "JQuery"))
+      '((c-mode          . ("C"))
+        (c++-mode        . ("C++"))
+        (python-mode     . ("Python 3.9" "Python 3.8"))
+        (ruby-mode       . ("Ruby 3"))
+        (go-mode         . ("Go"))
+        (rustic-mode     . ("Rust"))
+        (css-mode        . ("CSS"))
+        (html-mode       . ("HTML"))
+        (js-mode         . ("JavaScript" "JQuery"))
+        (js2-mode        . ("JavaScript" "JQuery"))
         (emacs-lisp-mode . ("Elisp")))
       "Alist of MAJOR-MODE and list of docset names.")
 
@@ -154,9 +153,13 @@ Install the doc if it's not installed."
       ;; Lookup the symbol at point
       (devdocs-lookup nil (thing-at-point 'symbol t)))))
 
+;; Misc. programming modes
+(when emacs/>=27p
+  (use-package csv-mode))
+
 (use-package cask-mode)
+(use-package cmake-mode)
 (use-package csharp-mode)
-(use-package csv-mode)
 (use-package julia-mode)
 (use-package lua-mode)
 (use-package mermaid-mode)

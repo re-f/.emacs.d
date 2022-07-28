@@ -40,7 +40,7 @@ configuration for Emacs newcomers and lots of additional power for
 Emacs power users.
 
 It's able to run on Windows, GNU Linux and macOS. It is compatible **ONLY with
-GNU Emacs 25.1 and above**. In general you're advised to always run with the
+GNU Emacs 26.1 and above**. In general you're advised to always run with the
 latest stable release - currently **28.1**.
 
 ## Features
@@ -62,10 +62,12 @@ latest stable release - currently **28.1**.
 - Git integration.
 - Project/Workspace integration.
 - Pomodor integration.
+- MPD integration.
 - Support docker.
 - Better Chinese support:
     - Chinese calendar
     - Youdao dictionary
+    - Google translation
     - Pinyin search
 
 ## Prerequisite
@@ -97,8 +99,21 @@ or download the [zip
 package](https://github.com/seagle0128/.emacs.d/archive/master.zip) directly and
 extract to `~/.emacs.d`.
 
+If you are using Linux, you may prefer an XDG-compatible location, please use
+
+``` shell
+# Please make sure ~/.emacs.d, ~/.emacs and ~/.emacs.el don't exist
+git clone --depth 1 https://github.com/seagle0128/.emacs.d.git $XDG_CONFIG_HOME/emacs
+```
+
+or extract the zip package to `$XDG_CONFIG_HOME/emacs` directory.
+
 Then start Emacs. Wait for a while to install packages at the first startup.
 Enjoy! :smile:
+
+**Attention**: It may take long time to download packages at the first startup.
+It's up to your network speed. If it takes too long time and no response, check
+the connection or use proxy.
 
 **Note**: Start Emacs with the minimal configuration for fast startup and
 troubleshooting.
@@ -161,14 +176,16 @@ For Example:
 (setq centaur-socks-proxy "127.0.0.1:1086")    ; SOCKS proxy
 (setq centaur-server t)                        ; Enable `server-mode' or not: t or nil
 (setq centaur-icon t)                          ; Display icons or not: t or nil
-(setq centaur-package-archives 'melpa)         ; Package repo: melpa, emacs-china, netease, ustc, tencent or tuna
+(setq centaur-package-archives 'melpa)         ; Package repo: melpa, emacs-cn, netease, ustc, tencent or tuna
 (setq centaur-theme 'auto)                     ; Color theme: auto, random, system, default, pro, dark, light, warm, cold, day or night
 (setq centaur-completion-style 'minibuffer)    ; Completion display style: minibuffer or childframe
-(setq centaur-dashboard nil)                   ; Use dashboard at startup or not: t or nil
+(setq centaur-dashboard nil)                   ; Display dashboard at startup or not: t or nil
 (setq centaur-restore-frame-geometry nil)      ; Restore the frame's geometry at startup: t or nil
 (setq centaur-lsp 'eglot)                      ; Set LSP client: lsp-mode, eglot or nil
 (setq centaur-lsp-format-on-save-ignore-modes '(c-mode c++-mode python-mode markdown-mode)) ; Ignore format on save for some languages
-(setq centaur-chinese-calendar nil)            ; Use Chinese calendar or not: t or nil
+(setq centaur-tree-sitter t)                   ; Enable `tree-sitter' or not: t or nil
+(setq centaur-chinese-calendar nil)            ; Support Chinese calendar or not: t or nil
+(setq centaur-player t)                        ; Enable players or not: t or nil
 (setq centaur-prettify-symbols-alist nil)      ; Alist of symbol prettifications. Nil to use font supports ligatures.
 (setq centaur-prettify-org-symbols-alist nil)  ; Alist of symbol prettifications for `org-mode'
 ```
@@ -198,6 +215,7 @@ For the personal configurations, you could put to `~/.emacs.d/custom-post.org`
 | `smerge-mode-hydra`      | smerge-mode           | `C-c m`           | Actions for `smerge-mode`            |
 | `rect-hydra`             | text-mode, prog-mode  | `C-<return>`      | Actions for Rectangle                |
 | `rect-hydra`             | org-mode              | `S-<return>`      | Actions for Rectangle                |
+| `hideshow-hydra`         | prog-mode             | `C-~`             | Actions for `hideshow`               |
 | `lsp-ui-hydra`           | lsp-ui-mode           | `M-<f6>`          | Actions for `lsp-ui`                 |
 | `dap-hydra`              | dap-mode              | `M-<f5>`          | Actions for `dap-debug`              |
 | `elfeed-hydra`           | elfeed                | `?`               | Actions for RSS reader `elfeed`      |

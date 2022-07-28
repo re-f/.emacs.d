@@ -4,7 +4,7 @@
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
-;; Version: 5.9.1
+;; Version: 6.0.0
 ;; Keywords: .emacs.d centaur
 
 ;;
@@ -50,19 +50,15 @@
 
 ;;; Code:
 
-(when (version< emacs-version "25.1")
-  (error "This requires Emacs 25.1 and above!"))
+(when (version< emacs-version "26.1")
+  (error "This requires Emacs 26.1 and above!"))
 
 ;; Speed up startup
 (setq auto-mode-case-fold nil)
 
-(unless (or (daemonp) noninteractive)
+(unless (or (daemonp) noninteractive init-file-debug)
   (let ((old-file-name-handler-alist file-name-handler-alist))
-    ;; If `file-name-handler-alist' is nil, no 256 colors in TUI
-    ;; @see https://emacs-china.org/t/spacemacs-centaur-emacs/3802/839
-    (setq file-name-handler-alist
-          (unless (display-graphic-p)
-            '(("\\(?:\\.tzst\\|\\.zst\\|\\.dz\\|\\.txz\\|\\.xz\\|\\.lzma\\|\\.lz\\|\\.g?z\\|\\.\\(?:tgz\\|svgz\\|sifz\\)\\|\\.tbz2?\\|\\.bz2\\|\\.Z\\)\\(?:~\\|\\.~[-[:alnum:]:#@^._]+\\(?:~[[:digit:]]+\\)?~\\)?\\'" . jka-compr-handler))))
+    (setq file-name-handler-alist nil)
     (add-hook 'emacs-startup-hook
               (lambda ()
                 "Recover file name handlers."
@@ -70,13 +66,21 @@
                       (delete-dups (append file-name-handler-alist
                                            old-file-name-handler-alist)))))))
 
-(setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.5)
+;; Defer garbage collection further back in the startup process
+(setq gc-cons-threshold most-positive-fixnum)
 (add-hook 'emacs-startup-hook
           (lambda ()
             "Recover GC values after startup."
-            (setq gc-cons-threshold 800000
-                  gc-cons-percentage 0.1)))
+            (setq gc-cons-threshold 800000)))
+
+;; Suppress flashing at startup
+(setq-default inhibit-redisplay t
+              inhibit-message t)
+(add-hook 'window-setup-hook
+          (lambda ()
+            (setq-default inhibit-redisplay nil
+                          inhibit-message nil)
+            (redisplay)))
 
 ;; Load path
 ;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
@@ -132,6 +136,7 @@ Otherwise the startup will be very slow. "
 
 (require 'init-dict)
 (require 'init-docker)
+(require 'init-player)
 (require 'init-utils)
 
 ;; Programming

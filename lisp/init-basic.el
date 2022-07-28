@@ -30,6 +30,7 @@
 
 ;;; Code:
 
+(require 'subr-x)
 (require 'init-const)
 (require 'init-custom)
 (require 'init-funcs)
@@ -74,15 +75,16 @@
   (setq read-process-output-max #x10000)  ; 64kb
 
   ;; Don't ping things that look like domain names.
-  (setq ffap-machine-p-known 'reject)
+  (setq ffap-machine-p-known 'reject))
 
-  ;; Garbage Collector Magic Hack
-  (use-package gcmh
-    :diminish
-    :init
-    (setq gcmh-idle-delay 5
-          gcmh-high-cons-threshold #x1000000) ; 16MB
-    (gcmh-mode 1)))
+;; Garbage Collector Magic Hack
+(use-package gcmh
+  :diminish
+  :hook (emacs-startup . gcmh-mode)
+  :init
+  (setq gcmh-idle-delay 'auto
+        gcmh-auto-idle-delay-factor 10
+        gcmh-high-cons-threshold #x1000000)) ; 16MB
 
 ;; Encoding
 ;; UTF-8 as the default coding system
@@ -92,22 +94,16 @@
 ;; Explicitly set the prefered coding systems to avoid annoying prompt
 ;; from emacs (especially on Microsoft Windows)
 (prefer-coding-system 'utf-8)
-(setq locale-coding-system 'utf-8)
-
-(set-language-environment 'utf-8)
-(set-default-coding-systems 'utf-8)
-(set-buffer-file-coding-system 'utf-8)
-(set-clipboard-coding-system 'utf-8)
-(set-file-name-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-selection-coding-system 'utf-8)
-(modify-coding-system-alist 'process "*" 'utf-8)
+(setq system-time-locale "C")
 
 ;; Environment
 (when (or sys/mac-x-p sys/linux-x-p (daemonp))
   (use-package exec-path-from-shell
     :init (exec-path-from-shell-initialize)))
+
+;; Compatibility
+(use-package compat
+  :demand t)
 
 ;; Start server
 (use-package server
@@ -160,6 +156,11 @@
         track-eol t                     ; Keep cursor at end of lines. Require line-move-visual is nil.
         set-mark-command-repeat-pop t)  ; Repeating C-SPC after popping mark pops it again
 
+  ;; Only list the commands of the current modes
+  (when (boundp 'read-extended-command-predicate)
+    (setq read-extended-command-predicate
+          #'command-completion-default-include-p))
+
   ;; Visualize TAB, (HARD) SPACE, NEWLINE
   (setq-default show-trailing-whitespace nil) ; Don't show trailing whitespace by default
   (defun enable-trailing-whitespace ()
@@ -169,99 +170,42 @@
 
   ;; Prettify the process list
   (with-no-warnings
-    (define-derived-mode process-menu-mode tabulated-list-mode "Process Menu"
-      "Major mode for listing the processes called by Emacs."
-      (setq tabulated-list-format `[("" ,(if (icons-displayable-p) 2 0))
-                                    ("Process" 25 t)
-			                        ("PID"      7 t)
-			                        ("Status"   7 t)
-                                    ;; 25 is the length of the long standard buffer
-                                    ;; name "*Async Shell Command*<10>" (bug#30016)
-			                        ("Buffer"  25 t)
-			                        ("TTY"     12 t)
-			                        ("Thread"  12 t)
-			                        ("Command"  0 t)])
-      (make-local-variable 'process-menu-query-only)
-      (setq tabulated-list-sort-key (cons "Process" nil))
-      (add-hook 'tabulated-list-revert-hook 'list-processes--refresh nil t))
+    (add-hook 'process-menu-mode-hook
+              (lambda ()
+                (setq tabulated-list-format
+                      (vconcat `(("" ,(if (icon-displayable-p) 2 0)))
+                               tabulated-list-format))))
 
-    (defun list-processes--refresh ()
-      "Recompute the list of processes for the Process List buffer.
-Also, delete any process that is exited or signaled."
-      (setq tabulated-list-entries nil)
-      (dolist (p (process-list))
-        (cond ((memq (process-status p) '(exit signal closed))
-	           (delete-process p))
-	          ((or (not process-menu-query-only)
-	               (process-query-on-exit-flag p))
-	           (let* ((icon
-                       (or
-                        (and (icons-displayable-p)
-                             (all-the-icons-octicon "zap"
-                                                    :height 1.0 :v-adjust -0.05
-                                                    :face 'all-the-icons-lblue))
-                        ""))
-                      (buf (process-buffer p))
-		              (type (process-type p))
-		              (pid  (if (process-id p) (format "%d" (process-id p)) "--"))
-		              (name (process-name p))
-                      (status (process-status p))
-		              (status `(,(symbol-name status)
-                                face ,(if (memq status '(stop exit closed failed))
-                                          'error
-                                        'success)))
-		              (buf-label (if (buffer-live-p buf)
-				                     `(,(buffer-name buf)
-				                       face link
-				                       help-echo ,(format-message
-					                               "Visit buffer `%s'"
-					                               (buffer-name buf))
-				                       follow-link t
-				                       process-buffer ,buf
-				                       action process-menu-visit-buffer)
-			                       "--"))
-		              (tty `(,(or (process-tty-name p) "--")
-                             face font-lock-doc-face))
-		              (thread
-                       `(,(cond
-                           ((or
-                             (null (process-thread p))
-                             (not (fboundp 'thread-name))) "--")
-                           ((eq (process-thread p) main-thread) "Main")
-		                   ((thread-name (process-thread p)))
-		                   (t "--"))
-                         face font-lock-doc-face))
-		              (cmd
-		               `(,(if (memq type '(network serial pipe))
-		                      (let ((contact (process-contact p t t)))
-			                    (if (eq type 'network)
-			                        (format "(%s %s)"
-				                            (if (plist-get contact :type)
-					                            "datagram"
-				                              "network")
-				                            (if (plist-get contact :server)
-					                            (format
-                                                 "server on %s"
-					                             (if (plist-get contact :host)
-                                                     (format "%s:%s"
-						                                     (plist-get contact :host)
-                                                             (plist-get
-                                                              contact :service))
-					                               (plist-get contact :local)))
-				                              (format "connection to %s:%s"
-					                                  (plist-get contact :host)
-					                                  (plist-get contact :service))))
-			                      (format "(serial port %s%s)"
-				                          (or (plist-get contact :port) "?")
-				                          (let ((speed (plist-get contact :speed)))
-				                            (if speed
-					                            (format " at %s b/s" speed)
-				                              "")))))
-		                    (mapconcat 'identity (process-command p) " "))
-                         face completions-annotations)))
-	             (push (list p (vector icon name pid status buf-label tty thread cmd))
-		               tabulated-list-entries)))))
-      (tabulated-list-init-header))))
+    (defun my-list-processes--prettify ()
+      "Prettify process list."
+      (when-let ((entries tabulated-list-entries))
+        (setq tabulated-list-entries nil)
+        (dolist (p (process-list))
+          (when-let* ((val (cadr (assoc p entries)))
+                      (icon (if (icon-displayable-p)
+                                (concat
+                                 " "
+                                 (all-the-icons-faicon "bolt"
+                                                       :height 1.0 :v-adjust -0.05
+                                                       :face 'all-the-icons-lblue))
+                              " x"))
+                      (name (aref val 0))
+                      (pid (aref val 1))
+                      (status (aref val 2))
+                      (status (list status
+                                    'face
+                                    (if (memq status '(stop exit closed failed))
+                                        'error
+                                      'success)))
+                      (buf-label (aref val 3))
+                      (tty (list (aref val 4) 'face 'font-lock-doc-face))
+                      (thread (list (aref val 5) 'face 'font-lock-doc-face))
+                      (cmd (list (aref val (if emacs/>=27p 6 5)) 'face 'completions-annotations)))
+            (push (list p (if emacs/>=27p
+                              (vector icon name pid status buf-label tty thread cmd)
+                            (vector icon name pid status buf-label tty cmd)))
+		          tabulated-list-entries)))))
+    (advice-add #'list-processes--refresh :after #'my-list-processes--prettify)))
 
 (use-package time
   :ensure nil
@@ -281,7 +225,7 @@ Also, delete any process that is exited or signaled."
               indent-tabs-mode nil)     ; Permanently indent with spaces, never with TABs
 
 (setq visible-bell t
-      inhibit-compacting-font-caches t  ; Don’t compact font caches during GC.
+      inhibit-compacting-font-caches t  ; Don’t compact font caches during GC
       delete-by-moving-to-trash t       ; Deleting files go to OS's trash folder
       make-backup-files nil             ; Forbide to make backup files
       auto-save-default nil             ; Disable auto save
@@ -301,16 +245,16 @@ Also, delete any process that is exited or signaled."
 
   ;; Resize and re-position frames conveniently
   ;; Same keybindings as Rectangle on macOS
-  (bind-keys ("C-M-<return>" . centaur-frame-maximize)
+  (bind-keys ("C-M-<return>"    . centaur-frame-maximize)
              ("C-M-<backspace>" . centaur-frame-restore)
-             ("C-M-<left>" . centaur-frame-left-half)
-             ("C-M-<right>" . centaur-frame-right-half)
-             ("C-M-<up>" . centaur-frame-top-half)
-             ("C-M-<down>" . centaur-frame-bottom-half)))
+             ("C-M-<left>"      . centaur-frame-left-half)
+             ("C-M-<right>"     . centaur-frame-right-half)
+             ("C-M-<up>"        . centaur-frame-top-half)
+             ("C-M-<down>"      . centaur-frame-bottom-half)))
 
 ;; Global keybindings
-(bind-keys ("s-r" . revert-this-buffer)
-           ("C-x K" . delete-this-file)
+(bind-keys ("s-r"     . revert-this-buffer)
+           ("C-x K"   . delete-this-file)
            ("C-c C-l" . reload-init-file))
 
 (provide 'init-basic)

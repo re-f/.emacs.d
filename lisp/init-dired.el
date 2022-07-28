@@ -81,8 +81,9 @@
   ;; Shows icons
   (use-package all-the-icons-dired
     :diminish
-    :if (icons-displayable-p)
-    :hook (dired-mode . all-the-icons-dired-mode)
+    :hook (dired-mode . (lambda ()
+                          (when (icon-displayable-p)
+                            (all-the-icons-dired-mode))))
     :init (setq all-the-icons-dired-monochrome nil)
     :config
     (with-no-warnings
@@ -121,7 +122,7 @@
   (use-package dired-aux :ensure nil)
   (use-package dired-x
     :ensure nil
-    :demand
+    :demand t
     :config
     (let ((cmd (cond (sys/mac-x-p "open")
                      (sys/linux-x-p "xdg-open")

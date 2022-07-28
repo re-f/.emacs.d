@@ -124,7 +124,7 @@ Lisp function does not specify a special indentation."
                              (get (intern-soft function) 'lisp-indent-hook)))
             (cond ((or (eq method 'defun)
                        (and (null method)
-                            (> (length function) 3)
+                            (length> function 3)
                             (string-match "\\`def" function)))
                    (lisp-indent-defform state indent-point))
                   ((integerp method)
@@ -241,13 +241,13 @@ Lisp function does not specify a special indentation."
 (use-package helpful
   :commands helpful--buffer
   :bind (([remap describe-function] . helpful-callable)
-         ([remap describe-command] . helpful-command)
+         ([remap describe-command]  . helpful-command)
          ([remap describe-variable] . helpful-variable)
-         ([remap describe-key] . helpful-key)
-         ([remap describe-symbol] . helpful-symbol)
-         ("C-c C-d" . helpful-at-point)
+         ([remap describe-key]      . helpful-key)
+         ([remap describe-symbol]   . helpful-symbol)
+         ("C-c C-d"                 . helpful-at-point)
          :map helpful-mode-map
-         ("r" . remove-hook-at-point))
+         ("r"                       . remove-hook-at-point))
   :hook (helpful-mode . cursor-sensor-mode) ; for remove-advice button
   :init
   (with-no-warnings

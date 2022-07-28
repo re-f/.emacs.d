@@ -34,6 +34,11 @@
 
 (use-package counsel
   :diminish ivy-mode counsel-mode
+  :custom-face
+  (ivy-minibuffer-match-face-1 ((t (:foreground "dimgray" :distant-foreground nil :background nil))))
+  (ivy-minibuffer-match-face-2 ((t (:distant-foreground nil :background nil))))
+  (ivy-minibuffer-match-face-3 ((t (:distant-foreground nil :background nil))))
+  (ivy-minibuffer-match-face-4 ((t (:distant-foreground nil :background nil))))
   :bind (("C-s"   . swiper-isearch)
          ("C-r"   . swiper-isearch-backward)
          ("s-f"   . swiper)
@@ -45,16 +50,16 @@
          ("C-c v ." . ivy-switch-view)
 
          :map counsel-mode-map
-         ([remap swiper] . counsel-grep-or-swiper)
-         ([remap swiper-backward] . counsel-grep-or-swiper-backward)
-         ([remap dired] . counsel-dired)
-         ([remap set-variable] . counsel-set-variable)
-         ([remap insert-char] . counsel-unicode-char)
+         ([remap swiper]             . counsel-grep-or-swiper)
+         ([remap swiper-backward]    . counsel-grep-or-swiper-backward)
+         ([remap dired]              . counsel-dired)
+         ([remap set-variable]       . counsel-set-variable)
+         ([remap insert-char]        . counsel-unicode-char)
          ([remap recentf-open-files] . counsel-recentf)
-         ([remap org-capture] . counsel-org-capture)
+         ([remap org-capture]        . counsel-org-capture)
 
-         ("C-x j"   . counsel-mark-ring)
-         ("C-h F"   . counsel-faces)
+         ("C-x j" . counsel-mark-ring)
+         ("C-h F" . counsel-faces)
 
          ("C-c B" . counsel-bookmarked-directory)
          ("C-c L" . counsel-load-library)
@@ -74,6 +79,7 @@
          ("C-c c B" . counsel-bookmarked-directory)
          ("C-c c F" . counsel-faces)
          ("C-c c L" . counsel-load-library)
+         ("C-c c K" . counsel-ace-link)
          ("C-c c O" . counsel-find-file-extern)
          ("C-c c P" . counsel-package)
          ("C-c c R" . counsel-list-processes)
@@ -84,7 +90,6 @@
          ("C-c c h" . counsel-command-history)
          ("C-c c i" . counsel-git)
          ("C-c c j" . counsel-git-grep)
-         ("C-c c k" . counsel-ace-link)
          ("C-c c l" . counsel-git-log)
          ("C-c c m" . counsel-minibuffer-history)
          ("C-c c o" . counsel-outline)
@@ -120,9 +125,20 @@
         ivy-fixed-height-minibuffer t
         ivy-count-format "(%d/%d) "
         ivy-ignore-buffers '("\\` " "\\`\\*tramp/" "\\`\\*xref" "\\`\\*helpful "
-                             "\\`\\*.+-posframe-buffer\\*")
+                             "\\`\\*.+-posframe-buffer\\*" "\\` ?\\*company-.+\\*")
         ivy-on-del-error-function #'ignore
         ivy-initial-inputs-alist nil)
+
+  ;; Use orderless regex strategy
+  (setq ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
+
+  ;; Set minibuffer height for different commands
+  (setq ivy-height-alist '((counsel-evil-registers . 5)
+                           (counsel-yank-pop       . 8)
+                           (counsel-git-log        . 4)
+                           (swiper                 . 15)
+                           (counsel-projectile-ag  . 15)
+                           (counsel-projectile-rg  . 15)))
 
   ;; Better performance on Windows
   (when sys/win32p
@@ -200,7 +216,8 @@
                  (when (memq this-command '(ivy-delete-char
                                             delete-forward-char
                                             kill-word kill-sexp))
-                   (beginning-of-line)))))))
+                   (beginning-of-line)))
+               (setq my-ivy-fly--travel t)))))
 
     (defun my-ivy-fly-time-travel ()
       (when (memq this-command my-ivy-fly-commands)
@@ -234,8 +251,7 @@
 
     (defun my-ivy-switch-to-rg-dwim (&rest _)
       "Switch to `rg-dwim' with the current input."
-      (ivy-quit-and-run
-        (rg-dwim default-directory)))
+      (ivy-quit-and-run (rg-dwim default-directory)))
 
     (defun my-ivy-switch-to-counsel-rg (&rest _)
       "Switch to `counsel-rg' with the current input."
@@ -256,6 +272,22 @@
     (defun my-ivy-switch-to-counsel-git (&rest _)
       "Switch to `counsel-git' with the current input."
       (counsel-git ivy-text))
+
+    (defun my-ivy-switch-to-list-bookmarks (&rest _)
+      "Switch to `list-bookmarks'."
+      (ivy-quit-and-run (call-interactively #'list-bookmarks)))
+
+    (defun my-ivy-switch-to-list-colors (&rest _)
+      "Switch to `list-colors-display'."
+      (ivy-quit-and-run (list-colors-display)))
+
+    (defun my-ivy-switch-to-list-packages (&rest _)
+      "Switch to `list-packages'."
+      (ivy-quit-and-run (list-packages)))
+
+    (defun my-ivy-switch-to-list-processes (&rest _)
+      "Switch to `list-processes'."
+      (ivy-quit-and-run (list-processes)))
 
     (defun my-ivy-copy-library-path (lib)
       "Copy the full path of LIB."
@@ -298,6 +330,18 @@
       (ivy-quit-and-run
         (counsel-fzf (or ivy-text "") default-directory)))
     (bind-key "<C-return>" #'my-counsel-find-file-toggle-fzf counsel-find-file-map)
+
+    (defun my-counsel-toggle ()
+      "Toggle `counsel' commands and original commands."
+      (interactive)
+      (pcase (ivy-state-caller ivy-last)
+        ('counsel-bookmark (my-ivy-switch-to-list-bookmarks))
+        ('counsel-colors-emacs (my-ivy-switch-to-list-colors))
+        ('counsel-colors-web (my-ivy-switch-to-list-colors))
+        ('counsel-list-processes (my-ivy-switch-to-list-processes))
+        ('counsel-package (my-ivy-switch-to-list-packages))
+        (_ (ignore))))
+    (bind-key "<C-return>" #'my-counsel-toggle ivy-minibuffer-map)
 
     ;; More actions
     (ivy-add-actions
@@ -358,7 +402,27 @@
 
     (ivy-add-actions
      'counsel-load-library
-     '(("p" my-ivy-copy-library-path "copy path"))))
+     '(("p" my-ivy-copy-library-path "copy path")))
+
+    (ivy-add-actions
+     #'counsel-bookmark
+     '(("l" my-ivy-switch-to-list-bookmarks "list")))
+
+    (ivy-add-actions
+     #'counsel-colors-emacs
+     '(("l" my-ivy-switch-to-list-colors "list")))
+
+    (ivy-add-actions
+     #'counsel-colors-web
+     '(("l" my-ivy-switch-to-list-colors "list")))
+
+    (ivy-add-actions
+     #'counsel-package
+     '(("l" my-ivy-switch-to-list-packages "list packages")))
+
+    (ivy-add-actions
+     #'counsel-list-processes
+     '(("l" my-ivy-switch-to-list-processes "list"))))
 
   ;; Enhance M-x
   (use-package amx
@@ -369,50 +433,12 @@
     :bind (:map ivy-minibuffer-map
            ("C-'" . ivy-avy)))
 
-  ;; Better sorting and filtering
-  (use-package prescient
-    :commands prescient-persist-mode
-    :init (prescient-persist-mode 1))
-
-  (use-package ivy-prescient
-    :commands ivy-prescient-re-builder
-    :custom-face
-    (ivy-minibuffer-match-face-1 ((t (:foreground ,(face-foreground 'font-lock-doc-face nil t)))))
-    :init
-    (defun ivy-prescient-non-fuzzy (str)
-      "Generate an Ivy-formatted non-fuzzy regexp list for the given STR.
-This is for use in `ivy-re-builders-alist'."
-      (let ((prescient-filter-method '(literal regexp)))
-        (ivy-prescient-re-builder str)))
-
-    (setq ivy-prescient-retain-classic-highlighting t
-          ivy-re-builders-alist
-          '((counsel-ag . ivy-prescient-non-fuzzy)
-            (counsel-rg . ivy-prescient-non-fuzzy)
-            (counsel-pt . ivy-prescient-non-fuzzy)
-            (counsel-grep . ivy-prescient-non-fuzzy)
-            (counsel-fzf . ivy-prescient-non-fuzzy)
-            (counsel-imenu . ivy-prescient-non-fuzzy)
-            (counsel-yank-pop . ivy-prescient-non-fuzzy)
-            (swiper . ivy-prescient-non-fuzzy)
-            (swiper-isearch . ivy-prescient-non-fuzzy)
-            (swiper-all . ivy-prescient-non-fuzzy)
-            (lsp-ivy-workspace-symbol . ivy-prescient-non-fuzzy)
-            (lsp-ivy-global-workspace-symbol . ivy-prescient-non-fuzzy)
-            (insert-char . ivy-prescient-non-fuzzy)
-            (counsel-unicode-char . ivy-prescient-non-fuzzy)
-            (t . ivy-prescient-re-builder))
-          ivy-prescient-sort-commands
-          '(counsel-M-x execute-extended-command execute-extended-command-for-buffer))
-
-    (ivy-prescient-mode 1))
-
   ;; Additional key bindings for Ivy
   (use-package ivy-hydra
     :init
     (setq ivy-read-action-function 'ivy-hydra-read-action)
 
-    (when (childframe-workable-p)
+    (when (childframe-completion-workable-p)
       (setq hydra-hint-display-type 'posframe)
 
       (with-no-warnings
@@ -451,12 +477,12 @@ This is for use in `ivy-re-builders-alist'."
                 `(:left-fringe 10
                   :right-fringe 10
                   :internal-border-width 3
-                  :internal-border-color ,(face-foreground 'font-lock-comment-face nil t)
+                  :internal-border-color ,(face-background 'posframe-border nil t)
                   :background-color ,(face-background 'tooltip nil t)
                   :lines-truncate t
                   :poshandler ivy-hydra-poshandler-frame-center-below)))
         (hydra-set-posframe-show-params)
-        (add-hook 'after-load-theme-hook #'hydra-set-posframe-show-params))))
+        (add-hook 'after-load-theme-hook #'hydra-set-posframe-show-params t))))
 
   ;; Ivy integration for Projectile
   (use-package counsel-projectile
@@ -494,13 +520,6 @@ This is for use in `ivy-re-builders-alist'."
     :commands pinyinlib-build-regexp-string
     :init
     (with-no-warnings
-      (defun ivy--regex-pinyin (str)
-        "The regex builder wrapper to support pinyin."
-        (or (pinyin-to-utf8 str)
-            (and (fboundp 'ivy-prescient-non-fuzzy)
-                 (ivy-prescient-non-fuzzy str))
-            (ivy--regex-plus str)))
-
       (defun my-pinyinlib-build-regexp-string (str)
         "Build a pinyin regexp sequence from STR."
         (cond ((equal str ".*") ".*")
@@ -526,15 +545,20 @@ This is for use in `ivy-re-builders-alist'."
                 ""))
               (t nil)))
 
-      (mapcar
-       (lambda (item)
-         (let ((key (car item))
-               (value (cdr item)))
-           (when (member value '(ivy-prescient-non-fuzzy
-                                 ivy--regex-plus))
-             (setf (alist-get key ivy-re-builders-alist)
-                   #'ivy--regex-pinyin))))
-       ivy-re-builders-alist))))
+      (defun my-ivy--regex-pinyin (fn str)
+        "The regex builder advice to support pinyin."
+        (or (pinyin-to-utf8 str)
+            (funcall fn str)))
+      (advice-add #'ivy--regex-plus :around #'my-ivy--regex-pinyin)
+      (advice-add #'ivy--regex-ignore-order :around #'my-ivy--regex-pinyin))))
+
+;; Ivy
+(use-package ivy-dired-history
+  :demand t
+  :after (savehist dired)
+  :bind (:map dired-mode-map
+         ("," . dired))
+  :init (add-to-list 'savehist-additional-variables 'ivy-dired-history-variable))
 
 ;; Better experience with icons
 ;; Enable it before`ivy-rich-mode' for better performance
@@ -563,26 +587,20 @@ This is for use in `ivy-re-builders-alist'."
   (setq ivy-rich-parse-remote-buffer nil))
 
 ;; Display completion in child frame
-(when (childframe-workable-p)
+(when (childframe-completion-workable-p)
   (use-package ivy-posframe
     :custom-face
     (ivy-posframe ((t (:inherit tooltip))))
-    (ivy-posframe-border ((t (:background ,(face-foreground 'font-lock-comment-face nil t)))))
+    (ivy-posframe-border ((t (:inherit posframe-border))))
     :hook (ivy-mode . ivy-posframe-mode)
     :init
-    (setq ivy-height 15
+    (setq ivy-height 15                 ; Use bigger minibuffer height for child frame
           ivy-posframe-border-width 3
           ivy-posframe-parameters '((left-fringe . 8)
                                     (right-fringe . 8)))
     :config
-    (add-hook 'after-load-theme-hook
-              (lambda ()
-                (custom-set-faces
-                 '(ivy-posframe ((t (:inherit tooltip))))
-                 `(ivy-posframe-border ((t (:background ,(face-foreground 'font-lock-comment-face nil t))))))))
-
     (with-no-warnings
-      ;; FIXME: hide minibuffer with same colors
+      ;; HACK: hide minibuffer with same colors
       (defun my-ivy-posframe--minibuffer-setup (fn &rest args)
         "Advice function of FN, `ivy--minibuffer-setup' with ARGS."
         (if (not (display-graphic-p))

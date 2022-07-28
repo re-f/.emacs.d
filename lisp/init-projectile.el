@@ -36,7 +36,7 @@
 (use-package projectile
   :diminish
   :bind (:map projectile-mode-map
-         ("s-t" . projectile-find-file) ; `cmd-t' or `super-t'
+         ("s-t"   . projectile-find-file) ; `cmd-t' or `super-t'
          ("C-c p" . projectile-command-map))
   :hook (after-init . projectile-mode)
   :init
@@ -59,7 +59,7 @@
       (setq projectile-indexing-method 'alien
             projectile-enable-caching nil))
 
-    ;; FIXME: too slow while getting submodule files on Windows
+    ;; HACK: too slow while getting submodule files on Windows
     (setq projectile-git-submodule-command nil))
 
   ;; Support Perforce project

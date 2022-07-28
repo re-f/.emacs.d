@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(require 'init-const)
+
 (use-package markdown-mode
   :mode (("README\\.md\\'" . gfm-mode))
   :init
