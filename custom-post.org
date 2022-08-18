@@ -946,6 +946,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 2) 如果搜索出来的结果有些不想处理，可以通过filter/delete 去除一些搜索结果再替换
 
 #+begin_src emacs-lisp :tangle yes
+(add-to-list 'load-path "~/.emacs.d/site-lisp/color-rg")
 (require 'color-rg)
 
 ;; using `isearch-forward', type "M-s M-s" to search current isearch string with color-rg.

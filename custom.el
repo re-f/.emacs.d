@@ -14,7 +14,7 @@
 ;; (setq centaur-server nil)                      ; Enable `server-mode' or not: t or nil
 ;; (setq centaur-icon nil)                        ; Display icons or not: t or nil
 (setq centaur-package-archives 'melpa); Package repo: melpa, emacs-china, netease, ustc, tencent or tuna
-(setq centaur-theme 'dark)                    ; Color theme: auto, random, default, classic, colorful, dark, light, day or night
+(setq centaur-theme 'light)                    ; Color theme: auto, random, default, classic, colorful, dark, light, day or night
 ;; (setq centaur-dashboard nil)                   ; Use dashboard at startup or not: t or nil
 ;; (setq centaur-restore-frame-geometry nil)      ; Restore the frame's geometry at startup: t or nil
 ;; (setq centaur-lsp 'eglot)                      ; Set LSP client: lsp-mode, eglot or nil
@@ -84,10 +84,9 @@
  '(ansi-color-names-vector
    ["#1D252C" "#D95468" "#8BD49C" "#EBBF83" "#5EC4FF" "#E27E8D" "#70E1E8" "#A0B3C5"])
  '(centaur-completion-style 'minibuffer)
- '(centaur-package-archives 'melpa)
  '(centaur-theme 'warm)
  '(custom-safe-themes
-   '("c4bdbbd52c8e07112d1bfd00fee22bf0f25e727e95623ecb20c4fa098b74c1bd" default))
+   '("d14f3df28603e9517eb8fb7518b662d653b25b26e83bd8e129acea042b774298" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" "c4bdbbd52c8e07112d1bfd00fee22bf0f25e727e95623ecb20c4fa098b74c1bd" default))
  '(fci-rule-color "#56697A")
  '(jdee-db-active-breakpoint-face-colors (cons "#10151C" "#5EC4FF"))
  '(jdee-db-requested-breakpoint-face-colors (cons "#10151C" "#8BD49C"))
@@ -119,7 +118,7 @@
      ("Meta Data Editing")
      ("t" . org-todo)
      ("," org-priority)
-     ("0" org-priority 32)
+     ("0" org-priority-up)
      ("Show headline level")
      ("1" progn
       (org-content
@@ -151,7 +150,6 @@
      ("i" progn
       (forward-char 1)
       (call-interactively 'org-insert-heading-respect-content))
-     ("^" . org-sort)
      ("w" . org-refile)
      ("a" . org-archive-subtree-default-with-confirmation)
      ("@" . org-mark-subtree)
@@ -175,6 +173,8 @@
      (:name "中国高等院校（大学）大全" :file "~/.emacs.d/pyim/dict/中国高等院校（大学）大全.pyim")))
  '(rustic-ansi-faces
    ["#1D252C" "#D95468" "#8BD49C" "#EBBF83" "#5EC4FF" "#E27E8D" "#70E1E8" "#A0B3C5"])
+ '(smtpmail-smtp-server "smtp.office365.com")
+ '(smtpmail-smtp-service 25)
  '(vc-annotate-background "#1D252C")
  '(vc-annotate-color-map
    (list
@@ -224,6 +224,7 @@
  '(aw-leading-char-face ((t (:inherit font-lock-keyword-face :bold t :height 2.0))))
  '(aw-minibuffer-leading-char-face ((t (:inherit font-lock-keyword-face :bold t :height 1.0))))
  '(aw-mode-line-face ((t (:inherit mode-line-emphasis :bold t))))
+ '(cfrs-border-color ((t (:background "#96A7A9"))))
  '(dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
  '(diff-hl-change ((t (:foreground "#51afef" :background nil))))
  '(diff-hl-delete ((t (:inherit diff-removed :background nil))))
@@ -235,6 +236,7 @@
  '(flycheck-posframe-info-face ((t (:foreground "#859900"))))
  '(git-timemachine-minibuffer-author-face ((t (:inherit success))))
  '(git-timemachine-minibuffer-detail-face ((t (:inherit warning))))
+ '(hl-todo ((t (:inherit variable-pitch :box (:line-width -1) :height 0.85 :width condensed :weight semibold :underline nil :inverse-video t))))
  '(ivy-minibuffer-match-face-1 ((t (:foreground "#83898d"))))
  '(ivy-posframe ((t (:inherit tooltip))))
  '(ivy-posframe-border ((t (:background "#96A7A9"))))
@@ -300,4 +302,5 @@
                 (buffer-list))))
 
 (setq org-refile-targets '((+org/opened-buffer-files :maxlevel . 9)))
+
 ;;; custom.el ends here
