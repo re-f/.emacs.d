@@ -81,6 +81,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(centaur-org-directory  "~/OneDrive/knowledgebase-blog/content-org")
  '(ansi-color-names-vector
    ["#1D252C" "#D95468" "#8BD49C" "#EBBF83" "#5EC4FF" "#E27E8D" "#70E1E8" "#A0B3C5"])
  '(centaur-completion-style 'minibuffer)

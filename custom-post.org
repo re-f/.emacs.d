@@ -946,9 +946,9 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 2) 如果搜索出来的结果有些不想处理，可以通过filter/delete 去除一些搜索结果再替换
 
 #+begin_src emacs-lisp :tangle yes
-(add-to-list 'load-path "~/.emacs.d/site-lisp/color-rg")
-(require 'color-rg)
 
+(use-package color-rg
+  :load-path "site-lisp/color-rg")
 ;; using `isearch-forward', type "M-s M-s" to search current isearch string with color-rg.
 
 #+end_src
@@ -985,10 +985,10 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
  #+begin_src emacs-lisp :tangle yes
 
 
-(add-to-list 'load-path "~/.emacs.d/lisp/chinese-word-segmentation")
+(add-to-list 'load-path "~/.emacs.d/site-lisp/chinese-word-segmentation")
 (require 'cns)
-(setq cns-prog "~/.emacs.d/lisp/chinese-word-segmentation/chinese-word-segmentation"
-      cns-dict-directory "~/.emacs.d/lisp/chinese-word-segmentation/dict"
+(setq cns-prog "~/.emacs.d/site-lisp/chinese-word-segmentation/chinese-word-segmentation"
+      cns-dict-directory "~/.emacs.d/site-lisp/chinese-word-segmentation/dict"
       cns-recent-segmentation-limit 20
       cns-debug t  ;; disable debug output, default is t
       )
