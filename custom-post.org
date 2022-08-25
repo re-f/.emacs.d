@@ -947,9 +947,17 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 #+begin_src emacs-lisp :tangle yes
 
-(use-package color-rg
-  :load-path "site-lisp/color-rg")
-;; using `isearch-forward', type "M-s M-s" to search current isearch string with color-rg.
+  (add-to-list 'load-path "~/.emacs.d/site-lisp/color-rg")
+  (require 'color-rg)
+
+  ;; (use-package color-rg
+  ;;   :load-path "site-lisp/color-rg"
+  ;;   :ensure t
+  ;;   :bind(
+  ;;         ("s-F" . color-rg-search-symbol)
+  ;;         )
+  ;;   )
+  ;; using `isearch-forward', type "M-s M-s" to search current isearch string with color-rg.
 
 #+end_src
 
