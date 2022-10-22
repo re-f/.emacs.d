@@ -536,6 +536,18 @@ With prefix argument, also display headlines without a TODO keyword."
 
 #+end_src
 
+*** org 查询功能加强
+orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-properties.html][Matching tags and properties]], org-mode 作为结构化的文本格式，每个 headline 拥有很多属性，因此查询条件也很丰富。但是 org-mode 自身提供的查询方式语法复杂，改为使用 org-ql
+#+begin_src emacs-lisp :tangle yes
+  (use-package org-ql
+    :ensure t
+    :after org
+    :config
+    (setq org-ql-ask-unsafe-queries nil))
+
+  (use-package helm-org-ql
+    :ensure t)
+#+end_src
 
 *** Refile 
    :PROPERTIES:
@@ -632,18 +644,6 @@ With prefix argument, also display headlines without a TODO keyword."
 :PROPERTIES:
 :ID:       135D5C31-BE0C-44F2-B59D-3EC49A36D675
 :END:
-#+begin_src emacs-lisp :tangle yes
-
-  
-  (use-package org-ql
-    :ensure t
-    :after org
-    :config
-    (setq org-ql-ask-unsafe-queries nil))
-
-  (use-package helm-org-ql
-    :ensure t)
-#+end_src
 
 * 编辑/操作习惯配置
 :PROPERTIES:
@@ -675,7 +675,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     )
 #+end_src
 
-** 多光标编辑：
+** 多光标编辑
 :PROPERTIES:
 :ID:       09CCDB32-D709-4DBF-96CE-A44D19F8BDA6
 :END:
@@ -976,7 +976,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :ID:       03445261-50A4-48ED-8147-1200ADEFA118
 :END:
 
-- 中文下表格对齐
+- 表格对齐
   ;; 解决在中文下，表格无法自动对齐的问题
  #+begin_src emacs-lisp :tangle yes
 
@@ -988,7 +988,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
      )
 
 #+end_src
-- 支持中文分词
+- 中文分词
   参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
  #+begin_src emacs-lisp :tangle yes
 
@@ -1005,8 +1005,8 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   
   #+end_src
 
-- 使用内置的中文输入法
-   [[https://github.com/tumashu/pyim]]，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用 emacs 的快捷键
+- 内置的中文输入法
+   [[https://github.com/tumashu/pyim]]，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用 emacs 的快捷键，而不用平凡进行中英文切换
   #+begin_src emacs-lisp :tangle yes
 
     (use-package pyim
@@ -1021,6 +1021,9 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
       )
     (require 'pyim)
       (setq default-input-method "pyim")
+    ;; 开启这些 probe 后，能实现以下效果
+    ;;  1. 当中文/英文后有空格时，会自动切换输入法
+    ;;  2. 配合 pyim-convert-string-at-point 的快捷键，能实现手工切换输入法
       (setq-default pyim-english-input-switch-functions
                     '(pyim-probe-isearch-mode
                       pyim-probe-program-mode
@@ -1038,7 +1041,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     (require 'pyim-basedict)
     (pyim-basedict-enable)
   #+end_src
-测试：
+- 测试：
   #+begin_src emacs-lisp :tangle no
 (pyim-char-before-to-string 1);;ceshi
 ;; 测试
