@@ -21,8 +21,40 @@
 
 需要自己下载的 package 有：
 chinese-word-segmentation: git clone git@github.com:kanglmf/emacs-chinese-word-segmentation.git
+*** 使用到的插件
+- [[https://github.com/alphapapa/org-ql][org-ql]]: 友好的heading 查询插件
+  重要参考 [[https://github.com/alphapapa/org-ql][org-ql]]： org 的查询语法* Footnotes
+- super-org-agenda: 友好的heading分组工具
+- pyim
+
+- org-sidebar
+  [[https://github.com/alphapapa/org-sidebar][官网]]
+  
+  #+begin_src emacs-lisp :tangle no
+    ;;从 官网复制过来改的https://github.com/alphapapa/org-sidebar/blob/master/org-sidebar.el#L325
+    (defun my/org-sidebar-import (source-buffer)
+      "Import TODO."
+      (let ((display-buffer
+             (generate-new-buffer (format "org-sidebar<%s>" (buffer-name source-buffer))))
+            (title (concat "Import items in: " (buffer-name source-buffer))))
+        (with-current-buffer display-buffer
+          (setf org-sidebar-source-buffer source-buffer))
+        (save-window-excursion
+          ;; `org-ql-search' displays the buffer, but we don't want to do that here.
+          (org-ql-search source-buffer
+            '(and (priority > "B")
+                  (not (done)))
+            :narrow t :sort 'date
+            :super-groups '((:auto-planning))
+            :buffer display-buffer
+            :title title))
+        display-buffer))
+  #+end_src
+  
+  
 
 ** org-mode
+org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
 *** org TODO 设置
 :PROPERTIES:
 :ID:       835E8AB4-81B5-46FE-BCA0-E73E6B7EDDCB
@@ -575,7 +607,7 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
   (defun org-capture-at-point ()
     "Insert an org capture template at point."
     (interactive)
-    (org-capture 0 "n"))
+    (org-capture 0 "h"))
 
   (defun gtd-today-plan ()
     "GTD-Flow: Today's plan."
@@ -590,7 +622,7 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
 :PROPERTIES:
 :ID:       8DE580EA-173B-4CAC-9FDC-4E869897252F
 :END:
-- 模板配置
+- snippets 配置
   #+begin_src emacs-lisp :tangle yes
   (push (concat org-directory "/.config/snippets") yas-snippet-dirs )
 #+end_src
@@ -636,6 +668,89 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
         (format "[%s](%s)" desc link)))))
   (org-link-set-parameters "evernote" :export #'org-link-evernote-export-link))
 
+#+end_src
+*** 阅读
+**** hightlight
+- 简易版本 symbol 跳转和高亮
+  高亮定义（也可以是单词），并可在当前 buffer 中跳转，[[https://zhuanlan.zhihu.com/p/26471685][symbol-overlay]]
+  #+begin_src emacs-lisp :tangle no
+    ;; 本部分在init-highlight 中定义，因此 tangle=no
+    ("M-i" . symbol-overlay-put)
+    ("M-n" . symbol-overlay-jump-next)
+    ("M-p" . symbol-overlay-jump-prev)
+    ("M-N" . symbol-overlay-switch-forward)
+    ("M-P" . symbol-overlay-switch-backward)
+    ("M-C" . symbol-overlay-remove-all)
+    ([M-f3] . symbol-overlay-remove-all)
+  #+end_src
+**** headline 跳转和操作
+[[https://orgmode.org/manual/Speed-Keys.html#:~:text=To%20activate%20Speed%20Keys%2C%20set,option%20org%2Dspeed%2Dcommands%20.][speed-command]]: 当在 headline 的行首时，可以使用 speed 快捷指令。 只定义了常用的几个，1-5是参考 ithougt 的快捷键配置，用处是展示当前 level 下的第 N 级 headline
+#+begin_src emacs-lisp :tangle yes
+    ;; 使用 org-speed-commands
+  (custom-set-variables
+   '(org-speed-commands
+     '(("Outline Navigation")
+       ("n" org-speed-move-safe 'org-next-visible-heading)
+       ("p" org-speed-move-safe 'org-previous-visible-heading)
+       ("f" org-speed-move-safe 'org-forward-heading-same-level)
+       ("b" org-speed-move-safe 'org-backward-heading-same-level)
+       ("F" . org-next-block)
+       ("B" . org-previous-block)
+       ("u" org-speed-move-safe 'outline-up-heading)
+       ("j" . org-goto)
+       ("g" org-refile
+        '(4))
+       ("Outline Visibility")
+       ("c" . org-cycle)
+       ("C" . org-shifttab)
+       (" " . org-display-outline-path)
+       ("s" . org-toggle-narrow-to-subtree)
+       ("k" . org-cut-subtree)
+       ("=" . org-columns)
+       ("Meta Data Editing")
+       ("t" . org-todo)
+       ("," org-priority)
+       ("0" org-priority-up)
+       ("Show headline level")
+       ("1" progn
+        (org-content (+ 1 (org-outline-level)))
+        )
+       ("2" progn
+        (org-content (+ 2 (org-outline-level)))
+        )
+       ("3" progn
+        (org-content (+ 3 (org-outline-level)))
+        )
+       ("4" progn
+        (org-content (+ 4 (org-outline-level)))
+        )
+       ("5" progn
+        (org-content (+ 5 (org-outline-level)))
+        )
+       ("Outline Structure Editing")
+       ("U" . org-metaup)
+       ("D" . org-metadown)
+       ("r" . org-metaright)
+       ("l" . org-metaleft)
+       ("R" . org-shiftmetaright)
+       ("L" . org-shiftmetaleft)
+       ("i" progn
+        (forward-char 1)
+        (call-interactively 'org-insert-heading-respect-content))
+       ("w" . org-refile)
+       ("a" . org-archive-subtree-default-with-confirmation)
+       ("@" . org-mark-subtree)
+       ("#" . org-toggle-comment)
+       ("Agenda Views etc")
+       ("v" . org-agenda)
+       ("/" . org-sparse-tree)
+       ("Misc")
+       ("o" . org-open-at-point)
+       ("?" . org-speed-command-help)
+       ("<" org-agenda-set-restriction-lock 'subtree)
+       (">" org-agenda-remove-restriction-lock)))
+   '(org-use-speed-commands t)
+   )
 #+end_src
 
 
@@ -740,94 +855,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     :config)
 
   (centaur-load-theme 'gruvbox t)
-#+end_src
-
-
-** org-mode 编辑/阅读
-*** hightlight
-- 简易版本 symbol 跳转和高亮
-  高亮定义（也可以是单词），并可在当前 buffer 中跳转，[[https://zhuanlan.zhihu.com/p/26471685][symbol-overlay]]
-  #+begin_src emacs-lisp :tangle no
-    ;; 本部分在init-highlight 中定义，因此 tangle=no
-    ("M-i" . symbol-overlay-put)
-    ("M-n" . symbol-overlay-jump-next)
-    ("M-p" . symbol-overlay-jump-prev)
-    ("M-N" . symbol-overlay-switch-forward)
-    ("M-P" . symbol-overlay-switch-backward)
-    ("M-C" . symbol-overlay-remove-all)
-    ([M-f3] . symbol-overlay-remove-all)
-  #+end_src
-
-
-
-*** headline 跳转和操作
-[[https://orgmode.org/manual/Speed-Keys.html#:~:text=To%20activate%20Speed%20Keys%2C%20set,option%20org%2Dspeed%2Dcommands%20.][speed-command]]: 当在 headline 的行首时，可以使用 speed 快捷指令。 只定义了常用的几个，1-5是参考 ithougt 的快捷键配置，用处是展示当前 level 下的第 N 级 headline
-#+begin_src emacs-lisp :tangle yes
-    ;; 使用 org-speed-commands
-  (custom-set-variables
-   '(org-speed-commands
-     '(("Outline Navigation")
-       ("n" org-speed-move-safe 'org-next-visible-heading)
-       ("p" org-speed-move-safe 'org-previous-visible-heading)
-       ("f" org-speed-move-safe 'org-forward-heading-same-level)
-       ("b" org-speed-move-safe 'org-backward-heading-same-level)
-       ("F" . org-next-block)
-       ("B" . org-previous-block)
-       ("u" org-speed-move-safe 'outline-up-heading)
-       ("j" . org-goto)
-       ("g" org-refile
-        '(4))
-       ("Outline Visibility")
-       ("c" . org-cycle)
-       ("C" . org-shifttab)
-       (" " . org-display-outline-path)
-       ("s" . org-toggle-narrow-to-subtree)
-       ("k" . org-cut-subtree)
-       ("=" . org-columns)
-       ("Meta Data Editing")
-       ("t" . org-todo)
-       ("," org-priority)
-       ("0" org-priority-up)
-       ("Show headline level")
-       ("1" progn
-        (org-content (+ 1 (org-outline-level)))
-        )
-       ("2" progn
-        (org-content (+ 2 (org-outline-level)))
-        )
-       ("3" progn
-        (org-content (+ 3 (org-outline-level)))
-        )
-       ("4" progn
-        (org-content (+ 4 (org-outline-level)))
-        )
-       ("5" progn
-        (org-content (+ 5 (org-outline-level)))
-        )
-       ("Outline Structure Editing")
-       ("U" . org-metaup)
-       ("D" . org-metadown)
-       ("r" . org-metaright)
-       ("l" . org-metaleft)
-       ("R" . org-shiftmetaright)
-       ("L" . org-shiftmetaleft)
-       ("i" progn
-        (forward-char 1)
-        (call-interactively 'org-insert-heading-respect-content))
-       ("w" . org-refile)
-       ("a" . org-archive-subtree-default-with-confirmation)
-       ("@" . org-mark-subtree)
-       ("#" . org-toggle-comment)
-       ("Agenda Views etc")
-       ("v" . org-agenda)
-       ("/" . org-sparse-tree)
-       ("Misc")
-       ("o" . org-open-at-point)
-       ("?" . org-speed-command-help)
-       ("<" org-agenda-set-restriction-lock 'subtree)
-       (">" org-agenda-remove-restriction-lock)))
-   '(org-use-speed-commands t)
-   )
 #+end_src
 
 ** 实用的工具
