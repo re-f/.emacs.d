@@ -65,7 +65,7 @@ org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
 2. TODO 关键字尽量不要使用 =+/-= 之类的符号,会导致 =org-tag-view= 的快捷搜索功能( =/TODO关键字= 的搜索方式)无法搜索,只能使用 =TODO = "TODO关键字"= 的搜索方式,也许转义能使用,但是我没找到转义字符时哪个
 #+begin_src emacs-lisp :tangle yes
   (setq org-todo-keywords
-        (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d@/!)")
+        (quote ((sequence "TODO(t)" "IMMED(i)" "NEXT(n)" "|" "DONE(d@/!)")
                 (sequence "WAITING(w@/!)" "HANGUP(h@/!)" "|" "CANCELLED(c@/!)")))
         org-use-fast-todo-selection t
         org-treat-S-cursor-todo-selection-as-state-change nil
@@ -73,9 +73,9 @@ org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
                                                   ("WAITING" ("WAITING" . t))
                                                   ("HANGUP" ("WAITING") ("HANGUP" . t))
                                                   (done ("WAITING") ("HANGUP"))
-                                                  ("TODO" ("WAITING") ("CANCELLED") ("HANGUP"))
-                                                  ("NEXT" ("WAITING") ("CANCELLED") ("HANGUP"))
-                                                  ("DONE" ("WAITING") ("CANCELLED") ("HANGUP"))))
+                                                  ("TODO" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED"))
+                                                  ("NEXT" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED") )
+                                                  ("DONE" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED") )))
 
         )
 
@@ -89,6 +89,9 @@ org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
                 ("HANGUP" :foreground "magenta" :weight bold)
                 )))
 #+end_src
+
+#+RESULTS:
+: ((TODO :foreground white) (WAITING :background gray :foreground white) (NEXT :foreground blue :weight bold) (WAITING . warning) (HANGUP :foreground magenta :weight bold))
 
 *** org capture 设置
 :PROPERTIES:
@@ -624,7 +627,8 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
 :END:
 - snippets 配置
   #+begin_src emacs-lisp :tangle yes
-  (push (concat org-directory "/.config/snippets") yas-snippet-dirs )
+    (push (concat org-directory "/.config/snippets") yas-snippet-dirs )
+    (yas-reload-all)
 #+end_src
 *** 追踪公司项目进展
 :PROPERTIES:
@@ -1121,6 +1125,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 
   (global-set-key (kbd "C-M-s-a") 'bh/show-org-agenda)
+  (global-set-key (kbd "s-w") 'delete-window)
 #+end_src
 
 * End
