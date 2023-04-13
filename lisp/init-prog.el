@@ -32,6 +32,7 @@
 
 (require 'init-custom)
 (require 'init-const)
+(require 'init-funcs)
 
 ;; Prettify Symbols
 ;; e.g. display “lambda” as “λ”
@@ -42,22 +43,52 @@
   (setq-default prettify-symbols-alist centaur-prettify-symbols-alist)
   (setq prettify-symbols-unprettify-at-point 'right-edge))
 
-;; Tree-sitter: need dynamic module feature
-(when (and centaur-tree-sitter (functionp 'module-load))
-  (use-package tree-sitter
-    :ensure tree-sitter-langs
-    :diminish
-    :hook ((after-init . global-tree-sitter-mode)
-           (tree-sitter-after-on . tree-sitter-hl-mode))))
+;; Tree-sitter support
+(when (and centaur-tree-sitter (centaur-treesit-available-p))
+  (use-package treesit-auto
+    :hook (after-init . global-treesit-auto-mode)
+    :init (setq treesit-auto-install 'prompt)))
+
+;; Search tool
+(use-package grep
+  :ensure nil
+  :autoload grep-apply-setting
+  :config
+  (cond
+   ((executable-find "ugrep")
+    (grep-apply-setting
+     'grep-command "ugrep --color=auto -0In -e ")
+    (grep-apply-setting
+     'grep-template "ugrep --color=auto -0In -e <R> <D>")
+    (grep-apply-setting
+     'grep-find-command '("ugrep --color=auto -0Inr -e ''" . 30))
+    (grep-apply-setting
+     'grep-find-template "ugrep <C> -0Inr -e <R> <D>"))
+   ((executable-find "rg")
+    (grep-apply-setting
+     'grep-command "rg --color=auto --null -nH --no-heading -e ")
+    (grep-apply-setting
+     'grep-template "rg --color=auto --null --no-heading -g '!*/' -e <R> <D>")
+    (grep-apply-setting
+     'grep-find-command '("rg --color=auto --null -nH --no-heading -e ''" . 38))
+    (grep-apply-setting
+     'grep-find-template "rg --color=auto --null -nH --no-heading -e <R> <D>"))))
 
 ;; Cross-referencing commands
 (use-package xref
   :ensure nil
-  :init
-  (when (executable-find "rg")
-    (setq xref-search-program 'ripgrep))
-
+  :config
   (with-no-warnings
+    ;; Use faster search tool
+    (when emacs/>=28p
+      (add-to-list 'xref-search-program-alist
+                   '(ugrep . "xargs -0 ugrep <C> --null -ns -e <R>"))
+      (cond
+       ((executable-find "ugrep")
+        (setq xref-search-program 'ugrep))
+       ((executable-find "rg")
+        (setq xref-search-program 'ripgrep))))
+
     ;; Select from xref candidates with Ivy
     (if emacs/>=28p
         (setq xref-show-definitions-function #'xref-show-definitions-completing-read
@@ -73,7 +104,7 @@
 (use-package dumb-jump
   :pretty-hydra
   ((:title (pretty-hydra-title "Dump Jump" 'faicon "anchor")
-    :color blue :quit-key "q")
+    :color blue :quit-key ("q" "C-g"))
    ("Jump"
     (("j" dumb-jump-go "Go")
      ("o" dumb-jump-go-other-window "Go other window")
@@ -107,31 +138,35 @@
 ;; Browse devdocs.io documents using EWW
 (when emacs/>=27p
   (use-package devdocs
+    :autoload (devdocs--installed-docs devdocs--available-docs)
     :bind (:map prog-mode-map
-           ("M-<f1>" . devdocs-dwim))
+           ("M-<f1>" . devdocs-dwim)
+           ("C-h D"  . devdocs-dwim))
     :init
-    (defvar devdocs-major-mode-docs-alist
-      '((c-mode          . ("C"))
-        (c++-mode        . ("C++"))
-        (python-mode     . ("Python 3.9" "Python 3.8"))
-        (ruby-mode       . ("Ruby 3"))
-        (go-mode         . ("Go"))
-        (rustic-mode     . ("Rust"))
-        (css-mode        . ("CSS"))
-        (html-mode       . ("HTML"))
-        (js-mode         . ("JavaScript" "JQuery"))
-        (js2-mode        . ("JavaScript" "JQuery"))
-        (emacs-lisp-mode . ("Elisp")))
-      "Alist of MAJOR-MODE and list of docset names.")
+    (defconst devdocs-major-mode-docs-alist
+      '((c-mode          . ("c"))
+        (c++-mode        . ("cpp"))
+        (python-mode     . ("python~3.10" "python~2.7"))
+        (ruby-mode       . ("ruby~3.1"))
+        (go-mode         . ("go"))
+        (rustic-mode     . ("rust"))
+        (css-mode        . ("css"))
+        (html-mode       . ("html"))
+        (julia-mode      . ("julia~1.8"))
+        (js-mode         . ("javascript" "jquery"))
+        (js2-mode        . ("javascript" "jquery"))
+        (emacs-lisp-mode . ("elisp")))
+      "Alist of major-mode and docs.")
 
     (mapc
-     (lambda (e)
-       (add-hook (intern (format "%s-hook" (car e)))
+     (lambda (mode)
+       (add-hook (intern (format "%s-hook" (car mode)))
                  (lambda ()
-                   (setq-local devdocs-current-docs (cdr e)))))
+                   (setq-local devdocs-current-docs (cdr mode)))))
      devdocs-major-mode-docs-alist)
 
     (setq devdocs-data-dir (expand-file-name "devdocs" user-emacs-directory))
+
     (defun devdocs-dwim()
       "Look up a DevDocs documentation entry.
 
@@ -139,15 +174,16 @@ Install the doc if it's not installed."
       (interactive)
       ;; Install the doc if it's not installed
       (mapc
-       (lambda (str)
-         (let* ((docs (split-string str " "))
-                (doc (if (length= docs 1)
-                         (downcase (car docs))
-                       (concat (downcase (car docs)) "~" (downcase (cdr docs))))))
-           (unless (and (file-directory-p devdocs-data-dir)
-                        (directory-files devdocs-data-dir nil "^[^.]"))
-             (message "Installing %s..." str)
-             (devdocs-install doc))))
+       (lambda (slug)
+         (unless (member slug (let ((default-directory devdocs-data-dir))
+                                (seq-filter #'file-directory-p
+                                            (when (file-directory-p devdocs-data-dir)
+                                              (directory-files "." nil "^[^.]")))))
+           (mapc
+            (lambda (doc)
+              (when (string= (alist-get 'slug doc) slug)
+                (devdocs-install doc)))
+            (devdocs--available-docs))))
        (alist-get major-mode devdocs-major-mode-docs-alist))
 
       ;; Lookup the symbol at point
@@ -157,17 +193,20 @@ Install the doc if it's not installed."
 (when emacs/>=27p
   (use-package csv-mode))
 
+(unless emacs/>=29p
+  (use-package csharp-mode))
+
 (use-package cask-mode)
 (use-package cmake-mode)
-(use-package csharp-mode)
+(use-package groovy-mode)
 (use-package julia-mode)
 (use-package lua-mode)
 (use-package mermaid-mode)
 (use-package plantuml-mode)
-(use-package powershell)
 (use-package rmsbolt)                   ; A compiler output viewer
 (use-package scala-mode)
 (use-package swift-mode)
+(use-package v-mode)
 (use-package vimrc-mode)
 
 (use-package protobuf-mode
@@ -178,10 +217,6 @@ Install the doc if it's not installed."
 (use-package nxml-mode
   :ensure nil
   :mode (("\\.xaml$" . xml-mode)))
-
-;; New `conf-toml-mode' in Emacs 26
-(unless (fboundp 'conf-toml-mode)
-  (use-package toml-mode))
 
 ;; Batch Mode eXtras
 (use-package bmx-mode

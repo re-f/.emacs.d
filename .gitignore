@@ -58,8 +58,7 @@ devdocs-browser/
 devdocs/
 eclipse.jdt.ls/
 eln-cache/
-elpa-devel/
-elpa/
+elpa*/
 emojis/
 eshell/
 flycheck_*.el*
@@ -86,6 +85,7 @@ thumbs/
 tldr/
 tmp*
 transient/
+tree-sitter/
 tutorial/
 url/
 var/

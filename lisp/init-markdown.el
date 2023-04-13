@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'init-const)
+(require 'init-funcs)
 
 (use-package markdown-mode
   :mode (("README\\.md\\'" . gfm-mode))
@@ -83,16 +84,16 @@ mermaid.initialize({
   ;; `multimarkdown' is necessary for `highlight.js' and `mermaid.js'
   (when (executable-find "multimarkdown")
     (setq markdown-command "multimarkdown"))
-
-  ;; Use `which-key' instead
-  (with-no-warnings
-    (advice-add #'markdown--command-map-prompt :override #'ignore)
-    (advice-add #'markdown--style-map-prompt   :override #'ignore))
   :config
+  ;; Support `mermaid'
   (add-to-list 'markdown-code-lang-modes '("mermaid" . mermaid-mode))
 
-  ;; Preview with built-in webkit
   (with-no-warnings
+    ;; Use `which-key' instead
+    (advice-add #'markdown--command-map-prompt :override #'ignore)
+    (advice-add #'markdown--style-map-prompt   :override #'ignore)
+
+    ;; Preview with built-in webkit
     (defun my-markdown-export-and-preview (fn)
       "Preview with `xwidget' if applicable, otherwise with the default browser."
       (if (featurep 'xwidget-internal)
@@ -117,8 +118,28 @@ mermaid.initialize({
 
   ;; Table of contents
   (use-package markdown-toc
+    :diminish
     :bind (:map markdown-mode-command-map
-           ("r" . markdown-toc-generate-or-refresh-toc))))
+           ("r" . markdown-toc-generate-or-refresh-toc))
+    :hook (markdown-mode . markdown-toc-mode)
+    :init (setq markdown-toc-indentation-space 2
+                markdown-toc-header-toc-title "\n## Table of Contents"
+                markdown-toc-user-toc-structure-manipulation-fn 'cdr)
+    :config
+    (with-no-warnings
+      (define-advice markdown-toc-generate-toc (:around (fn &rest args) lsp)
+        "Generate or refresh toc after disabling lsp."
+        (cond
+         ((bound-and-true-p lsp-managed-mode)
+          (lsp-managed-mode -1)
+          (apply fn args)
+          (lsp-managed-mode 1))
+         ((bound-and-true-p eglot--manage-mode)
+          (eglot--manage-mode -1)
+          (apply fn args)
+          (eglot--manage-mode 1))
+         (t
+          (apply fn args)))))))
 
 (provide 'init-markdown)
 

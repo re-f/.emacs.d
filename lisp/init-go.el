@@ -32,30 +32,27 @@
 
 ;; Golang
 (use-package go-mode
-  :functions go-update-tools
-  :commands godoc-gogetdoc
+  :functions go-install-tools
+  :autoload godoc-gogetdoc
   :bind (:map go-mode-map
-         ("C-c R" . go-remove-unused-imports)
-         ("<f1>"  . godoc-at-point))
-  :init (setq godoc-at-point-function #'godoc-gogetdoc)
-  :config
-  ;; Env vars
-  (with-eval-after-load 'exec-path-from-shell
-    (exec-path-from-shell-copy-envs '("GOPATH" "GO111MODULE" "GOPROXY")))
+         ("<f1>" . godoc))
+  :init
+  (setq godoc-at-point-function #'godoc-gogetdoc)
 
-  ;; Install or update tools
-  (defvar go--tools '("golang.org/x/tools/gopls"
-                      "golang.org/x/tools/cmd/goimports"
-                      "honnef.co/go/tools/cmd/staticcheck"
-                      "github.com/go-delve/delve/cmd/dlv"
-                      "github.com/zmb3/gogetdoc"
-                      "github.com/josharian/impl"
-                      "github.com/cweill/gotests/..."
-                      "github.com/fatih/gomodifytags"
-                      "github.com/davidrjenni/reftools/cmd/fillstruct")
+  ;; Install tools
+  (defconst go--tools
+    '("golang.org/x/tools/gopls"
+      "golang.org/x/tools/cmd/goimports"
+      "honnef.co/go/tools/cmd/staticcheck"
+      "github.com/go-delve/delve/cmd/dlv"
+      "github.com/zmb3/gogetdoc"
+      "github.com/josharian/impl"
+      "github.com/cweill/gotests/..."
+      "github.com/fatih/gomodifytags"
+      "github.com/davidrjenni/reftools/cmd/fillstruct")
     "All necessary go tools.")
 
-  (defun go-update-tools ()
+  (defun go-install-tools ()
     "Install or update go tools."
     (interactive)
     (unless (executable-find "go")
@@ -70,10 +67,14 @@
            (if (= 0 status)
                (message "Installed %s" pkg)
              (message "Failed to install %s: %d" pkg status)))))))
+  :config
+  ;; Env vars
+  (with-eval-after-load 'exec-path-from-shell
+    (exec-path-from-shell-copy-envs '("GOPATH" "GO111MODULE" "GOPROXY")))
 
   ;; Try to install go tools if `gopls' is not found
   (unless (executable-find "gopls")
-    (go-update-tools))
+    (go-install-tools))
 
   ;; Misc
   (use-package go-dlv)
@@ -117,7 +118,7 @@
 ;; Local Golang playground for short snippets
 (use-package go-playground
   :diminish
-  :commands (go-playground-mode))
+  :commands go-playground-mode)
 
 (provide 'init-go)
 

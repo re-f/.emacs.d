@@ -80,27 +80,28 @@
 ;; Emacs Lisp Package Archive (ELPA)
 ;; @see https://github.com/melpa/melpa and https://elpa.emacs-china.org/.
 (defcustom centaur-package-archives-alist
-  '((melpa    . (("gnu"    . "http://elpa.gnu.org/packages/")
-                 ("nongnu" . "http://elpa.nongnu.org/nongnu/")
-                 ("melpa"  . "http://melpa.org/packages/")))
-    (emacs-cn . (("gnu"    . "http://1.15.88.122/gnu/")
-                 ("nongnu" . "http://1.15.88.122/nongnu/")
-                 ("melpa"  . "http://1.15.88.122/melpa/")))
-    (bfsu     . (("gnu"    . "http://mirrors.bfsu.edu.cn/elpa/gnu/")
-                 ("nongnu" . "http://mirrors.bfsu.edu.cn/elpa/nongnu/")
-                 ("melpa"  . "http://mirrors.bfsu.edu.cn/elpa/melpa/")))
-    (netease  . (("gnu"    . "http://mirrors.163.com/elpa/gnu/")
-                 ("nongnu" . "http://mirrors.163.com/elpa/nongnu/")
-                 ("melpa"  . "http://mirrors.163.com/elpa/melpa/")))
-    (sjtu     . (("gnu"    . "http://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/gnu/")
-                 ("nongnu" . "http://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/nongnu/")
-                 ("melpa"  . "http://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/melpa/")))
-    (tuna     . (("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-                 ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")
-                 ("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
-    (ustc     . (("gnu"    . "http://mirrors.ustc.edu.cn/elpa/gnu/")
-                 ("nongnu" . "http://mirrors.ustc.edu.cn/elpa/nongnu/")
-                 ("melpa"  . "http://mirrors.ustc.edu.cn/elpa/melpa/"))))
+  (let ((proto (if (gnutls-available-p) "https" "http")))
+    `((melpa    . (("gnu"    . ,(format "%s://elpa.gnu.org/packages/" proto))
+                   ("nongnu" . ,(format "%s://elpa.nongnu.org/nongnu/" proto))
+                   ("melpa"  . ,(format "%s://melpa.org/packages/" proto))))
+      (emacs-cn . (("gnu"    . "http://1.15.88.122/gnu/")
+                   ("nongnu" . "http://1.15.88.122/nongnu/")
+                   ("melpa"  . "http://1.15.88.122/melpa/")))
+      (bfsu     . (("gnu"    . ,(format "%s://mirrors.bfsu.edu.cn/elpa/gnu/" proto))
+                   ("nongnu" . ,(format "%s://mirrors.bfsu.edu.cn/elpa/nongnu/" proto))
+                   ("melpa"  . ,(format "%s://mirrors.bfsu.edu.cn/elpa/melpa/" proto))))
+      (netease  . (("gnu"    . ,(format "%s://mirrors.163.com/elpa/gnu/" proto))
+                   ("nongnu" . ,(format "%s://mirrors.163.com/elpa/nongnu/" proto))
+                   ("melpa"  . ,(format "%s://mirrors.163.com/elpa/melpa/" proto))))
+      (sjtu     . (("gnu"    . ,(format "%s://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/gnu/" proto))
+                   ("nongnu" . ,(format "%s://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/nongnu/" proto))
+                   ("melpa"  . ,(format "%s://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/melpa/" proto))))
+      (tuna     . (("gnu"    . ,(format "%s://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/" proto))
+                   ("nongnu" . ,(format "%s://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/" proto))
+                   ("melpa"  . ,(format "%s://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/" proto))))
+      (ustc     . (("gnu"    . ,(format "%s://mirrors.ustc.edu.cn/elpa/gnu/" proto))
+                   ("nongnu" . ,(format "%s://mirrors.ustc.edu.cn/elpa/nongnu/" proto))
+                   ("melpa"  . ,(format "%s://mirrors.ustc.edu.cn/elpa/melpa/" proto))))))
   "A list of the package archives."
   :group 'centaur
   :type '(alist :key-type (symbol :tag "Archive group name")
@@ -126,7 +127,7 @@
 (defcustom centaur-theme-alist
   '((default . doom-one)
     (pro     . doom-monokai-pro)
-    (dark    . doom-nord-aurora)
+    (dark    . doom-vibrant)
     (light   . doom-one-light)
     (warm    . doom-solarized-light)
     (cold    . doom-palenight)
@@ -164,9 +165,7 @@ It's only available on macOS currently."
   :group 'centaur
   :type `(choice (const :tag "Auto" auto)
                  (const :tag "Random" random)
-                 ,(if (boundp 'ns-system-appearance)
-                      '(const :tag "System" system)
-                    "")
+                 (const :tag "System" system)
                  ,@(mapcar
                     (lambda (item)
                       (let ((name (car item)))
@@ -206,23 +205,23 @@ nil means disabled."
                  (const :tag "Eglot" eglot)
                  (const :tag "Disable" nil)))
 
-(defcustom centaur-tree-sitter nil
-  "Enable `tree-sitter' or not."
+(defcustom centaur-tree-sitter t
+  "Enable tree-sitter or not.
+Native tree-sitter is introduced in 29."
+  :group 'centaur
+  :type 'boolean)
+
+(defcustom centaur-lsp-format-on-save nil
+  "Auto format buffers on save."
   :group 'centaur
   :type 'boolean)
 
 (defcustom centaur-lsp-format-on-save-ignore-modes
   '(c-mode c++-mode python-mode markdown-mode)
   "The modes that don't auto format and organize imports while saving the buffers.
-`prog-mode' means ignoring all derived modes.
-"
+`prog-mode' means ignoring all derived modes."
   :group 'centaur
   :type '(repeat (symbol :tag "Major-Mode")))
-
-(defcustom centaur-tree-sitter t
-  "Enable `tree-sitter' or not."
-  :group 'centaur
-  :type 'boolean)
 
 (defcustom centaur-chinese-calendar nil
   "Enable Chinese calendar or not."
@@ -259,9 +258,13 @@ Nil to use font supports ligatures."
   :type '(alist :key-type string :value-type (choice character sexp)))
 
 (defcustom centaur-prettify-org-symbols-alist
-  '(("[ ]" . ?☐)
-    ("[X]" . ?☑)
-    ("[-]" . ?⛝)
+  '(("[ ]"            . ?)
+    ("[-]"            . ?)
+    ("[X]"            . ?)
+
+    (":PROPERTIES:"   . ?)
+    (":ID:"           . ?🪪)
+    (":END:"          . ?🔚)
 
     ("#+ARCHIVE:"     . ?📦)
     ("#+AUTHOR:"      . ?👤)
@@ -269,17 +272,17 @@ Nil to use font supports ligatures."
     ("#+DATE:"        . ?📆)
     ("#+DESCRIPTION:" . ?⸙)
     ("#+EMAIL:"       . ?📧)
-    ("#+OPTIONS:"     . ?⛭)
-    ("#+SETUPFILE:"   . ?⛮)
+    ("#+HEADERS"      . ?☰)
+    ("#+OPTIONS:"     . ?⚙)
+    ("#+SETUPFILE:"   . ?⚒)
     ("#+TAGS:"        . ?🏷)
     ("#+TITLE:"       . ?📓)
 
-    ("#+BEGIN_SRC"   . ?✎)
-    ("#+END_SRC"     . ?□)
-    ("#+BEGIN_QUOTE" . ?»)
-    ("#+END_QUOTE"   . ?«)
-    ("#+HEADERS"     . ?☰)
-    ("#+RESULTS:"    . ?💻))
+    ("#+BEGIN_SRC"    . ?✎)
+    ("#+END_SRC"      . ?□)
+    ("#+BEGIN_QUOTE"  . ?«)
+    ("#+END_QUOTE"    . ?»)
+    ("#+RESULTS:"     . ?💻))
   "A list of symbol prettifications for `org-mode'."
   :group 'centaur
   :type '(alist :key-type string :value-type (choice character sexp)))

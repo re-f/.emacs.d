@@ -120,14 +120,11 @@
         doom-modeline-height 1
         doom-modeline-window-width-limit 110
         doom-modeline-minor-modes t)
-  ;; Prevent flash of unstyled modeline at startup
-  (unless after-init-time
-    (setq-default mode-line-format nil))
   :bind (:map doom-modeline-mode-map
          ("C-<f6>" . doom-modeline-hydra/body))
   :pretty-hydra
   ((:title (pretty-hydra-title "Mode Line" 'fileicon "emacs" :face 'all-the-icons-purple :v-adjust -0.1)
-    :color amaranth :quit-key "q")
+    :color amaranth :quit-key ("q" "C-g"))
    ("Icon"
     (("i" (setq doom-modeline-icon (not doom-modeline-icon))
       "display icons" :toggle doom-modeline-icon)
@@ -141,38 +138,44 @@
       "buffer state" :toggle doom-modeline-buffer-state-icon)
      ("o" (setq doom-modeline-buffer-modification-icon (not doom-modeline-buffer-modification-icon))
       "modification" :toggle doom-modeline-buffer-modification-icon)
+     ("x" (setq doom-modeline-time-icon (not doom-modeline-time-icon))
+      "time" :toggle doom-modeline-time-icon)
      ("v" (setq doom-modeline-modal-icon (not doom-modeline-modal-icon))
       "modal" :toggle doom-modeline-modal-icon))
     "Segment"
-    (("H" (setq doom-modeline-hud (not doom-modeline-hud))
+    (("g h" (setq doom-modeline-hud (not doom-modeline-hud))
       "hud" :toggle doom-modeline-hud)
-     ("M" (setq doom-modeline-minor-modes (not doom-modeline-minor-modes))
+     ("g m" (setq doom-modeline-minor-modes (not doom-modeline-minor-modes))
       "minor modes" :toggle doom-modeline-minor-modes)
-     ("W" (setq doom-modeline-enable-word-count (not doom-modeline-enable-word-count))
+     ("g w" (setq doom-modeline-enable-word-count (not doom-modeline-enable-word-count))
       "word count" :toggle doom-modeline-enable-word-count)
-     ("E" (setq doom-modeline-buffer-encoding (not doom-modeline-buffer-encoding))
+     ("g e" (setq doom-modeline-buffer-encoding (not doom-modeline-buffer-encoding))
       "encoding" :toggle doom-modeline-buffer-encoding)
-     ("I" (setq doom-modeline-indent-info (not doom-modeline-indent-info))
+     ("g i" (setq doom-modeline-indent-info (not doom-modeline-indent-info))
       "indent" :toggle doom-modeline-indent-info)
-     ("L" (setq doom-modeline-lsp (not doom-modeline-lsp))
+     ("g c" (setq doom-modeline-display-misc-in-all-mode-lines (not doom-modeline-display-misc-in-all-mode-lines))
+      "misc info" :toggle doom-modeline-display-misc-in-all-mode-lines)
+     ("g l" (setq doom-modeline-lsp (not doom-modeline-lsp))
       "lsp" :toggle doom-modeline-lsp)
-     ("P" (setq doom-modeline-persp-name (not doom-modeline-persp-name))
+     ("g p" (setq doom-modeline-persp-name (not doom-modeline-persp-name))
       "perspective" :toggle doom-modeline-persp-name)
-     ("G" (setq doom-modeline-github (not doom-modeline-github))
+     ("g g" (setq doom-modeline-github (not doom-modeline-github))
       "github" :toggle doom-modeline-github)
-     ("N" (setq doom-modeline-gnus (not doom-modeline-gnus))
+     ("g n" (setq doom-modeline-gnus (not doom-modeline-gnus))
       "gnus" :toggle doom-modeline-gnus)
-     ("U" (setq doom-modeline-mu4e (not doom-modeline-mu4e))
+     ("g u" (setq doom-modeline-mu4e (not doom-modeline-mu4e))
       "mu4e" :toggle doom-modeline-mu4e)
-     ("R" (setq doom-modeline-irc (not doom-modeline-irc))
+     ("g r" (setq doom-modeline-irc (not doom-modeline-irc))
       "irc" :toggle doom-modeline-irc)
-     ("F" (setq doom-modeline-irc-buffers (not doom-modeline-irc-buffers))
+     ("g f" (setq doom-modeline-irc-buffers (not doom-modeline-irc-buffers))
       "irc buffers" :toggle doom-modeline-irc-buffers)
-     ("S" (progn
-            (setq doom-modeline-checker-simple-format (not doom-modeline-checker-simple-format))
-            (and (bound-and-true-p flycheck-mode) (flycheck-buffer)))
+     ("g s" (progn
+              (setq doom-modeline-checker-simple-format (not doom-modeline-checker-simple-format))
+              (and (bound-and-true-p flycheck-mode) (flycheck-buffer)))
       "simple checker" :toggle doom-modeline-checker-simple-format)
-     ("V" (setq doom-modeline-env-version (not doom-modeline-env-version))
+     ("g t" (setq doom-modeline-time (not doom-modeline-time))
+      "time" :toggle doom-modeline-time)
+     ("g v" (setq doom-modeline-env-version (not doom-modeline-env-version))
       "version" :toggle doom-modeline-env-version))
     "Style"
     (("a" (setq doom-modeline-buffer-file-name-style 'auto)
@@ -218,7 +221,7 @@
      ("p f" (setq doom-modeline-project-detection 'ffip)
       "ffip"
       :toggle (eq doom-modeline-project-detection 'ffip))
-     ("p t" (setq doom-modeline-project-detection 'projectile)
+     ("p i" (setq doom-modeline-project-detection 'projectile)
       "projectile"
       :toggle (eq doom-modeline-project-detection 'projectile))
      ("p p" (setq doom-modeline-project-detection 'project)
@@ -228,16 +231,17 @@
       "disable"
       :toggle (eq doom-modeline-project-detection nil)))
     "Misc"
-    (("g" (progn
+    (("n" (progn
             (message "Fetching GitHub notifications...")
             (run-with-timer 300 nil #'doom-modeline--github-fetch-notifications)
             (browse-url "https://github.com/notifications"))
       "github notifications" :exit t)
-     ("e" (if (bound-and-true-p flycheck-mode)
-              (flycheck-list-errors)
-            (flymake-show-diagnostics-buffer))
+     ("e" (cond ((bound-and-true-p flycheck-mode)
+                 (flycheck-list-errors))
+                ((bound-and-true-p flymake-mode)
+                 (flymake-show-diagnostics-buffer)))
       "list errors" :exit t)
-     ("O" (if (bound-and-true-p grip-mode)
+     ("w" (if (bound-and-true-p grip-mode)
               (grip-browse-preview)
             (message "Not in preview"))
       "browse preview" :exit t)
@@ -249,12 +253,10 @@
 (use-package hide-mode-line
   :hook (((completion-list-mode
            completion-in-region-mode
-           eshell-mode
-           shell-mode
-           term-mode
-           vterm-mode
-           pdf-annot-list-mode
-           flycheck-error-list-mode) . hide-mode-line-mode)))
+           eshell-mode shell-mode
+           term-mode vterm-mode
+           lsp-ui-imenu-mode
+           pdf-annot-list-mode) . hide-mode-line-mode)))
 
 ;; A minor-mode menu for mode-line
 (use-package minions
@@ -293,26 +295,28 @@
              ("\\.\\(bash\\|zsh\\)*_?profile$" all-the-icons-alltheicon "script"   :height 0.9 :face all-the-icons-dred)
              ("\\.\\(ba\\|z\\)sh_history$"     all-the-icons-alltheicon "script"   :height 0.9 :face all-the-icons-dsilver)
              ("\\.zshenv$"                     all-the-icons-alltheicon "script"   :height 0.9 :face all-the-icons-dred)
+             ("\\.org_archive$"                all-the-icons-fileicon "org"        :face all-the-icons-dsilver)
              ("Cask\\'"                        all-the-icons-fileicon "elisp"      :height 1.0 :v-adjust -0.2 :face all-the-icons-blue)
              ("NEWS$"                          all-the-icons-faicon "newspaper-o"  :height 0.9 :v-adjust -0.2)
-             ("^Rakefile$"                     all-the-icons-alltheicon "ruby-alt" :face all-the-icons-red)
-             ("^go.\\(sum\\|mod\\)$"           all-the-icons-fileicon "go"         :face all-the-icons-dpurple))))
+             ("^Rakefile$"                     all-the-icons-alltheicon "ruby-alt" :face all-the-icons-red))))
       (dolist (icon regexp-icon-alist)
         (add-to-list 'all-the-icons-regexp-icon-alist icon)))
 
     (let ((mode-icon-alist
            '((xwidget-webkit-mode           all-the-icons-faicon "chrome"          :v-adjust -0.1 :face all-the-icons-blue)
-             (bongo-playlist-mode           all-the-icons-material "queue_music"   :height 1.2 :face all-the-icons-green)
+             (bongo-playlist-mode           all-the-icons-material "queue_music"   :height 1.3 :face all-the-icons-green)
              (bongo-library-mode            all-the-icons-material "library_music" :height 1.1 :face all-the-icons-green)
              (simple-mpc-mode               all-the-icons-faicon "music"           :v-adjust -0.1 :face all-the-icons-green)
+             (mingus-playlist-mode          all-the-icons-faicon "music"           :v-adjust -0.1 :face all-the-icons-green)
+             (mingus-help-mode              all-the-icons-material "music_note"    :height 1.2 :face all-the-icons-green)
+             (mingus-browse-mode            all-the-icons-material "library_music" :height 1.1 :face all-the-icons-green)
+             (mingus-burn-mode              all-the-icons-material "queue_music"   :height 1.3 :face all-the-icons-green)
              (gnus-group-mode               all-the-icons-fileicon "gnu"           :face all-the-icons-silver)
              (gnus-summary-mode             all-the-icons-octicon "inbox"          :height 1.0 :v-adjust 0.0 :face all-the-icons-orange)
              (gnus-article-mode             all-the-icons-octicon "mail"           :height 1.1 :v-adjust 0.0 :face all-the-icons-lblue)
              (message-mode                  all-the-icons-octicon "mail"           :height 1.1 :v-adjust 0.0 :face all-the-icons-lblue)
              (diff-mode                     all-the-icons-octicon "git-compare"    :v-adjust 0.0 :face all-the-icons-lred)
              (flycheck-error-list-mode      all-the-icons-octicon "checklist"      :height 1.1 :v-adjust 0.0 :face all-the-icons-lred)
-             (elfeed-search-mode            all-the-icons-faicon "rss-square"      :v-adjust -0.1 :face all-the-icons-orange)
-             (elfeed-show-mode              all-the-icons-octicon "rss"            :height 1.1 :v-adjust 0.0 :face all-the-icons-lorange)
              (newsticker-mode               all-the-icons-faicon "rss-square"      :v-adjust -0.1 :face all-the-icons-orange)
              (newsticker-treeview-mode      all-the-icons-faicon "rss-square"      :v-adjust -0.1 :face all-the-icons-orange)
              (newsticker-treeview-list-mode all-the-icons-octicon "rss"            :height 1.1 :v-adjust 0.0 :face all-the-icons-orange)
@@ -369,6 +373,11 @@
          ("C-s--" . default-text-scale-decrease)
          ("C-s-0" . default-text-scale-reset)))
 
+(use-package time
+  :ensure nil
+  :init (setq display-time-24hr-format t
+              display-time-day-and-date t))
+
 ;; Mouse & Smooth Scroll
 ;; Scroll one line at a time (less "jumpy" than defaults)
 (when (display-graphic-p)
@@ -408,18 +417,12 @@
 ;; Child frame
 (when (childframe-workable-p)
   (use-package posframe
-    :hook ((after-load-theme . posframe-delete-all)
-           ((after-load-theme server-after-make-frame) . my-set-posframe-faces))
+    :hook (after-load-theme . posframe-delete-all)
     :init
     (defface posframe-border
-      `((t (:background ,(face-foreground 'shadow nil t))))
+      `((t (:inherit region)))
       "Face used by the `posframe' border."
       :group 'posframe)
-
-    (defun my-set-posframe-faces ()
-      "Set `posframe' faces."
-      (custom-set-faces
-       `(posframe-border ((t (:background ,(face-foreground 'shadow nil t)))))))
 
     (with-eval-after-load 'persp-mode
       (add-hook 'persp-load-buffer-functions

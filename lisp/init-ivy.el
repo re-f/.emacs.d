@@ -35,10 +35,10 @@
 (use-package counsel
   :diminish ivy-mode counsel-mode
   :custom-face
-  (ivy-minibuffer-match-face-1 ((t (:foreground "dimgray" :distant-foreground nil :background nil))))
-  (ivy-minibuffer-match-face-2 ((t (:distant-foreground nil :background nil))))
-  (ivy-minibuffer-match-face-3 ((t (:distant-foreground nil :background nil))))
-  (ivy-minibuffer-match-face-4 ((t (:distant-foreground nil :background nil))))
+  (ivy-minibuffer-match-face-1 ((t (:foreground "dimgray" :distant-foreground unspecified :background unspecified))))
+  (ivy-minibuffer-match-face-2 ((t (:distant-foreground unspecified :background unspecified))))
+  (ivy-minibuffer-match-face-3 ((t (:distant-foreground unspecified :background unspecified))))
+  (ivy-minibuffer-match-face-4 ((t (:distant-foreground unspecified :background unspecified))))
   :bind (("C-s"   . swiper-isearch)
          ("C-r"   . swiper-isearch-backward)
          ("s-f"   . swiper)
@@ -152,8 +152,12 @@
   (add-hook 'counsel-grep-post-action-hook #'recenter)
 
   ;; Use the faster search tools
-  (when (executable-find "rg")
-    (setq counsel-grep-base-command "rg -S --no-heading --line-number --color never '%s' '%s'"))
+  (cond
+   ((executable-find "ugrep")
+    (setq counsel-grep-base-command "ugrep --color=never -n -e '%s' '%s'"))
+   ((executable-find "rg")
+    (setq counsel-grep-base-command "rg -S --no-heading --line-number --color never '%s' '%s'")))
+
   (when (executable-find "fd")
     (setq counsel-fzf-cmd
           "fd --type f --hidden --follow --exclude .git --color never '%s'"))
@@ -179,7 +183,7 @@
 
     ;; Pre-fill search keywords
     ;; @see https://www.reddit.com/r/emacs/comments/b7g1px/withemacs_execute_commands_like_marty_mcfly/
-    (defvar my-ivy-fly-commands
+    (defconst my-ivy-fly-commands
       '(query-replace-regexp
         flush-lines keep-lines ivy-read
         swiper swiper-backward swiper-all
@@ -188,7 +192,7 @@
         counsel-grep-or-swiper counsel-grep-or-swiper-backward
         counsel-grep counsel-ack counsel-ag counsel-rg counsel-pt))
 
-    (defvar my-ivy-fly-back-commands
+    (defconst my-ivy-fly-back-commands
       '(self-insert-command
         ivy-forward-char ivy-delete-char delete-forward-char kill-word kill-sexp
         end-of-line mwim-end-of-line mwim-end-of-code-or-line mwim-end-of-line-or-code
@@ -239,39 +243,40 @@
     ;;
     (defun my-ivy-switch-to-swiper (&rest _)
       "Switch to `swiper' with the current input."
-      (swiper ivy-text))
+      (ivy-quit-and-run (swiper ivy-text)))
 
     (defun my-ivy-switch-to-swiper-isearch (&rest _)
       "Switch to `swiper-isearch' with the current input."
-      (swiper-isearch ivy-text))
+      (ivy-quit-and-run (swiper-isearch ivy-text)))
 
     (defun my-ivy-switch-to-swiper-all (&rest _)
       "Switch to `swiper-all' with the current input."
-      (swiper-all ivy-text))
+      (ivy-quit-and-run (swiper-all ivy-text)))
 
     (defun my-ivy-switch-to-rg-dwim (&rest _)
       "Switch to `rg-dwim' with the current input."
-      (ivy-quit-and-run (rg-dwim default-directory)))
+      (interactive)
+      (ivy-exit-with-action #'rg-dwim))
 
     (defun my-ivy-switch-to-counsel-rg (&rest _)
       "Switch to `counsel-rg' with the current input."
-      (counsel-rg ivy-text default-directory))
+      (ivy-quit-and-run (counsel-rg ivy-text default-directory)))
 
     (defun my-ivy-switch-to-counsel-git-grep (&rest _)
       "Switch to `counsel-git-grep' with the current input."
-      (counsel-git-grep ivy-text default-directory))
+      (ivy-quit-and-run (counsel-git-grep ivy-text default-directory)))
 
     (defun my-ivy-switch-to-counsel-find-file (&rest _)
       "Switch to `counsel-find-file' with the current input."
-      (counsel-find-file ivy-text))
+      (ivy-quit-and-run (counsel-find-file ivy-text)))
 
     (defun my-ivy-switch-to-counsel-fzf (&rest _)
       "Switch to `counsel-fzf' with the current input."
-      (counsel-fzf ivy-text default-directory))
+      (ivy-quit-and-run (counsel-fzf ivy-text default-directory)))
 
     (defun my-ivy-switch-to-counsel-git (&rest _)
       "Switch to `counsel-git' with the current input."
-      (counsel-git ivy-text))
+      (ivy-quit-and-run (counsel-git ivy-text)))
 
     (defun my-ivy-switch-to-list-bookmarks (&rest _)
       "Switch to `list-bookmarks'."
@@ -299,21 +304,15 @@
     (defun my-swiper-toggle-counsel-rg ()
       "Toggle `counsel-rg' and `swiper'/`swiper-isearch' with the current input."
       (interactive)
-      (ivy-quit-and-run
-        (if (memq (ivy-state-caller ivy-last) '(swiper swiper-isearch))
-            (my-ivy-switch-to-counsel-rg)
-          (my-ivy-switch-to-swiper-isearch))))
+      (if (memq (ivy-state-caller ivy-last) '(swiper swiper-isearch))
+          (my-ivy-switch-to-counsel-rg)
+        (my-ivy-switch-to-swiper-isearch)))
     (bind-key "<C-return>" #'my-swiper-toggle-counsel-rg swiper-map)
     (bind-key "<C-return>" #'my-swiper-toggle-counsel-rg counsel-ag-map)
 
     (with-eval-after-load 'rg
-      (defun my-swiper-toggle-rg-dwim ()
-        "Toggle `rg-dwim' with the current input."
-        (interactive)
-        (ivy-quit-and-run
-          (rg-dwim default-directory)))
-      (bind-key "<M-return>" #'my-swiper-toggle-rg-dwim swiper-map)
-      (bind-key "<M-return>" #'my-swiper-toggle-rg-dwim counsel-ag-map))
+      (bind-key "<M-return>" #'my-ivy-switch-to-rg-dwim swiper-map)
+      (bind-key "<M-return>" #'my-ivy-switch-to-rg-dwim counsel-ag-map))
 
     (defun my-swiper-toggle-swiper-isearch ()
       "Toggle `swiper' and `swiper-isearch' with the current input."
@@ -484,11 +483,6 @@
         (hydra-set-posframe-show-params)
         (add-hook 'after-load-theme-hook #'hydra-set-posframe-show-params t))))
 
-  ;; Ivy integration for Projectile
-  (use-package counsel-projectile
-    :hook (counsel-mode . counsel-projectile-mode)
-    :init (setq counsel-projectile-grep-initial-input '(ivy-thing-at-point)))
-
   ;; Integrate yasnippet
   (use-package ivy-yasnippet
     :bind ("C-c C-y" . ivy-yasnippet))
@@ -517,7 +511,7 @@
   ;; Refer to  https://github.com/abo-abo/swiper/issues/919 and
   ;; https://github.com/pengpengxp/swiper/wiki/ivy-support-chinese-pinyin
   (use-package pinyinlib
-    :commands pinyinlib-build-regexp-string
+    :autoload pinyinlib-build-regexp-string
     :init
     (with-no-warnings
       (defun my-pinyinlib-build-regexp-string (str)
@@ -552,13 +546,27 @@
       (advice-add #'ivy--regex-plus :around #'my-ivy--regex-pinyin)
       (advice-add #'ivy--regex-ignore-order :around #'my-ivy--regex-pinyin))))
 
-;; Ivy
+;; Use Ivy to open recent directories
 (use-package ivy-dired-history
   :demand t
-  :after (savehist dired)
+  :after dired
+  :defines (savehist-additional-variables desktop-globals-to-save)
   :bind (:map dired-mode-map
          ("," . dired))
-  :init (add-to-list 'savehist-additional-variables 'ivy-dired-history-variable))
+  :init
+  (with-eval-after-load 'savehist
+    (add-to-list 'savehist-additional-variables 'ivy-dired-history-variable))
+  (with-eval-after-load 'desktop
+    (add-to-list 'desktop-globals-to-save 'ivy-dired-history-variable)))
+
+
+;; `projectile' integration
+(use-package counsel-projectile
+  :hook (counsel-mode . counsel-projectile-mode)
+  :init
+  (setq counsel-projectile-grep-initial-input '(ivy-thing-at-point))
+  (when (executable-find "ugrep")
+    (setq counsel-projectile-grep-base-command "ugrep --color=never -rnEI %s")))
 
 ;; Better experience with icons
 ;; Enable it before`ivy-rich-mode' for better performance
@@ -589,8 +597,8 @@
 ;; Display completion in child frame
 (when (childframe-completion-workable-p)
   (use-package ivy-posframe
+    :diminish
     :custom-face
-    (ivy-posframe ((t (:inherit tooltip))))
     (ivy-posframe-border ((t (:inherit posframe-border))))
     :hook (ivy-mode . ivy-posframe-mode)
     :init
@@ -614,7 +622,8 @@
               (overlay-put ov 'window (selected-window))
               (overlay-put ov 'ivy-posframe t)
               (overlay-put ov 'face
-                           (let* ((face (if (facep 'solaire-default-face)
+                           (let* ((face (if (or (bound-and-true-p solaire-global-mode)
+                                                (bound-and-true-p solaire-mode))
                                             'solaire-default-face
                                           'default))
                                   (bg-color (face-background face nil t)))

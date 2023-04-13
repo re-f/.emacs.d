@@ -1,4 +1,4 @@
-;; init-org.el --- Initialize org configurations.	-*- lexical-binding: t -*-
+;; init-org.el --- Initialize Org configurations.	-*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2022 Vincent Zhang
 
@@ -36,11 +36,11 @@
 
 (use-package org
   :ensure nil
-  :commands (org-dynamic-block-define)
-  :custom-face (org-ellipsis ((t (:foreground nil))))
+  :custom-face (org-ellipsis ((t (:foreground unspecified))))
   :pretty-hydra
+  ;; See `org-structure-template-alist'
   ((:title (pretty-hydra-title "Org Template" 'fileicon "org" :face 'all-the-icons-green :height 1.1 :v-adjust 0.0)
-    :color blue :quit-key "q")
+    :color blue :quit-key ("q" "C-g"))
    ("Basic"
     (("a" (hot-expand "<a") "ascii")
      ("c" (hot-expand "<c") "center")
@@ -63,6 +63,7 @@
      ("m" (hot-expand "<s" "emacs-lisp") "emacs-lisp")
      ("y" (hot-expand "<s" "python :results output") "python")
      ("p" (hot-expand "<s" "perl") "perl")
+     ("w" (hot-expand "<s" "powershell") "powershell")
      ("r" (hot-expand "<s" "ruby") "ruby")
      ("S" (hot-expand "<s" "sh") "sh")
      ("g" (hot-expand "<s" "go :imports '\(\"fmt\"\)") "golang"))
@@ -130,10 +131,10 @@ prepended to the element after the #+HEADER: tag."
            "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
           ("n" "Note" entry (file ,(concat org-directory "/note.org"))
            "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-          ("j" "Journal" entry ('file+olp+datetree
+          ("j" "Journal" entry (file+olp+datetree
                                 ,(concat org-directory "/journal.org"))
            "*  %^{Title} %?\n%U\n%a\n" :clock-in t :clock-resume t)
-	      ("b" "Book" entry ('file+olp+datetree
+	      ("b" "Book" entry (file+olp+datetree
                              ,(concat org-directory "/book.org"))
 	       "* Topic: %^{Description}  %^g %? Added: %U"))
 
@@ -147,7 +148,7 @@ prepended to the element after the #+HEADER: tag."
                              (?C . success))
 
         ;; Agenda styling
-        org-agenda-files `(,centaur-org-directory)
+        org-agenda-files (list centaur-org-directory)
         org-agenda-block-separator ?─
         org-agenda-time-grid
         '((daily today require-timed)
@@ -175,9 +176,10 @@ prepended to the element after the #+HEADER: tag."
               (centaur-webkit-browse-url (concat "file://" file) t)))
           org-file-apps))
 
-  ;; Add gfm/md backends
-  (use-package ox-gfm)
+  ;; Add md/gfm backends
   (add-to-list 'org-export-backends 'md)
+  (use-package ox-gfm
+    :init (add-to-list 'org-export-backends 'gfm))
 
   (with-eval-after-load 'counsel
     (bind-key [remap org-set-tags-command] #'counsel-org-tag org-mode-map))
@@ -210,22 +212,27 @@ prepended to the element after the #+HEADER: tag."
         org-src-fontify-natively t
         org-src-tab-acts-natively t)
 
-  (defvar load-language-alist '((emacs-lisp . t)
-                                (perl       . t)
-                                (python     . t)
-                                (ruby       . t)
-                                (js         . t)
-                                (css        . t)
-                                (sass       . t)
-                                (C          . t)
-                                (java       . t)
-                                (plantuml   . t)))
+  (defconst load-language-alist
+    '((emacs-lisp . t)
+      (perl       . t)
+      (python     . t)
+      (ruby       . t)
+      (js         . t)
+      (css        . t)
+      (sass       . t)
+      (C          . t)
+      (java       . t)
+      (plantuml   . t))
+    "Alist of org ob languages.")
 
   ;; ob-sh renamed to ob-shell since 26.1.
   (cl-pushnew '(shell . t) load-language-alist)
 
   (use-package ob-go
     :init (cl-pushnew '(go . t) load-language-alist))
+
+  (use-package ob-powershell
+    :init (cl-pushnew '(powershell . t) load-language-alist))
 
   (use-package ob-rust
     :init (cl-pushnew '(rust . t) load-language-alist))
@@ -315,27 +322,33 @@ prepended to the element after the #+HEADER: tag."
         ("C-c C-x m" . org-pomodoro)))))
 
 ;; Roam
-(when (executable-find "cc")
-  (use-package org-roam
-    :diminish
-    :hook (after-init . org-roam-db-autosync-enable)
-    :bind (("C-c n l" . org-roam-buffer-toggle)
-           ("C-c n f" . org-roam-node-find)
-           ("C-c n g" . org-roam-graph)
-           ("C-c n i" . org-roam-node-insert)
-           ("C-c n c" . org-roam-capture)
-           ("C-c n j" . org-roam-dailies-capture-today))
-    :init
-    (setq org-roam-directory (file-truename centaur-org-directory))
-    :config
-    (unless (file-exists-p org-roam-directory)
-      (make-directory org-roam-directory))
+(use-package org-roam
+  :diminish
+  :defines org-roam-graph-viewer
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         ("C-c n j" . org-roam-dailies-capture-today))
+  :init
+  (setq org-roam-directory (file-truename centaur-org-directory)
+        org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag))
+        org-roam-graph-viewer (if (featurep 'xwidget-internal)
+                                  #'xwidget-webkit-browse-url
+                                #'browse-url))
+  :config
+  (unless (file-exists-p org-roam-directory)
+    (make-directory org-roam-directory))
+  (add-to-list 'org-agenda-files (format "%s/%s" org-roam-directory "roam"))
 
-    (when emacs/>=27p
-      (use-package org-roam-ui
-        :init
-        (when (featurep 'xwidget-internal)
-          (setq org-roam-ui-browser-function #'xwidget-webkit-browse-url))))))
+  (org-roam-db-autosync-enable))
+
+(when emacs/>=27p
+  (use-package org-roam-ui
+    :bind ("C-c n u" . org-roam-ui-mode)
+    :init (when (featurep 'xwidget-internal)
+            (setq org-roam-ui-browser-function #'xwidget-webkit-browse-url))))
 
 (provide 'init-org)
 

@@ -43,21 +43,33 @@
   :config
   (which-key-add-key-based-replacements "C-c !" "flycheck")
   (which-key-add-key-based-replacements "C-c &" "yasnippet")
+  (which-key-add-key-based-replacements "C-c @" "hideshow")
   (which-key-add-key-based-replacements "C-c c" "counsel")
+  (which-key-add-key-based-replacements "C-c d" "dict")
   (which-key-add-key-based-replacements "C-c n" "org-roam")
   (which-key-add-key-based-replacements "C-c t" "hl-todo")
   (which-key-add-key-based-replacements "C-c v" "ivy-view")
   (which-key-add-key-based-replacements "C-c C-z" "browse")
 
-  (which-key-add-key-based-replacements "C-x RET" "coding-system")
   (which-key-add-key-based-replacements "C-x 8" "unicode")
+  (which-key-add-key-based-replacements "C-x 8 e" "emoji")
   (which-key-add-key-based-replacements "C-x @" "modifior")
-  (which-key-add-key-based-replacements "C-x X" "edebug")
   (which-key-add-key-based-replacements "C-x a" "abbrev")
+  (which-key-add-key-based-replacements "C-x c" "citre")
   (which-key-add-key-based-replacements "C-x n" "narrow")
-  (which-key-add-key-based-replacements "C-x t" "tab")
+  (which-key-add-key-based-replacements "C-x r" "rect & bookmark")
+  (which-key-add-key-based-replacements "C-x t" "tab & treemacs")
+  (which-key-add-key-based-replacements "C-x x" "buffer")
   (which-key-add-key-based-replacements "C-x C-a" "edebug")
+  (which-key-add-key-based-replacements "C-x RET" "coding-system")
+  (which-key-add-key-based-replacements "C-x X" "edebug")
 
+  (which-key-add-major-mode-key-based-replacements 'org-mode
+    "C-c \"" "org-plot")
+  (which-key-add-major-mode-key-based-replacements 'org-mode
+    "C-c C-v" "org-babel")
+  (which-key-add-major-mode-key-based-replacements 'org-mode
+    "C-c C-x" "org-misc")
 
   (which-key-add-major-mode-key-based-replacements 'emacs-lisp-mode
     "C-c ," "overseer")
@@ -92,7 +104,7 @@
       :functions posframe-poshandler-frame-center-near-bottom
       :custom-face
       (which-key-posframe ((t (:inherit tooltip))))
-      (which-key-posframe-border ((t (:inherit posframe-border))))
+      (which-key-posframe-border ((t (:inherit posframe-border :background unspecified))))
       :init
       (setq which-key-posframe-border-width 3
             which-key-posframe-poshandler #'posframe-poshandler-frame-center-near-bottom
@@ -200,11 +212,7 @@ of the buffer text to be displayed in the popup"
 ;; Edit text for browsers with GhostText or AtomicChrome extension
 (use-package atomic-chrome
   :hook ((emacs-startup . atomic-chrome-start-server)
-         (atomic-chrome-edit-mode . (lambda ()
-                                      "Enter edit mode and delete other windows."
-                                      (and (fboundp 'olivetti-mode)
-                                           (olivetti-mode 1))
-                                      (delete-other-windows))))
+         (atomic-chrome-edit-mode . delete-other-windows))
   :init (setq atomic-chrome-buffer-open-style 'frame)
   :config
   (if (fboundp 'gfm-mode)
@@ -253,8 +261,7 @@ of the buffer text to be displayed in the popup"
 (use-package erc
   :ensure nil
   :defines erc-autojoin-channels-alist
-  :init (setq erc-rename-buffers t
-              erc-interpret-mirc-color t
+  :init (setq erc-interpret-mirc-color t
               erc-lurker-hide-list '("JOIN" "PART" "QUIT")
               erc-autojoin-channels-alist '(("freenode.net" "#emacs"))))
 
@@ -274,7 +281,7 @@ of the buffer text to be displayed in the popup"
   (ztreep-diff-model-add-face ((t (:inherit diff-nonexistent))))
   :pretty-hydra
   ((:title (pretty-hydra-title "Ztree" 'octicon "diff" :face 'all-the-icons-green :height 1.1 :v-adjust 0)
-    :color pink :quit-key "q")
+    :color pink :quit-key ("q" "C-g"))
    ("Diff"
     (("C" ztree-diff-copy "copy" :exit t)
      ("h" ztree-diff-toggle-show-equal-files "show/hide equals" :exit t)
@@ -297,8 +304,7 @@ of the buffer text to be displayed in the popup"
               ztree-show-number-of-children t))
 
 ;; Misc
-(use-package copyit)                    ; copy path, url, etc.
-(use-package focus)                     ; Focus on the current region
+(use-package disk-usage)
 (use-package memory-usage)
 
 (use-package list-environment
