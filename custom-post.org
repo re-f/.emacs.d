@@ -81,7 +81,7 @@ org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
 
 
   (setq org-modern-todo-faces
-        (quote (("TODO"    :foreground "white")
+        (quote (("TODO"    :foreground "orange")
                 ("WAITING" :background "gray"
                  :foreground "white")
                 ("NEXT" :foreground "blue" :weight bold)
@@ -91,7 +91,7 @@ org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
 #+end_src
 
 #+RESULTS:
-: ((TODO :foreground white) (WAITING :background gray :foreground white) (NEXT :foreground blue :weight bold) (WAITING . warning) (HANGUP :foreground magenta :weight bold))
+: ((TODO :foreground orange) (WAITING :background gray :foreground white) (NEXT :foreground blue :weight bold) (WAITING . warning) (HANGUP :foreground magenta :weight bold))
 
 *** org capture 设置
 :PROPERTIES:
@@ -494,7 +494,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; config keyboard shortcuts
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
-  (use-package org-roam
+   (use-package org-roam
     :ensure t
     :after org
     :custom
@@ -522,7 +522,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
           org-roam-ui-update-on-save t
           org-roam-ui-open-on-start t)
     )
-
+ 
 
   (setq org-roam-capture-templates
         '(
@@ -763,6 +763,30 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
 :PROPERTIES:
 :ID:       135D5C31-BE0C-44F2-B59D-3EC49A36D675
 :END:
+#+begin_src emacs-lisp :tangle yes
+
+
+      (use-package org-ql
+        :ensure t
+        :after org
+        :config
+        (setq org-ql-ask-unsafe-queries nil))
+
+      (use-package helm-org-ql
+        :ensure t)
+
+      (use-package mini-frame
+      :custom (
+               (mini-frame-show-parameters '((top    . 0.2)
+                                             (width  . 0.8)
+                                             (left   . 0.5)
+                                             (left-fringe . 4)
+                                             (right-fringe . 4)
+                                             (height . 15)))
+               )
+      :hook (after-init . mini-frame-mode))
+
+#+end_src
 
 * 编辑/操作习惯配置
 :PROPERTIES:
@@ -858,7 +882,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     :ensure t
     :config)
 
-  (centaur-load-theme 'gruvbox t)
+;;  (load-theme 'doom-gruvbox-light)
 #+end_src
 
 ** 实用的工具
