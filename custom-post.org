@@ -107,17 +107,17 @@ zmonster[fn:1]
         `(
           (;; 依据福格行为模型创建习惯：写每日计划
            "l" "PLAN: 每日计划" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
-                                       ,(concat org-directory "/inbox.org"))
+                                       ,(concat org-directory "/worklog/inbox.org"))
            "* TODO 计划 \nSCHEDULED:%U\n:PROPERTIES:\n:Create: %U\n:END:\n - [ ] %?" :tree-type week)
           (;; 有计划时间的叫计划
            "s" "Task 有计划时间的TODO " entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
-                                               ,(concat org-directory "/inbox.org"))
+                                               ,(concat org-directory "/worklog/inbox.org"))
            "* TODO \%^{任务标题} \n:PROPERTIES:\n:Create: %U\n:END:\n%^{来源||来源：%a}\n%?" :tree-type week)
           ("r" "Notes" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
-                              ,(concat org-directory "/inbox.org"))
+                              ,(concat org-directory "/worklog/inbox.org"))
            "*  %^{标题} :NOTE:%^g \n :PROPERTIES:\n:Create: %u\n:END: \n%a\n "  :tree-type week :jump-to-captured t)
           ("h" "Headline 任意地方插入带 :Create: 的 headline" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
-                                                                     ,(concat org-directory "/inbox.org"))
+                                                                     ,(concat org-directory "/worklog/inbox.org"))
            "*  %^{标题} \n :PROPERTIES:\n:Create: %u\n:END: \n%?\n " :jump-to-captured t)
           ("g" "预留的组")
           ("gi" "Idea" entry (file ,(concat org-directory "/idea.org"))
@@ -528,7 +528,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
         '(
           (;; 依据福格行为模型创建习惯：写每日计划
            "l" "PLAN: 每日计划" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
-                                       ,(concat org-directory "/inbox.org"))
+                                       ,(concat org-directory "worklog/inbox.org"))
            "* TODO 计划 \nSCHEDULED:%U\n:PROPERTIES:\n:Create: %U\n:END:\n - [ ] %?" :tree-type week)
           ("1" "Person" entry                 "\n\n* ${title}\n :PROPERTIES: \n :ID: %(org-id-uuid)\n :company: %^{公司}\n:END:\n%?"
            :target (file+head "person/_index.org"
@@ -1036,8 +1036,8 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   
   #+end_src
 
-- 内置的中文输入法
-   [[https://github.com/tumashu/pyim]]，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用 emacs 的快捷键，而不用平凡进行中英文切换
+- 使用内置的中文输入法
+  [[https://github.com/tumashu/pyim]]，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用 emacs 的快捷键
   #+begin_src emacs-lisp :tangle yes
 
     (use-package pyim
