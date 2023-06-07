@@ -717,19 +717,19 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
        ("0" org-priority-up)
        ("Show headline level")
        ("1" progn
-        (org-content (+ 1 (org-outline-level)))
+        (org-content (+ 0 (org-outline-level)))
         )
        ("2" progn
-        (org-content (+ 2 (org-outline-level)))
+        (org-content (+ 1 (org-outline-level)))
         )
        ("3" progn
-        (org-content (+ 3 (org-outline-level)))
+        (org-content (+ 2 (org-outline-level)))
         )
        ("4" progn
-        (org-content (+ 4 (org-outline-level)))
+        (org-content (+ 3 (org-outline-level)))
         )
        ("5" progn
-        (org-content (+ 5 (org-outline-level)))
+        (org-content (+ 4 (org-outline-level)))
         )
        ("Outline Structure Editing")
        ("U" . org-metaup)
@@ -929,15 +929,18 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
   Version 2020-02-13"
     (interactive)
-    (let (($path (if (buffer-file-name) (buffer-file-name) (expand-file-name default-directory ) )))
-      (message "path is %s" $path)
+    (let (($path (if (buffer-file-name) (buffer-file-name) (expand-file-name default-directory ) ))
+          ($lnum (line-number-at-pos))
+          ($cnum (1+(current-column))))
+      (message "path: %s, line: %s, col: %s." $path $lnum $cnum)
       (cond
        ((string-equal system-type "darwin")
-        (shell-command (format "open -a Visual\\ Studio\\ Code.app \"%s\"" $path)))
+        (shell-command (format "code -g \"%s:%s:%s\"" $path $lnum $cnum)))
+       ;;(shell-command (format "open -a Visual\\ Studio\\ Code.app \"%s\"" $path)))
        ((string-equal system-type "windows-nt")
         (shell-command (format "Code \"%s\"" $path)))
        ((string-equal system-type "gnu/linux")
-        (shell-command (format "code \"%s\"" $path))))))
+        (shell-command (format "code -g \"%s:%s\"" $path $lnum $cnum))))))
 
   (defun xah-open-in-terminal ()
     "Open the current dir in a new terminal window.
