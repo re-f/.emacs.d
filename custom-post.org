@@ -648,6 +648,7 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
                                                ("Terminated" ("项目" . t) )
                                                ("InDelivery"  ("项目" . t) ("WAITING") ("CANCELLED") ("HANGUP")))
                                              org-todo-state-tags-triggers))
+  (setq org-tags-column -50)
 #+end_src
 *** ox-hugo 博客维护
 #+begin_src emacs-lisp :tangle yes
