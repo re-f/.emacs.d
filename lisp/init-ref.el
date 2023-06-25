@@ -8,24 +8,25 @@
 
 
 (defun ref/create-org-file ()
-      "Create an org file in org-directory"
-      (interactive)
-      (let ((name (read-string "Filename: ")))
-        (expand-file-name (format "%s.org"
-                                  name) org-directory)))
+  "Create an org file in org-directory"
+  (interactive)
+  (let ((name (read-string "Filename: ")))
+    (expand-file-name (format "%s.org"
+                              name) org-directory)))
 
 
 
-;; 快捷键习惯用的函数
+;; 快捷键设置
 (defun ref/newline-return ()
   "append (open) a new line below the current line, and execute return"
   (interactive)
-    (move-end-of-line 1)
+  (move-end-of-line 1)
   (org-newline-and-indent))
 (defun ref/newline-meta-return ()
   "append (open) a new line below the current line, org-meta-return"
   (interactive)
-    (move-end-of-line 1)
+  (move-end-of-line 1)
   (org-meta-return))
-  
+
+(require 'init-org-ql)
 (provide 'init-ref)
