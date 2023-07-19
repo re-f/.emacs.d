@@ -5,7 +5,7 @@
 ;;; Code:
 
 
-(setq centaur-logo nil)                        ; Logo file or nil (official logo)
+(setq centaur-logo "~/.emacs.d/logo.png")                        ; Logo file or nil (official logo)
 (setq centaur-full-name "ref")           ; User full name
 (setq centaur-mail-address "z.ref@outlook.com")   ; Email address
 
@@ -14,7 +14,7 @@
 ;; (setq centaur-server nil)                      ; Enable `server-mode' or not: t or nil
 ;; (setq centaur-icon nil)                        ; Display icons or not: t or nil
 (setq centaur-package-archives 'tuna); Package repo: melpa, emacs-china, netease, ustc, tencent or tuna
-(setq centaur-theme 'light)                    ; Color theme: auto, random, default, classic, colorful, dark, light, day or night
+(setq centaur-theme 'night)                    ; Color theme: auto, random, default, classic, colorful, dark, light, day or night
 ;; (setq centaur-dashboard nil)                   ; Use dashboard at startup or not: t or nil
 ;; (setq centaur-restore-frame-geometry nil)      ; Restore the frame's geometry at startup: t or nil
 ;; (setq centaur-lsp 'eglot)                      ; Set LSP client: lsp-mode, eglot or nil
@@ -81,13 +81,13 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(centaur-org-directory  "~/OneDrive/knowledgebase-blog/content-org")
  '(ansi-color-names-vector
    ["#1D252C" "#D95468" "#8BD49C" "#EBBF83" "#5EC4FF" "#E27E8D" "#70E1E8" "#A0B3C5"])
  '(centaur-completion-style 'minibuffer)
+ '(centaur-org-directory "~/OneDrive/knowledgebase-blog/content-org")
  '(centaur-theme 'warm)
  '(custom-safe-themes
-   '("d14f3df28603e9517eb8fb7518b662d653b25b26e83bd8e129acea042b774298" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" "c4bdbbd52c8e07112d1bfd00fee22bf0f25e727e95623ecb20c4fa098b74c1bd" default))
+   '("467dc6fdebcf92f4d3e2a2016145ba15841987c71fbe675dcfe34ac47ffb9195" "d14f3df28603e9517eb8fb7518b662d653b25b26e83bd8e129acea042b774298" "7661b762556018a44a29477b84757994d8386d6edee909409fabe0631952dad9" "83e0376b5df8d6a3fbdfffb9fb0e8cf41a11799d9471293a810deb7586c131e6" "c4bdbbd52c8e07112d1bfd00fee22bf0f25e727e95623ecb20c4fa098b74c1bd" default))
  '(fci-rule-color "#56697A")
  '(jdee-db-active-breakpoint-face-colors (cons "#10151C" "#5EC4FF"))
  '(jdee-db-requested-breakpoint-face-colors (cons "#10151C" "#8BD49C"))
@@ -197,7 +197,8 @@
     (cons 320 "#675160")
     (cons 340 "#56697A")
     (cons 360 "#56697A")))
- '(vc-annotate-very-old-color nil))
+ '(vc-annotate-very-old-color nil)
+ '(warning-suppress-log-types '((lsp-mode))))
 
 (defun my/org-sidebar (source-buffer)
   "Import TODO."
@@ -239,6 +240,9 @@
  '(git-timemachine-minibuffer-detail-face ((t (:inherit warning))))
  '(hl-todo ((t (:inherit variable-pitch :box (:line-width -1) :height 0.85 :width condensed :weight semibold :underline nil :inverse-video t))))
  '(ivy-minibuffer-match-face-1 ((t (:foreground "#83898d"))))
+ '(ivy-minibuffer-match-face-2 ((t (:distant-foreground nil :background nil))))
+ '(ivy-minibuffer-match-face-3 ((t (:distant-foreground nil :background nil))))
+ '(ivy-minibuffer-match-face-4 ((t (:distant-foreground nil :background nil))))
  '(ivy-posframe ((t (:inherit tooltip))))
  '(ivy-posframe-border ((t (:background "#96A7A9"))))
  '(lsp-headerline-breadcrumb-path-error-face ((t :underline (:style wave :color "#ff6c6b") :inherit lsp-headerline-breadcrumb-path-face)))
@@ -257,6 +261,9 @@
  '(org-pomodoro-mode-line ((t (:inherit warning))))
  '(org-pomodoro-mode-line-break ((t (:inherit success))))
  '(org-pomodoro-mode-line-overtime ((t (:inherit error))))
+ '(paradox-archive-face ((t (:inherit font-lock-doc-face))))
+ '(paradox-description-face ((t (:inherit completions-annotations))))
+ '(posframe-border ((t (:background "#7c6f64"))))
  '(pulse-highlight-face ((t (:inherit region))))
  '(pulse-highlight-start-face ((t (:inherit region))))
  '(symbol-overlay-default-face ((t (:inherit (region bold)))))
