@@ -839,12 +839,14 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :PROPERTIES:
 :ID:       A743C4C5-5616-4645-A2FF-6F84F541B5E6
 :END:
-作用：
 =org-super-links-quick-insert-inline-link= 能快速搜索 headline ，并在光标当前位置插入链接，同时如果原 headline 没有 ID 还会自动为原 headline 生成 ID 。
-这个 package 存在的问题：会在原 headline 中生成一条 backlink ，简单修复方式：注释掉 [[https://github.com/toshism/org-super-links/blob/e10bd019851e0a2a5e3e94877de7b8d46b5f37cc/org-super-links.el#L345][org-super-links.el#L345]] 和 346 行
+
+变更内容：原 package 会在被引用的 headline 中生成一条 backlink，简单修复方式：注释掉 [[https://github.com/toshism/org-super-links/blob/e10bd019851e0a2a5e3e94877de7b8d46b5f37cc/org-super-links.el#L345][org-super-links.el#L345]] 和 346 行
 快捷键注释调的原因： 未设置 C-c s 的 key－prefix，所以快捷键注册失败
 #+begin_src emacs-lisp :tangle yes
   (add-to-list 'load-path "~/.emacs.d/site-lisp/org-super-links")
+  (require 'org-id);; 参考 README, 如果不使用 org-id, org-super-link 插入的 link 不是引用的id 而是 file:headline
+  (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
   (require 'org-super-links)
   (setq org-super-links-related-into-drawer nil
           org-super-links-link-prefix 'org-super-links-link-prefix-timestamp)
