@@ -897,10 +897,10 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   ;; Open file in externnal App
   (defun xah-show-in-desktop ()
     "Show current file in desktop.
-   (Mac Finder, Windows Explorer, Linux file manager)
-  This command can be called when in a file buffer or in `dired'.
-  URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
-  Version 2020-11-20 2021-01-18"
+     (Mac Finder, Windows Explorer, Linux file manager)
+    This command can be called when in a file buffer or in `dired'.
+    URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
+    Version 2020-11-20 2021-01-18"
     (interactive)
     (let (($path (if (buffer-file-name) (buffer-file-name) default-directory)))
       (cond
@@ -926,19 +926,32 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
           (start-process "" nil openFileProgram (shell-quote-argument $path)))
         ;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. eg with nautilus
         ))))
+
   (defun xah-open-in-vscode ()
     "Open current file or dir in vscode.
+  URL `http://xahlee.info/emacs/emacs/emacs_open_in_vscode.html'
+  Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
+    (interactive)
+    (let ((xpath (if buffer-file-name buffer-file-name (expand-file-name default-directory))))
+      (message "path is %s" xpath)
+      (cond
+       ((string-equal system-type "darwin")
+        (shell-command (format "open -a Visual\\ Studio\\ Code.app %s" (shell-quote-argument xpath))))
+       ((string-equal system-type "windows-nt")
+        (shell-command (format "code.cmd %s" (shell-quote-argument xpath))))
+       ((string-equal system-type "gnu/linux")
+        (shell-command (format "code %s" (shell-quote-argument xpath)))))))
 
-  URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
-  Version 2020-02-13"
+  (defun ref/open-in-org-vscode-workspace ()
+    "Open current org file in vscode workspace."
+
     (interactive)
     (let (($path (if (buffer-file-name) (buffer-file-name) (expand-file-name default-directory ) ))
           ($lnum (line-number-at-pos))
           ($cnum (1+(current-column))))
-      (message "path: %s, line: %s, col: %s." $path $lnum $cnum)
       (cond
        ((string-equal system-type "darwin")
-        (shell-command (format "code -g \"%s:%s:%s\"" $path $lnum $cnum)))
+        (shell-command (format "code \"%s\"  -g \"%s:%s:%s\""  (expand-file-name org-directory) $path $lnum $cnum)))
        ;;(shell-command (format "open -a Visual\\ Studio\\ Code.app \"%s\"" $path)))
        ((string-equal system-type "windows-nt")
         (shell-command (format "Code \"%s\"" $path)))
@@ -964,7 +977,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
       (let ((process-connection-type nil))
         (start-process "" nil "x-terminal-emulator"
                         (concat "--working-directory=" default-directory))))))
-
 #+end_src
 
 *** 统计emacs常用命令调用
