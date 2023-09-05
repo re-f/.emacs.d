@@ -11,6 +11,7 @@
 
 (setq centaur-proxy "127.0.0.1:7890")          ; HTTP/HTTPS proxy
 (setq centaur-socks-proxy "127.0.0.1:7890")    ; SOCKS proxy
+(setq centaur-org-directory (expand-file-name "~/knowledgebase-blog/content-org"))
 ;; (setq centaur-server nil)                      ; Enable `server-mode' or not: t or nil
 ;; (setq centaur-icon nil)                        ; Display icons or not: t or nil
 (setq centaur-package-archives 'tuna); Package repo: melpa, emacs-china, netease, ustc, tencent or tuna
