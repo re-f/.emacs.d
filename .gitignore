@@ -89,6 +89,7 @@ tutorial/
 url/
 var/
 workspace/
+site-lisp/chinese-word-segmentation/*
 org-mode.el
 org-mode.org
 custom-post.el

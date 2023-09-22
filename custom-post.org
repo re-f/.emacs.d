@@ -21,6 +21,7 @@
 
 需要自己下载的 package 有：
 chinese-word-segmentation: git clone git@github.com:kanglmf/emacs-chinese-word-segmentation.git
+org-bars.el
 *** 使用到的插件
 - [[https://github.com/alphapapa/org-ql][org-ql]]: 友好的heading 查询插件
   重要参考 [[https://github.com/alphapapa/org-ql][org-ql]]： org 的查询语法* Footnotes
@@ -604,6 +605,20 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
       org-refile-allow-creating-parent-nodes 'confirm)
 #+end_src 
 
+*** org cycle 行为
+org-cycle-include-plain-lists 是一个 Emacs 的变量，用于控制 org-cycle 命令是否包含展开/折叠纯文本列表。这个变量可以设置为以下三个值之一：
+- integrate(推荐）使用：将纯文本列表与其他列表一同处理，跟随标题的展开/折叠状态。
+- t：将纯文本列表视为独立的部分，不受标题的展开/折叠影响。
+- nil：将纯文本列表视为独立的部分，不受标题的展开/折叠影响，并且不会自动展开。
+#+begin_src emacs-lisp :tangle yes
+  (setq org-cycle-include-plain-lists 'integrate)
+#+end_src
+
+*** 在 org-mode 中写代码
+使用 org-mode 维护代码的好处是，树状结构人读比较清晰，文档齐全且跟代码同时更新
+- 如何编辑（因为 org-mode lsp 不是具体的编程语言）
+  在代码块执行 org-edit-special(=C-c '=) 
+
 ** 针对使用场景的配置
 *** GTD 设置
 #+begin_src emacs-lisp :tangle yes
@@ -881,6 +896,10 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 #+end_src
 
 #+begin_src emacs-lisp :tangle yes
+  ;; headline 的对齐线
+  (require 'org-bars)
+  (add-hook 'org-mode-hook #'org-bars-mode)
+
   (use-package gruvbox-theme
     :ensure t
     :config)
@@ -1060,6 +1079,8 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
      (add-hook 'org-mode-hook #'valign-mode)
      )
 
+   ;; org-modern 的 table 渲染和 valigin 冲突，因此禁止 org-modern-table
+   (setq org-modern-table nil)
 #+end_src
 - 中文分词
   参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
@@ -1079,7 +1100,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   #+end_src
 
 - 使用内置的中文输入法
-  [[https://github.com/tumashu/pyim]]，使用内置的中文输入法的原因：频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，可以做到，中文输入时同时使用 emacs 的快捷键
+  [[https://github.com/tumashu/pyim][pyim]]，使用内置的中文输入法的原因：emacs 的快捷键操作和中文输入时，需要频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，则可以做到中文输入时同时使用 emacs 的快捷键
   #+begin_src emacs-lisp :tangle yes
 
     (use-package pyim
@@ -1093,20 +1114,21 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
       (pyim-basedict-enable)
       )
     (require 'pyim)
-      (setq default-input-method "pyim")
+
+    (setq default-input-method "pyim")
     ;; 开启这些 probe 后，能实现以下效果
     ;;  1. 当中文/英文后有空格时，会自动切换输入法
     ;;  2. 配合 pyim-convert-string-at-point 的快捷键，能实现手工切换输入法
-      (setq-default pyim-english-input-switch-functions
-                    '(pyim-probe-isearch-mode
-                      pyim-probe-program-mode
-                      pyim-probe-org-structure-template
-                      pyim-probe-org-speed-commands
-                      pyim-probe-auto-english
-                      ))
-      (setq-default pyim-punctuation-half-width-functions
-                    '(pyim-probe-punctuation-line-beginning
-                      pyim-probe-punctuation-after-punctuation))
+    (setq-default pyim-english-input-switch-functions
+                  '(pyim-probe-isearch-mode
+                    pyim-probe-program-mode
+                    pyim-probe-org-structure-template
+                    pyim-probe-org-speed-commands
+                    pyim-probe-auto-english
+                    ))
+    (setq-default pyim-punctuation-half-width-functions
+                  '(pyim-probe-punctuation-line-beginning
+                    pyim-probe-punctuation-after-punctuation))
     ;; 开启拼音搜索功能
     (pyim-isearch-mode 1)
 
@@ -1114,7 +1136,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     (require 'pyim-basedict)
     (pyim-basedict-enable)
   #+end_src
-- 测试：
+- 测试
   #+begin_src emacs-lisp :tangle no
 (pyim-char-before-to-string 1);;ceshi
 ;; 测试
