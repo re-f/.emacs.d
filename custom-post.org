@@ -904,7 +904,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     :ensure t
     :config)
 
-;;  (load-theme 'doom-gruvbox-light)
+  ;;  (load-theme 'doom-gruvbox-light)
 #+end_src
 
 ** 实用的工具
@@ -1077,6 +1077,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
      :after org
      :config
      (add-hook 'org-mode-hook #'valign-mode)
+     (valign-mode 1)
      )
 
    ;; org-modern 的 table 渲染和 valigin 冲突，因此禁止 org-modern-table
@@ -1106,6 +1107,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     (use-package pyim
       :ensure t
       :config
+      (setq pyim-cloudim 'baidu)
     )
     (use-package pyim-basedict
       :ensure t
