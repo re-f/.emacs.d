@@ -133,6 +133,34 @@ zmonster[fn:1]
   ;; (add-hook 'org-mode-hook
   ;;           (lambda ()
   ;;             (local-set-key (kbd "C-c i") 'org-capture-at-point)))
+
+  (defun org-capture-to-year-month-week-worklog (file)
+    (let* ((month (downcase (format-time-string "%b"))) ; 当前月份的英文缩写，例如 "sep"
+           (week (format-time-string "%V")) ; 当前年的第几周
+           (headline-month (format "* %s." month)) ; 月份 headline
+           (headline-week (format "** W%s 工作记录" week))) ; 周数 headline
+
+      (with-current-buffer (find-file-noselect file)
+        (goto-char (point-min))
+        (unless (search-forward headline-month nil t)
+          ;; 如果月份 headline 不存在，则创建
+          (goto-char (point-max))
+          (insert (concat "\n" headline-month "\n")))
+        (unless (search-forward headline-week nil t)
+          ;; 如果周数 headline 不存在，则在月份 headline 下创建
+          (goto-char (point-max))
+          (insert (concat headline-week "\n"))
+          ;; 设置属性 "Create" 为当前时间
+          (org-set-property "Create" (format-time-string "[%Y-%m-%d]"))
+          ))
+
+      ;; (list 'file+headline file (concat month " " week)) ; 返回 org-capture 的目标位置
+      ))
+  (push '("w" "PLAN: 每周工作记录"
+          item (file+function "./worklog/2023.org" (lambda () (org-capture-to-year-month-week-worklog (concat org-directory "/worklog/2023.org"))))
+          "\n - %?" :tree-type week)
+        org-capture-templates)
+
 #+end_src
 
 *** org agenda 设置
