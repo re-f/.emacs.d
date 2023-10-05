@@ -885,21 +885,29 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :END:
 - 将完成的 TODO Headline 上加上删除线，[[https://liangjun.work/posts/c5c41e4d/][参考]]
 - 垂直分屏
-默认垂直分屏，要换成水平分屏，参考： [[https://cloud.tencent.com/developer/ask/105836]]，
+ 默认垂直分屏，要换成水平分屏，参考： [[https://cloud.tencent.com/developer/ask/105836]]，
+- 用 org-cycle 控制 [[https://orgmode.org/manual/Plain-Lists.html][plain-list]]
+  org-cycle-include-plain-lists 控制 org-cycle 命令对纯文本列表的处理方式：
+  integrate：将纯文本列表与其他列表一同处理，跟随标题的展开/折叠状态。
+  t：将纯文本列表视为独立的部分，不受标题的展开/折叠影响。
+  nil：将纯文本列表视为独立的部分，不受标题的展开/折叠影响，并且不会自动展开。
 
 #+begin_src emacs-lisp :tangle yes
-;; 新建buffer时水平分割
+  ;; 新建buffer时水平分割
   (setq split-width-threshold 1 )
-;; 在Headline 上加删除线
+  ;; 在Headline 上加删除线
   (setq org-fontify-done-headline t)
 
-#+end_src
+  (require 'org-bars)
+  (add-hook 'org-mode-hook #'org-bars-mode)
 
-#+begin_src emacs-lisp :tangle yes
   ;; headline 的对齐线
   (require 'org-bars)
   (add-hook 'org-mode-hook #'org-bars-mode)
 
+  ;;在 org-mode 折叠时/在展开，将纯文本列表与其他列表（如无序列表和有序列表）一同处理。当折叠一个标题时，纯文本列表也会被折叠起来。当展开一个标题时，纯文本列表也会被展开。
+  (setq org-cycle-include-plain-lists 'integrate)
+  ;; 主题
   (use-package gruvbox-theme
     :ensure t
     :config)
@@ -1107,6 +1115,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     (use-package pyim
       :ensure t
       :config
+      (setq pyim-dcache-directory "~/.config/emacs/pyim/dcache")
       (setq pyim-cloudim 'baidu)
     )
     (use-package pyim-basedict
