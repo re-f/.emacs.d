@@ -31,8 +31,6 @@
 ;;; Code:
 
 (require 'subr-x)
-(require 'init-const)
-(require 'init-custom)
 (require 'init-funcs)
 
 ;; Compatibility
@@ -106,17 +104,17 @@
 
 ;; Start server
 (use-package server
-  :ensure nil
   :if centaur-server
   :hook (after-init . server-mode))
 
 ;; History
+(use-package desktop
+  :hook (after-init . desktop-save-mode))
+
 (use-package saveplace
-  :ensure nil
   :hook (after-init . save-place-mode))
 
 (use-package recentf
-  :ensure nil
   :bind (("C-x C-r" . recentf-open-files))
   :hook (after-init . recentf-mode)
   :init (setq recentf-max-saved-items 300
@@ -131,7 +129,6 @@
   (add-to-list 'recentf-filename-handlers #'abbreviate-file-name))
 
 (use-package savehist
-  :ensure nil
   :hook (after-init . savehist-mode)
   :init (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
               history-length 1000
@@ -155,11 +152,6 @@
         track-eol t                     ; Keep cursor at end of lines. Require line-move-visual is nil.
         set-mark-command-repeat-pop t)  ; Repeating C-SPC after popping mark pops it again
 
-  ;; Only list the commands of the current modes
-  (when (boundp 'read-extended-command-predicate)
-    (setq read-extended-command-predicate
-          #'command-completion-default-include-p))
-
   ;; Visualize TAB, (HARD) SPACE, NEWLINE
   (setq-default show-trailing-whitespace nil) ; Don't show trailing whitespace by default
   (defun enable-trailing-whitespace ()
@@ -169,23 +161,12 @@
 
   ;; Prettify the process list
   (with-no-warnings
-    (add-hook 'process-menu-mode-hook
-              (lambda ()
-                (setq tabulated-list-format
-                      (vconcat `(("" ,(if (icons-displayable-p) 2 0)))
-                               tabulated-list-format))))
-
     (defun my-list-processes--prettify ()
       "Prettify process list."
       (when-let ((entries tabulated-list-entries))
         (setq tabulated-list-entries nil)
         (dolist (p (process-list))
           (when-let* ((val (cadr (assoc p entries)))
-                      (icon (if (icons-displayable-p)
-                                (concat
-                                 " "
-                                 (nerd-icons-faicon "nf-fa-bolt" :face 'nerd-icons-lblue))
-                              " x"))
                       (name (aref val 0))
                       (pid (aref val 1))
                       (status (aref val 2))
@@ -197,10 +178,8 @@
                       (buf-label (aref val 3))
                       (tty (list (aref val 4) 'face 'font-lock-doc-face))
                       (thread (list (aref val 5) 'face 'font-lock-doc-face))
-                      (cmd (list (aref val (if emacs/>=27p 6 5)) 'face 'completions-annotations)))
-            (push (list p (if emacs/>=27p
-                              (vector icon name pid status buf-label tty thread cmd)
-                            (vector icon name pid status buf-label tty cmd)))
+                      (cmd (list (aref val 6) 'face 'completions-annotations)))
+            (push (list p (vector name pid status buf-label tty thread cmd))
 		          tabulated-list-entries)))))
     (advice-add #'list-processes--refresh :after #'my-list-processes--prettify)))
 

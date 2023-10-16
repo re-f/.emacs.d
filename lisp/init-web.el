@@ -30,7 +30,8 @@
 
 ;;; Code:
 
-(require 'init-custom)
+(eval-when-compile
+  (require 'init-custom))
 
 ;; eww
 (use-package eww
@@ -67,26 +68,15 @@
      ("v" xwwp-follow-link "follow link" :exit t)
      ("w" xwidget-webkit-current-url-message-kill "copy url" :exit t)
      ("?" describe-mode "help" :exit t)
-     ("Q" quit-window "quit" :exit t))))
-  :init
-  ;; Link navigation
-  (use-package xwwp-follow-link-ivy
-    :after ivy
-    :bind (("C-c C-z x" . xwwp)
-           :map xwidget-webkit-mode-map
-           ("v"         . xwwp-follow-link))
-    :init (setq xwwp-follow-link-completion-system 'ivy)))
+     ("Q" quit-window "quit" :exit t)))))
 
 ;; CSS
 (use-package css-mode
-  :ensure nil
   :init (setq css-indent-offset 2))
 
 ;; SCSS
 (use-package scss-mode
-  :init
-  ;; Disable complilation on save
-  (setq scss-compile-at-save nil))
+  :init (setq scss-compile-at-save nil))
 
 ;; LESS
 (unless (fboundp 'less-css-mode)
@@ -97,11 +87,8 @@
   (use-package json-mode))
 
 ;; JavaScript
-(use-package js-mode
-  :ensure nil
-  :defines js-indent-level
-  :config
-  (setq js-indent-level 2))
+(use-package js
+  :init (setq js-indent-level 2))
 
 (use-package js2-mode
   :mode (("\\.js\\'" . js2-mode)
@@ -126,6 +113,7 @@
 ;; Live browser JavaScript, CSS, and HTML interaction
 (use-package skewer-mode
   :diminish
+  :functions diminish
   :hook (((js-mode js2-mode)   . skewer-mode)
          (css-mode             . skewer-css-mode)
          ((html-mode web-mode) . skewer-html-mode))
@@ -168,12 +156,7 @@
   :config
   (use-package restclient-test
     :diminish
-    :hook (restclient-mode . restclient-test-mode))
-
-  (with-eval-after-load 'company
-    (use-package company-restclient
-      :defines company-backends
-      :init (add-to-list 'company-backends 'company-restclient))))
+    :hook (restclient-mode . restclient-test-mode)))
 
 (provide 'init-web)
 
