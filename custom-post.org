@@ -944,7 +944,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 #+end_src
 
 ** 实用的工具
-*** 在其它的App 中打开当前buffer的文件
+*** 在其它的 App 中打开当前buffer的文件
 :PROPERTIES:
 :ID:       2B17C599-5F83-4A16-A220-28AB18EDC10E
 :END:
@@ -952,10 +952,10 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   ;; Open file in externnal App
   (defun xah-show-in-desktop ()
     "Show current file in desktop.
-     (Mac Finder, Windows Explorer, Linux file manager)
-    This command can be called when in a file buffer or in `dired'.
-    URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
-    Version 2020-11-20 2021-01-18"
+       (Mac Finder, Windows Explorer, Linux file manager)
+      This command can be called when in a file buffer or in `dired'.
+      URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
+      Version 2020-11-20 2021-01-18"
     (interactive)
     (let (($path (if (buffer-file-name) (buffer-file-name) default-directory)))
       (cond
@@ -984,8 +984,8 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
   (defun xah-open-in-vscode ()
     "Open current file or dir in vscode.
-  URL `http://xahlee.info/emacs/emacs/emacs_open_in_vscode.html'
-  Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
+    URL `http://xahlee.info/emacs/emacs/emacs_open_in_vscode.html'
+    Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
     (interactive)
     (let ((xpath (if buffer-file-name buffer-file-name (expand-file-name default-directory))))
       (message "path is %s" xpath)
@@ -997,13 +997,29 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
        ((string-equal system-type "gnu/linux")
         (shell-command (format "code %s" (shell-quote-argument xpath)))))))
 
+  (defun buffer-narrowed-p ()
+    "Return non-nil if the current buffer is narrowed."
+    (not (and (= (point-min) 1)
+              (= (point-max) (1+ (buffer-size))))))
+
+  (defun line-number-at-pos-in-file (filename pos)
+    "Return line number at POS in FILENAME."
+    (string-to-number
+     (shell-command-to-string
+      (format "dd if=%s bs=1 count=%d 2>/dev/null | wc -l"
+              (shell-quote-argument filename) pos))))
+
   (defun ref/open-in-org-vscode-workspace ()
     "Open current org file in vscode workspace."
 
     (interactive)
     (let (($path (if (buffer-file-name) (buffer-file-name) (expand-file-name default-directory ) ))
-          ($lnum (line-number-at-pos))
-          ($cnum (1+(current-column))))
+          ;; 当 buffer narrowed, line-number-at-pos 获取的是当前可视区的位置，不是 file 的位置，因此要转成 file 的位置
+          ;; 转的过程中碰到的问题： point 函数返回的是字符数，无论是 linux 还是 emacs, 都没有很好的通过字节数找到行数的方法，因此将通过粗略
+          ;; 的验证，我自己的知识库在使用 UTF8 编码时，一字符大概换算成 1.707 字节，来获取大概的文件位置
+          ($lnum (if (buffer-narrowed-p) (line-number-at-pos-in-file (buffer-file-name) (floor (* 1.707 (point))))  (line-number-at-pos)))
+          ($cnum (1+(current-column)))
+          )
       (cond
        ((string-equal system-type "darwin")
         (shell-command (format "code \"%s\"  -g \"%s:%s:%s\""  (expand-file-name org-directory) $path $lnum $cnum)))
@@ -1015,23 +1031,23 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
   (defun xah-open-in-terminal ()
     "Open the current dir in a new terminal window.
-  on Microsoft Windows, it starts cross-platform PowerShell pwsh. You need to have it installed.
+    on Microsoft Windows, it starts cross-platform PowerShell pwsh. You need to have it installed.
 
-  URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
-  Version 2020-11-21 2021-01-18"
+    URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
+    Version 2020-11-21 2021-01-18"
     (interactive)
     (cond
-      ((string-equal system-type "windows-nt")
+     ((string-equal system-type "windows-nt")
       (let ((process-connection-type nil))
         (shell-command (concat "PowerShell -Command Start-Process pwsh -WorkingDirectory " (shell-quote-argument default-directory)))
         ;;
         ))
-      ((string-equal system-type "darwin")
+     ((string-equal system-type "darwin")
       (shell-command (concat "open -a terminal " (shell-quote-argument (expand-file-name default-directory )))))
-      ((string-equal system-type "gnu/linux")
+     ((string-equal system-type "gnu/linux")
       (let ((process-connection-type nil))
         (start-process "" nil "x-terminal-emulator"
-                        (concat "--working-directory=" default-directory))))))
+                       (concat "--working-directory=" default-directory))))))
 #+end_src
 
 *** 统计emacs常用命令调用
@@ -1211,6 +1227,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 
   (global-set-key (kbd "<f1>") 'count-words)
+  (global-set-key (kbd "C-x r b") 'bookmark-jump-other-window)
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
 
 
