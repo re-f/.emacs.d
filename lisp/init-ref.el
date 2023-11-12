@@ -16,7 +16,18 @@
 
 
 
+;; 计算 org-directory 下的字数统计
+(defun ref/reset-count ()
+  (interactive)
+  (shell-command  (expand-file-name (format "%s/scripts/update_record.sh" org-directory)))
+  )
+
 ;; 快捷键设置
+(define-prefix-command 'ref/prefix-command)
+(global-set-key (kbd "M-m") 'ref/prefix-command)
+
+(define-key ref/prefix-command (kbd "c") 'ref/reset-count)
+
 (defun ref/newline-return ()
   "append (open) a new line below the current line, and execute return"
   (interactive)
@@ -27,6 +38,9 @@
   (interactive)
   (move-end-of-line 1)
   (org-meta-return))
+
+
+
 
 (require 'init-org-ql)
 (provide 'init-ref)
