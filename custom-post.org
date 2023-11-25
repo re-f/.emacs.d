@@ -943,11 +943,11 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   ;;在 org-mode 折叠时/在展开，将纯文本列表与其他列表（如无序列表和有序列表）一同处理。当折叠一个标题时，纯文本列表也会被折叠起来。当展开一个标题时，纯文本列表也会被展开。
   (setq org-cycle-include-plain-lists 'integrate)
   ;; 主题
-  (use-package gruvbox-theme
+  (use-package tao
     :ensure t
     :config)
 
-  ;;  (load-theme 'doom-gruvbox-light)
+  (load-theme 'tao-yang)
 #+end_src
 
 ** 实用的工具
