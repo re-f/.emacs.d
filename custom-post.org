@@ -149,18 +149,16 @@ zmonster[fn:1]
         (unless (search-forward headline-week nil t)
           ;; 如果周数 headline 不存在，则在月份 headline 下创建
           (goto-char (point-max))
-          (insert (concat headline-week "\n"))
+          (insert (concat headline-week " [0/0] \n"))
           ;; 设置属性 "Create" 为当前时间
           (org-set-property "Create" (format-time-string "[%Y-%m-%d]"))
           ))
-
       ;; (list 'file+headline file (concat month " " week)) ; 返回 org-capture 的目标位置
       ))
   (push '("w" "PLAN: 每周工作记录"
           item (file+function "./worklog/2023.org" (lambda () (org-capture-to-year-month-week-worklog (concat org-directory "/worklog/2023.org"))))
-          "\n - %?" :tree-type week)
+          "\n\n - %?" :tree-type week)
         org-capture-templates)
-
 #+end_src
 
 *** org agenda 设置
@@ -1142,6 +1140,8 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
    ;; org-modern 的 table 渲染和 valigin 冲突，因此禁止 org-modern-table
    (setq org-modern-table nil)
 #+end_src
+
+
 - 中文分词
   参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
  #+begin_src emacs-lisp :tangle yes
