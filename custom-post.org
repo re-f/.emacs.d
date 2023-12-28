@@ -568,18 +568,15 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
            :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
           ))
 
-    ;; 配置 dired
-    (put 'dired-find-alternate-file 'disabled nil)
-    (with-eval-after-load 'dired
-      ;; 在 dired 列表中，忽略obsidian 和 organice 的文件
-      (setq dired-omit-files
-            (concat dired-omit-files
-                    "\\|^.obsidian*\\|\\.organice-bak$"))
-      ;; dire 初始化的配置中， 会隐藏当前目录和上级目录，导致目录跳转不方便，因此放出来
-      (setq dired-omit-files(replace-regexp-in-string
-                             "\\\\`\\[\\.\\]\\[\\.\\]\\?\\\\'\\\\\|" "" dired-omit-files)))
-    ;; 修改 dired 展示样式 https://oremacs.com/2015/01/13/dired-options/
-    ;;       (setq dired-listing-switches "-laGh1v")
+  ;; 配置 dired
+  ;;  当在 dired 中删除文件时，需要同步更新 org-agenda-files
+  (defun update-org-agenda-files-after-delete (file-to-delete &rest args)
+    "Update `org-agenda-files` after a file has been deleted."
+    (let ((abbreviated-file (abbreviate-file-name file-to-delete)))
+      (when (member abbreviated-file org-agenda-files)
+        (setq org-agenda-files (delete abbreviated-file org-agenda-files))
+        (message "Removed '%s' from org-agenda-files" abbreviated-file))))
+  (advice-add 'dired-delete-file :after #'update-org-agenda-files-after-delete)
 #+end_src
 
 **** 链接至 agenda
@@ -954,7 +951,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   ;;在 org-mode 折叠时/在展开，将纯文本列表与其他列表（如无序列表和有序列表）一同处理。当折叠一个标题时，纯文本列表也会被折叠起来。当展开一个标题时，纯文本列表也会被展开。
   (setq org-cycle-include-plain-lists 'integrate)
   ;; 主题
-  (use-package tao
+  (use-package tao-theme
     :ensure t
     :config)
 
