@@ -609,6 +609,19 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
 
   (use-package helm-org-ql
     :ensure t)
+
+  (defun ref/org-ql-sort-by-create-desc (a b)
+    "Sort headline by :CREATE: property, headlines without :CREATE: property are sorted last, and newer dates come first."
+    (let ((a-create (org-element-property :CREATE a))
+          (b-create (org-element-property :CREATE b)))
+      (cond ((and a-create b-create)
+             (string> a-create b-create))
+            ((and (not a-create) b-create)
+             nil)
+            ((and a-create (not b-create))
+             t)
+            ((and (not a-create) (not b-create))
+             nil))))
 #+end_src
 
 *** Refile 

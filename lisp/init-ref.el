@@ -41,6 +41,5 @@
 
 
 
-
 (require 'init-org-ql)
 (provide 'init-ref)
