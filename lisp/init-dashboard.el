@@ -92,7 +92,7 @@
           dashboard-path-max-length 60
           dashboard-center-content t
           dashboard-show-shortcuts nil
-          dashboard-items '((recents  . 8)
+          dashboard-items '((recents  . 10)
                             (bookmarks . 5)
                             (projects . 5))
 
@@ -137,10 +137,6 @@
 
     (dashboard-setup-startup-hook)
     :config
-    ;; WORKAROUND: no icons are displayed on Windows
-    ;; @see https://github.com/emacs-dashboard/emacs-dashboard/issues/471
-    (advice-add #'dashboard-replace-displayable :override #'identity)
-
     ;; Insert copyright
     ;; @see https://github.com/emacs-dashboard/emacs-dashboard/issues/219
     (defun my-dashboard-insert-copyright ()

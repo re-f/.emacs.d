@@ -40,12 +40,12 @@
 (defvar socks-noproxy)
 (defvar socks-server)
 
-(declare-function browse-url-interactive-arg 'browse-url)
-(declare-function chart-bar-quickie 'chart)
-(declare-function circadian-activate-latest-theme 'xwidget)
-(declare-function nerd-icons-install-fonts 'nerd-icons)
-(declare-function xwidget-buffer 'xwidget)
-(declare-function xwidget-webkit-current-session 'xwidget)
+(declare-function browse-url-interactive-arg "browse-url")
+(declare-function chart-bar-quickie "chart")
+(declare-function consult-theme "ext:consult")
+(declare-function nerd-icons-install-fonts "ext:nerd-icons")
+(declare-function xwidget-buffer "xwidget")
+(declare-function xwidget-webkit-current-session "xwidget")
 
 
 
@@ -65,14 +65,20 @@
   (interactive)
   (set-buffer-file-coding-system 'undecided-dos nil))
 
-(defun delete-carrage-returns ()
-  "Delete `^M' characters in the buffer.
+(defun delete-dos-eol ()
+  "Delete `' characters in current region or buffer.
 Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
   (interactive)
   (save-excursion
-    (goto-char 0)
-    (while (search-forward "\r" nil :noerror)
-      (replace-match ""))))
+    (when (region-active-p)
+      (narrow-to-region (region-beginning) (region-end)))
+    (goto-char (point-min))
+    (let ((count 0))
+      (while (search-forward "\r" nil t)
+        (replace-match "" nil t)
+        (setq count (1+ count)))
+      (message "Removed %d " count))
+    (widen)))
 
 ;; File and buffer
 (defun revert-this-buffer ()
@@ -236,8 +242,9 @@ Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
 
 (defun centaur-treesit-available-p ()
   "Check whether tree-sitter is available.
-Native tree-sitter is introduced since 29."
-  (and (fboundp 'treesit-available-p)
+Native tree-sitter is introduced since 29.1."
+  (and centaur-tree-sitter
+       (fboundp 'treesit-available-p)
        (treesit-available-p)))
 
 (defun centaur-set-variable (variable value &optional no-save)
@@ -252,16 +259,16 @@ Native tree-sitter is introduced since 29."
       (goto-char (point-min))
       (while (re-search-forward
               (format "^[\t ]*[;]*[\t ]*(setq %s .*)" variable)
-                               nil t)
-  (replace-match (format "(setq %s '%s)" variable value) nil nil))
+              nil t)
+        (replace-match (format "(setq %s '%s)" variable value) nil nil))
       (write-region nil nil custom-file)
       (message "Saved %s (%s) to %s" variable value custom-file))))
 
 (defun too-long-file-p ()
   "Check whether the file is too long."
-  (if (fboundp 'buffer-line-statistics)
-      (> (car (buffer-line-statistics)) 10000)
-    (> (buffer-size) 100000)))
+  (or (> (buffer-size) 100000)
+      (and (fboundp 'buffer-line-statistics)
+           (> (car (buffer-line-statistics)) 10000))))
 
 (define-minor-mode centaur-read-mode
   "Minor Mode for better reading experience."
@@ -466,7 +473,6 @@ This issue has been addressed in 28."
 
 (defun centaur--load-system-theme (appearance)
   "Load theme, taking current system APPEARANCE into consideration."
-  (mapc #'disable-theme custom-enabled-themes)
   (centaur--load-theme (alist-get appearance centaur-system-themes)))
 
 (defun centaur-load-random-theme ()
@@ -503,7 +509,7 @@ This issue has been addressed in 28."
      ;; Time-switching themes
      (use-package circadian
        :ensure t
-       :functions circadian-setup
+       :commands circadian-setup circadian-activate-latest-theme
        :custom (circadian-themes centaur-auto-themes)
        :init (circadian-setup)))
     ('system
@@ -511,6 +517,7 @@ This issue has been addressed in 28."
      (use-package auto-dark
        :ensure t
        :diminish
+       :commands auto-dark-mode
        :init
        (setq auto-dark-light-theme (alist-get 'light centaur-system-themes)
              auto-dark-dark-theme (alist-get 'dark centaur-system-themes))
@@ -524,6 +531,11 @@ This issue has been addressed in 28."
 
   ;; Set option
   (centaur-set-variable 'centaur-theme theme no-save))
+
+(advice-add #'consult-theme :after
+            (lambda (theme)
+              "Save theme."
+              (centaur-set-variable 'centaur-theme theme)))
 
 
 

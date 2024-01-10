@@ -80,10 +80,13 @@
     (progn
       ;; Make certain buffers grossly incandescent
       (use-package solaire-mode
-        :hook (after-load-theme . solaire-global-mode))
+        :hook (after-init . solaire-global-mode))
+
       ;; Excellent themes
       (use-package doom-themes
-        :bind ("C-c T" . centaur-load-theme)
+        :custom
+        (doom-themes-enable-bold t)
+        (doom-themes-enable-italic t)
         :init (centaur-load-theme centaur-theme t)
         :config
         ;; Enable flashing mode-line on errors
@@ -97,7 +100,9 @@
             (let ((buf (current-buffer))
                   (cookies (mapcar (lambda (face)
                                      (face-remap-add-relative face 'doom-themes-visual-bell))
-                                   '(mode-line mode-line-active))))
+                                   (if (facep 'mode-line-active)
+                                       '(mode-line-active solaire-mode-line-active-face)
+                                     '(mode-line solaire-mode-line-face)))))
               (force-mode-line-update)
               (run-with-timer 0.15 nil
                               (lambda ()
@@ -106,7 +111,7 @@
                                   (force-mode-line-update))))))
           (advice-add #'doom-themes-visual-bell-fn :override #'my-doom-themes-visual-bell-fn))))
   (progn
-    (warn "The current theme is incompatible!")
+    (warn "The current theme may be incompatible!")
     (centaur-load-theme centaur-theme t)))
 
 ;; Mode-line
@@ -271,7 +276,10 @@
            term-mode vterm-mode
            embark-collect-mode
            lsp-ui-imenu-mode
-           pdf-annot-list-mode) . hide-mode-line-mode)))
+           pdf-annot-list-mode) . turn-on-hide-mode-line-mode)
+         (dired-mode . (lambda()
+                         (and (bound-and-true-p hide-mode-line-mode)
+                              (turn-off-hide-mode-line-mode))))))
 
 ;; A minor-mode menu for mode-line
 (use-package minions
@@ -317,10 +325,10 @@
          ("C-s--" . default-text-scale-decrease)
          ("C-s-0" . default-text-scale-reset)))
 
+;; Display time
 (use-package time
-  :ensure nil
-  :init (setq display-time-24hr-format t
-              display-time-day-and-date t))
+  :init (setq display-time-default-load-average nil
+              display-time-format "%H:%M"))
 
 ;; Mouse & Smooth Scroll
 ;; Scroll one line at a time (less "jumpy" than defaults)

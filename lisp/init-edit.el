@@ -103,7 +103,7 @@
 (use-package avy
   :bind (("C-:"   . avy-goto-char)
          ("C-'"   . avy-goto-char-2)
-         ("M-g f" . avy-goto-line)
+         ("M-g l" . avy-goto-line)
          ("M-g w" . avy-goto-word-1)
          ("M-g e" . avy-goto-word-0))
   :hook (after-init . avy-setup-default)
@@ -118,39 +118,10 @@
          ("M-Z" . avy-zap-up-to-char-dwim)))
 
 ;; Quickly follow links
-(use-package ace-link
-  :defines (org-mode-map
-            gnus-summary-mode-map
-            gnus-article-mode-map
-            ert-results-mode-map
-            paradox-menu-mode-map
-            elfeed-show-mode-map)
-  :bind ("M-o" . ace-link-addr)
-  :hook (after-init . ace-link-setup-default)
-  :config
-  (with-eval-after-load 'org
-    (bind-key "M-o" #'ace-link-org org-mode-map))
-
-  (with-eval-after-load 'gnus
-    (bind-keys
-     :map gnus-summary-mode-map
-     ("M-o" . ace-link-gnus)
-     :map gnus-article-mode-map
-     ("M-o" . ace-link-gnus)))
-
-  (with-eval-after-load 'ert
-    (bind-key "o" #'ace-link-help ert-results-mode-map))
-
-  (bind-keys
-   :map package-menu-mode-map
-   ("o" . ace-link-help)
-   :map process-menu-mode-map
-   ("o" . ace-link-help))
-  (with-eval-after-load 'paradox
-    (bind-key "o" #'ace-link-help paradox-menu-mode-map))
-
-  (with-eval-after-load 'elfeed
-    (bind-key "o" #'ace-link elfeed-show-mode-map)))
+(use-package link-hint
+  :bind (("M-o" . link-hint-open-link)
+         ("C-c l o" . link-hint-open-link)
+         ("C-c l c" . link-hint-copy-link)))
 
 ;; Jump to Chinese characters
 (use-package ace-pinyin
@@ -168,8 +139,12 @@
                           (aggressive-indent-mode -1)))))
   :config
   ;; Disable in some modes
-  (dolist (mode '(gitconfig-mode asm-mode web-mode html-mode css-mode go-mode scala-mode prolog-inferior-mode))
-    (push mode aggressive-indent-excluded-modes))
+  (dolist (mode '(gitconfig-mode
+                  asm-mode web-mode html-mode css-mode
+                  go-mode scala-mode
+                  shell-mode term-mode vterm-mode
+                  prolog-inferior-mode))
+    (add-to-list 'aggressive-indent-excluded-modes mode))
 
   ;; Disable in some commands
   (add-to-list 'aggressive-indent-protected-commands #'delete-trailing-whitespace t)
@@ -439,6 +414,18 @@
                      'face '(:inherit shadow :height 0.8))
                     " "))))
   (setq hs-set-up-overlay #'hs-display-code-line-counts))
+
+;; Copy&paste GUI clipboard from text terminal
+(unless sys/win32p
+  (use-package xclip
+    :hook (after-init . xclip-mode)
+    :config
+    ;; @see https://github.com/microsoft/wslg/issues/15#issuecomment-1796195663
+    (when (eq xclip-method 'wl-copy)
+      (set-clipboard-coding-system 'gbk) ; for wsl
+      (setq interprogram-cut-function
+            (lambda (text)
+              (start-process "xclip"  nil xclip-program "--trim-newline" "--type" "text/plain;charset=utf-8" text))))))
 
 ;; Open files as another user
 (unless sys/win32p

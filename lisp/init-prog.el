@@ -44,7 +44,7 @@
   (setq prettify-symbols-unprettify-at-point 'right-edge))
 
 ;; Tree-sitter support
-(when (and centaur-tree-sitter (centaur-treesit-available-p))
+(when (centaur-treesit-available-p)
   (use-package treesit-auto
     :hook (after-init . global-treesit-auto-mode)
     :init (setq treesit-auto-install 'prompt)))
@@ -57,6 +57,10 @@
   (when (childframe-workable-p)
     (use-package eldoc-box
       :diminish (eldoc-box-hover-mode eldoc-box-hover-at-point-mode)
+      :custom
+      (eldoc-box-lighter nil)
+      (eldoc-box-only-multi-line t)
+      (eldoc-box-clear-with-C-g t)
       :custom-face
       (eldoc-box-border ((t (:inherit posframe-border :background unspecified))))
       (eldoc-box-body ((t (:inherit tooltip))))
@@ -71,17 +75,7 @@
   :ensure nil
   :autoload grep-apply-setting
   :init
-  (cond
-   ((executable-find "ugrep")
-    (grep-apply-setting
-     'grep-command "ugrep --color=auto -0In -e ")
-    (grep-apply-setting
-     'grep-template "ugrep --color=auto -0In -e <R> <D>")
-    (grep-apply-setting
-     'grep-find-command '("ugrep --color=auto -0Inr -e ''" . 30))
-    (grep-apply-setting
-     'grep-find-template "ugrep <C> -0Inr -e <R> <D>"))
-   ((executable-find "rg")
+  (when (executable-find "rg")
     (grep-apply-setting
      'grep-command "rg --color=auto --null -nH --no-heading -e ")
     (grep-apply-setting
@@ -89,16 +83,16 @@
     (grep-apply-setting
      'grep-find-command '("rg --color=auto --null -nH --no-heading -e ''" . 38))
     (grep-apply-setting
-     'grep-find-template "rg --color=auto --null -nH --no-heading -e <R> <D>"))))
+     'grep-find-template "rg --color=auto --null -nH --no-heading -e <R> <D>")))
 
 ;; Cross-referencing commands
 (use-package xref
+  :bind (("M-g ." . xref-find-definitions)
+         ("M-g ," . xref-go-back))
   :init
   ;; Use faster search tool
-  (setq xref-search-program (cond
-                             ((executable-find "ugrep") 'ugrep)
-                             ((executable-find "rg") 'ripgrep)
-                             (t 'grep)))
+  (when (executable-find "rg")
+    (setq xref-search-program 'ripgrep))
 
   ;; Select from xref candidates in minibuffer
   (setq xref-show-definitions-function #'xref-show-definitions-completing-read
