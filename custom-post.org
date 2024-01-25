@@ -655,6 +655,58 @@ org-cycle-include-plain-lists 是一个 Emacs 的变量，用于控制 org-cycle
 - 如何编辑（因为 org-mode lsp 不是具体的编程语言）
   在代码块执行 org-edit-special(=C-c '=) 
 
+*** 配置 org-mode 的文件存储路径（当前主要针对与图片）
+存储的需要考虑的内容
+1. 如果 org file 可能移动，因此不能使用相对路径
+2. 需要 ox-hugo 能支持的方式，否则生成的 blog 无法展示图片
+因此实现自定义 org-link-file-path-type 
+备注，使用此方法的前提是需要修改 org-mode 的 ol.el 中 org-link-file-path-type  function 类型的实现，要求传入给自定义函数时，不要先取绝对路径
+#+begin_src emacs-lisp :tangle yes
+  ;; (defun ref/org-static-file-link (path)
+  ;;   "如果 PATH 是绝对路径，则保持不变。
+  ;; 如果 PATH 是相对路径，则将其解释为相对于 `${org-directory}/static/` 的路径。
+  ;; 确保不会出现重复的 'static' 目录。"
+  ;;   ;; 确保 `org-directory` 以斜杠结尾
+  ;;   (let ((org-static-dir (file-name-as-directory (concat (file-name-as-directory org-directory) "static"))))
+  ;;     (cond
+  ;;      ;; 如果 PATH 是绝对路径，则直接返回它
+  ;;      ((file-name-absolute-p path) path)
+  ;;      ;; 检查 PATH 是否已经以 "static/" 开头，如果是就移除它
+  ;;      ((string-prefix-p "static/" path)
+  ;;       (expand-file-name (substring path (length "static/")) org-static-dir))
+  ;;      ;; 否则，作为相对于 `${org-directory}/static/` 的路径处理
+  ;;      (t (expand-file-name path org-static-dir)))))
+
+  ;; ;; Set `org-link-file-path-type` to use the custom function
+  ;; (setq org-link-file-path-type 'ref/org-static-file-link)
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+
+  (defun ref/org-custom-open-file ()
+    "Open a relative file path by converting it based on org-directory."
+    ;; 获取当前光标下的链接元素
+    (let* ((element (org-element-context))
+           (link-type (org-element-property :type element))
+           (path (org-element-property :path element)))
+      ;; 确保这是一个 file 类型的链接
+      (when (and (eq (org-element-type element) 'link)
+                 (string-equal link-type "file")
+                 (string-prefix-p "." path)
+                 (string-match-p "/static/" path))  ; 检查是否为相对路径
+        ;; 转换相对路径到 org-directory
+        (let ((new-path (expand-file-name (concat "static/" path)
+                                          org-directory)))
+          ;; 如果新路径存在，打开文件并返回 t 阻止其他的打开操作
+          (message "ref/org-custom-open-file: change url(%s)  to (%s) " path new-path)
+          (org-open-file new-path)
+          t
+          ))))  ; 返回 t 阻止其他 handlers
+
+  ;; 将自定义函数添加到 org-open-at-point-functions 钩子中
+  (add-hook 'org-open-at-point-functions #'ref/org-custom-open-file)
+#+end_src
+
 ** 针对使用场景的配置
 *** GTD 设置
 #+begin_src emacs-lisp :tangle yes
