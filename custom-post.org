@@ -869,6 +869,15 @@ org-cycle-include-plain-lists 是一个 Emacs 的变量，用于控制 org-cycle
         :config
         (setq org-re-reveal-root(concat "file://" (expand-file-name "~/.emacs.d/deps/reveal.js"))))
 #+end_src
+*** 知识库
+- Glossary 配置
+#+begin_src emacs-lisp :tangle yes
+  (add-to-list 'load-path "~/emacs.d/site-lisp/org-glossary")
+  (require 'org-glossary)
+  (setq org-glossary-collection-root (concat org-directory "/Glossary/"))
+#+end_src
+
+
 
 * 未整理的内容
 :PROPERTIES:
@@ -1202,7 +1211,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
    ;; org-modern 的 table 渲染和 valigin 冲突，因此禁止 org-modern-table
    (setq org-modern-table nil)
 #+end_src
-
 
 - 中文分词
   参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
