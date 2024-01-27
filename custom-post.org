@@ -549,7 +549,7 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
           org-roam-ui-update-on-save t
           org-roam-ui-open-on-start t)
     )
- 
+
 
   (setq org-roam-capture-templates
         '(
@@ -759,7 +759,7 @@ org-cycle-include-plain-lists 是一个 Emacs 的变量，用于控制 org-cycle
   ;; ref: https://emacs-china.org/t/org-mode/13248
   (use-package ox-hugo
     :ensure t            ;Auto-install the package from Melpa (optional)
-    :after ox)
+    :after (org ox))
 
   (setq org-id-extra-files (directory-files-recursively org-roam-directory "\.org$"))
 
@@ -873,8 +873,9 @@ org-cycle-include-plain-lists 是一个 Emacs 的变量，用于控制 org-cycle
 - Glossary 配置
 #+begin_src emacs-lisp :tangle yes
   (add-to-list 'load-path "~/emacs.d/site-lisp/org-glossary")
-  (require 'org-glossary)
-  (setq org-glossary-collection-root (concat org-directory "/Glossary/"))
+  (with-eval-after-load 'org
+    (require 'org-glossary)
+    (setq org-glossary-collection-root (concat org-directory "/Glossary/")))
 #+end_src
 
 
@@ -886,25 +887,26 @@ org-cycle-include-plain-lists 是一个 Emacs 的变量，用于控制 org-cycle
 #+begin_src emacs-lisp :tangle yes
 
 
-      (use-package org-ql
-        :ensure t
-        :after org
-        :config
-        (setq org-ql-ask-unsafe-queries nil))
+  (use-package org-ql
+    :ensure t
+    :after org
+    :config
+    (setq org-ql-ask-unsafe-queries nil))
 
-      (use-package helm-org-ql
-        :ensure t)
+  (use-package helm-org-ql
+    :ensure t
+    :after org)
 
-      (use-package mini-frame
-      :custom (
-               (mini-frame-show-parameters '((top    . 0.2)
-                                             (width  . 0.8)
-                                             (left   . 0.5)
-                                             (left-fringe . 4)
-                                             (right-fringe . 4)
-                                             (height . 15)))
-               )
-      :hook (after-init . mini-frame-mode))
+  (use-package mini-frame
+    :custom (
+             (mini-frame-show-parameters '((top    . 0.2)
+                                           (width  . 0.8)
+                                           (left   . 0.5)
+                                           (left-fringe . 4)
+                                           (right-fringe . 4)
+                                           (height . 15)))
+             )
+    :hook (after-init . mini-frame-mode))
 
 #+end_src
 
@@ -944,15 +946,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 :END:
 快捷键是参考 vscode
 [[https://github.com/magnars/multiple-cursors.el][multiple-cousor]]
-#+begin_src emacs-lisp :tangle yes
- 
- 
-;;When you want to add multiple cursors not based on   lines, but based on keywords in the buffer, use:
- 
- 
- 
- 
-#+end_src
 
 ** org-super-links
 :PROPERTIES:
@@ -963,22 +956,16 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 变更内容：原 package 会在被引用的 headline 中生成一条 backlink，简单修复方式：注释掉 [[https://github.com/toshism/org-super-links/blob/e10bd019851e0a2a5e3e94877de7b8d46b5f37cc/org-super-links.el#L345][org-super-links.el#L345]] 和 346 行
 快捷键注释调的原因： 未设置 C-c s 的 key－prefix，所以快捷键注册失败
 #+begin_src emacs-lisp :tangle yes
-  (add-to-list 'load-path "~/.emacs.d/site-lisp/org-super-links")
-  (require 'org-id);; 参考 README, 如果不使用 org-id, org-super-link 插入的 link 不是引用的id 而是 file:headline
-  (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
-  (require 'org-super-links)
-  (setq org-super-links-related-into-drawer nil
-          org-super-links-link-prefix 'org-super-links-link-prefix-timestamp)
-  ;; (use-package org-super-links
-  ;; ;;  :bind (("C-c s s" . org-super-links-link)
-  ;; ;;         ("C-c s l" . org-super-links-store-link)
-  ;; ;;         ("C-c s C-l" . org-super-links-insert-link)
-  ;; ;;         ("C-c s d" . org-super-links-quick-insert-drawer-link)
-  ;; ;;         ("C-c s i" . org-super-links-quick-insert-inline-link)
-  ;; ;;         ("C-c s C-d" . org-super-links-delete-link))
-  ;;   :config
-  ;;   (setq org-super-links-related-into-drawer t
-  ;;   	    org-super-links-link-prefix 'org-super-links-link-prefix-timestamp))
+    (use-package org-super-links
+      :load-path "~/.emacs.d/site-lisp/org-super-links"
+      :after (org org-id) ;; 参考 README, 如果不使用 org-id, org-super-link 插入的 link 不是引用的id 而是 file:headline
+      :commands (org-super-links-quick-insert-inline-link)
+      :config
+      (setq org-super-links-related-into-drawer nil
+            org-super-links-link-prefix 'org-super-links-link-prefix-timestamp
+            org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+      )
+
 #+end_src
 
 
@@ -1002,12 +989,10 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   ;; 在Headline 上加删除线
   (setq org-fontify-done-headline t)
 
-  (require 'org-bars)
-  (add-hook 'org-mode-hook #'org-bars-mode)
-
   ;; headline 的对齐线
-  (require 'org-bars)
-  (add-hook 'org-mode-hook #'org-bars-mode)
+  (with-eval-after-load 'org
+    (require 'org-bars)
+    (add-hook 'org-mode-hook #'org-bars-mode))
 
   ;;在 org-mode 折叠时/在展开，将纯文本列表与其他列表（如无序列表和有序列表）一同处理。当折叠一个标题时，纯文本列表也会被折叠起来。当展开一个标题时，纯文本列表也会被展开。
   (setq org-cycle-include-plain-lists 'integrate)
