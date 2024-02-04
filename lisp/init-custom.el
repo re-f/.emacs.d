@@ -1,6 +1,6 @@
 ;; init-custom.el --- Define customizations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2023 Vincent Zhang
+;; Copyright (C) 2006-2024 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -29,6 +29,9 @@
 ;;
 
 ;;; Code:
+
+(eval-when-compile
+  (require 'package))
 
 (defgroup centaur nil
   "Centaur Emacs customization."

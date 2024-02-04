@@ -1,6 +1,6 @@
 ;; init-funcs.el --- Define functions.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2023 Vincent Zhang
+;; Copyright (C) 2018-2024 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -66,7 +66,7 @@
   (set-buffer-file-coding-system 'undecided-dos nil))
 
 (defun delete-dos-eol ()
-  "Delete `' characters in current region or buffer.
+  "Delete `' characters in current region or buffer.
 Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
   (interactive)
   (save-excursion
@@ -77,7 +77,7 @@ Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
       (while (search-forward "\r" nil t)
         (replace-match "" nil t)
         (setq count (1+ count)))
-      (message "Removed %d " count))
+      (message "Removed %d " count))
     (widen)))
 
 ;; File and buffer

@@ -1,6 +1,6 @@
 ;; init-edit.el --- Initialize editing configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2023 Vincent Zhang
+;; Copyright (C) 2006-2024 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -297,11 +297,6 @@
   :init (setq hungry-delete-chars-to-skip " \t\f\v"
               hungry-delete-except-modes
               '(help-mode minibuffer-mode minibuffer-inactive-mode calc-mode)))
-
-;; Framework for mode-specific buffer indexes
-(use-package imenu
-  :ensure nil
-  :bind (("C-." . imenu)))
 
 ;; Move to the beginning/end of line or code
 (use-package mwim

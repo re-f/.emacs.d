@@ -1,6 +1,6 @@
 ;; init-vcs.el --- Initialize version control system configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2023 Vincent Zhang
+;; Copyright (C) 2016-2024 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -41,23 +41,22 @@
   (when sys/win32p
     (setenv "GIT_ASKPASS" "git-gui--askpass"))
 
+  ;; Unbind M-1, M-2, M-3, and M-4 shortcuts due to conflict with `ace-window'
+  (unbind-key "M-1" magit-mode-map)
+  (unbind-key "M-2" magit-mode-map)
+  (unbind-key "M-3" magit-mode-map)
+  (unbind-key "M-4" magit-mode-map)
+
   ;; Access Git forges from Magit
   (use-package forge
     :demand t
-    :defines (forge-database-connector forge-topic-list-columns)
     :custom-face
     (forge-topic-label ((t (:inherit variable-pitch :height 0.9 :width condensed :weight regular :underline nil))))
-    :init
-    (setq forge-database-connector (if (and (require 'emacsql-sqlite-builtin nil t)
-                                            (functionp 'emacsql-sqlite-builtin)
-                                            (functionp 'sqlite-open))
-                                       'sqlite-builtin
-                                     'sqlite)
-          forge-topic-list-columns
-          '(("#" 5 forge-topic-list-sort-by-number (:right-align t) number nil)
-            ("Title" 60 t nil title  nil)
-            ("State" 6 t nil state nil)
-            ("Updated" 10 t nil updated nil)))))
+    :init (setq forge-topic-list-columns
+                '(("#" 5 forge-topic-list-sort-by-number (:right-align t) number nil)
+                  ("Title" 60 t nil title  nil)
+                  ("State" 6 t nil state nil)
+                  ("Updated" 10 t nil updated nil)))))
 
 ;; Display transient in child frame
 (when (childframe-completion-workable-p)

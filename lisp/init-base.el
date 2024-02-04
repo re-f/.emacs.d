@@ -1,6 +1,6 @@
 ;; init-base.el --- Better default configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2023 Vincent Zhang
+;; Copyright (C) 2006-2024 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -67,7 +67,7 @@
     (setq w32-get-true-file-attributes nil   ; decrease file IO workload
           w32-use-native-image-API t         ; use native w32 API
           w32-pipe-read-delay 0              ; faster IPC
-          w32-pipe-buffer-size (* 64 1024))) ; read more at a time (was 4K)
+          w32-pipe-buffer-size 65536))       ; read more at a time (64K, was 4K)
   (unless sys/macp
     (setq command-line-ns-option-alist nil))
   (unless sys/linuxp
@@ -207,6 +207,7 @@
 
 ;; Frame
 (when (display-graphic-p)
+  ;; Frame fullscreen
   (add-hook 'window-setup-hook #'fix-fullscreen-cocoa)
   (bind-key "S-s-<return>" #'toggle-frame-fullscreen)
   (and sys/mac-x-p (bind-key "C-s-f" #'toggle-frame-fullscreen))
@@ -218,7 +219,17 @@
              ("C-M-<left>"      . centaur-frame-left-half)
              ("C-M-<right>"     . centaur-frame-right-half)
              ("C-M-<up>"        . centaur-frame-top-half)
-             ("C-M-<down>"      . centaur-frame-bottom-half)))
+             ("C-M-<down>"      . centaur-frame-bottom-half))
+
+  ;; Frame transparence
+  (use-package transwin
+    :bind (("C-M-9" . transwin-inc)
+           ("C-M-8" . transwin-dec)
+           ("C-M-7" . transwin-toggle))
+    :init
+    (when sys/linux-x-p
+      (setq transwin-parameter-alpha 'alpha-background)
+      (transwin-ask '80))))
 
 ;; Global keybindings
 (bind-keys ("s-r"     . revert-this-buffer)
