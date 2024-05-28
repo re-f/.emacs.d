@@ -39,7 +39,10 @@
   (corfu-popupinfo-delay '(0.4 . 0.2))
   :custom-face
   (corfu-border ((t (:inherit region :background unspecified))))
-  :bind ("M-/" . completion-at-point)
+  :bind 
+  (:map corfu-map
+    ("M-/" . completion-at-point)
+    ("RET" . nil))
   :hook ((after-init . global-corfu-mode)
          (global-corfu-mode . corfu-popupinfo-mode)))
 
