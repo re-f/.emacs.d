@@ -1261,7 +1261,46 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 (pyim-string-match-p "\\cc"  "。")
 (> (point) (save-excursion (back-to-indentation)
                                      (point)))
-#+end_src 
+
+* AI 配置
+#+begin_src emacs-lisp :tangle yes
+  (use-package gptel
+    :ensure t
+    :config
+    ;; 配置 Gemini 后端并设置为默认
+      (setq gptel-backend
+            (gptel-make-gemini "Gemini"
+              :key "you key"
+              :stream t)
+            ;; 设置默认模型
+            gptel-model "gemini-pro"
+            ;; 设置代理
+            gptel-proxy "socks5://127.0.0.1:7897"))
+#+end_src
+
+* 我的工作流程
+#+begin_src emacs-lisp
+  ;; 由 Claude-3 生成，提示词：
+  ;; this is  gptel-request，I hope to achieve such a function: When I select a region, I want the LLM to optimize this paragraph of text
+  ;;
+  (defun ref/flow/optimize-region ()
+    "Optimize the text in the currently marked region using the LLM."
+    (interactive)
+    (when (use-region-p)
+      (let ((region-text (buffer-substring-no-properties (region-beginning) (region-end))))
+        (gptel-request
+            (format "麻烦优化一下文字描述：\n %s \n 请不要修改格式" region-text)
+          :callback (lambda (response info)
+                      (if response
+                          (progn
+                            (delete-region (region-beginning) (region-end))
+                            (insert response)
+                            (deactivate-mark)
+                            (message "优化完成"))
+                        (message "Optimization failed with message: %s"
+                                 (plist-get info :status)))))
+        )))
+#+end_src
 
 
 * Test 
