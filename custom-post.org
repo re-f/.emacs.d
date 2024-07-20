@@ -51,8 +51,7 @@ org-bars.el
             :title title))
         display-buffer))
   #+end_src
-  
-  
+
 
 ** org-mode
 org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
@@ -77,7 +76,6 @@ org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
                                                   ("TODO" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED"))
                                                   ("NEXT" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED") )
                                                   ("DONE" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED") )))
-
         )
 
 
@@ -90,9 +88,6 @@ org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
                 ("HANGUP" :foreground "magenta" :weight bold)
                 )))
 #+end_src
-
-#+RESULTS:
-: ((TODO :foreground orange) (WAITING :background gray :foreground white) (NEXT :foreground blue :weight bold) (WAITING . warning) (HANGUP :foreground magenta :weight bold))
 
 *** org capture 设置
 :PROPERTIES:
@@ -605,6 +600,7 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
     (setq org-ql-ask-unsafe-queries nil))
 
   (use-package helm-org-ql
+    :after (org org-ql)
     :ensure t)
 
   (defun ref/org-ql-sort-by-create-desc (a b)
@@ -640,15 +636,6 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
       org-outline-path-complete-in-steps nil
       org-refile-allow-creating-parent-nodes 'confirm)
 #+end_src 
-
-*** org cycle 行为
-org-cycle-include-plain-lists 是一个 Emacs 的变量，用于控制 org-cycle 命令是否包含展开/折叠纯文本列表。这个变量可以设置为以下三个值之一：
-- integrate(推荐）使用：将纯文本列表与其他列表一同处理，跟随标题的展开/折叠状态。
-- t：将纯文本列表视为独立的部分，不受标题的展开/折叠影响。
-- nil：将纯文本列表视为独立的部分，不受标题的展开/折叠影响，并且不会自动展开。
-#+begin_src emacs-lisp :tangle yes
-  (setq org-cycle-include-plain-lists 'integrate)
-#+end_src
 
 *** 在 org-mode 中写代码
 使用 org-mode 维护代码的好处是，树状结构人读比较清晰，文档齐全且跟代码同时更新
@@ -945,11 +932,11 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 快捷键是参考 vscode
 [[https://github.com/magnars/multiple-cursors.el][multiple-cousor]]
 
-** org-super-links
+** 快速插入 headline 的链接
 :PROPERTIES:
 :ID:       A743C4C5-5616-4645-A2FF-6F84F541B5E6
 :END:
-=org-super-links-quick-insert-inline-link= 能快速搜索 headline ，并在光标当前位置插入链接，同时如果原 headline 没有 ID 还会自动为原 headline 生成 ID 。
+利用的是 org-super-links 插件  =org-super-links-quick-insert-inline-link=  能快速搜索 headline ，并在光标当前位置插入链接，同时如果原 headline 没有 ID 还会自动为原 headline 生成 ID 。
 
 变更内容：原 package 会在被引用的 headline 中生成一条 backlink，简单修复方式：注释掉 [[https://github.com/toshism/org-super-links/blob/e10bd019851e0a2a5e3e94877de7b8d46b5f37cc/org-super-links.el#L345][org-super-links.el#L345]] 和 346 行
 快捷键注释调的原因： 未设置 C-c s 的 key－prefix，所以快捷键注册失败
@@ -965,8 +952,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
       )
 
 #+end_src
-
-
 
 ** 显示配置
 :PROPERTIES:
@@ -1251,6 +1236,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     (require 'pyim-basedict)
     (pyim-basedict-enable)
   #+end_src
+
 - 测试
   #+begin_src emacs-lisp :tangle no
 (pyim-char-before-to-string 1);;ceshi
