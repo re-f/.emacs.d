@@ -123,6 +123,9 @@ zmonster[fn:1]
            "* Topic: %^{Description}  %^g %? Added: %U")
           ("gp" "Create Project 保留原因：template 创建文件" plain (file ref/create-org-file )
            "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured)
+           ("t" "工具组")
+            ("tw" "文档书写工具" entry (file ,(concat org-directory "/idea.org"))
+           "*  %^{Title} %?\n%U\n%a\n")
           ))
 
   ;; (add-hook 'org-mode-hook
@@ -572,6 +575,22 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
         (setq org-agenda-files (delete abbreviated-file org-agenda-files))
         (message "Removed '%s' from org-agenda-files" abbreviated-file))))
   (advice-add 'dired-delete-file :after #'update-org-agenda-files-after-delete)
+
+  (put 'dired-find-alternate-file 'disabled nil)
+  (with-eval-after-load 'dired
+    ;; 在 dired 列表中，忽略obsidian 和 organice 的文件
+    (setq dired-omit-files
+          (concat dired-omit-files
+                  "\\|^.obsidian*\\|\\.organice-bak$"))
+    ;; dire 初始化的配置中， 会隐藏当前目录和上级目录，导致目录跳转不方便，因此放出来
+    (setq dired-omit-files(replace-regexp-in-string
+                           "\\\\`\\[\\.\\]\\[\\.\\]\\?\\\\'\\\\\|" "" dired-omit-files))
+  ;; 修改 dired 展示样式 https://oremacs.com/2015/01/13/dired-options/
+  ;;       (setq dired-listing-switches "-laGh1v")
+     ;; 使用系统默认程序打开 xlsx
+     (add-to-list 'dired-guess-shell-alist-user '("\\.xlsx\\'" "open") t) 
+  
+  )
 #+end_src
 
 **** 链接至 agenda
@@ -856,32 +875,26 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
 #+end_src
 *** 知识库
 - Glossary 配置
-#+begin_src emacs-lisp :tangle yes
+ #+begin_src emacs-lisp :tangle no 
   (add-to-list 'load-path "~/emacs.d/site-lisp/org-glossary")
   (with-eval-after-load 'org
     (require 'org-glossary)
     (setq org-glossary-collection-root (concat org-directory "/Glossary/")))
 #+end_src
 
-
+- org-count-words
+#+begin_src emacs-lisp :tangle yes
+  (add-to-list 'load-path "~/emacs.d/site-lisp/org-count-word")
+  (with-eval-after-load 'org
+    (require 'org-count-words)
+    )
+#+end_src
 
 * 未整理的内容
 :PROPERTIES:
 :ID:       135D5C31-BE0C-44F2-B59D-3EC49A36D675
 :END:
 #+begin_src emacs-lisp :tangle yes
-
-
-  (use-package org-ql
-    :ensure t
-    :after org
-    :config
-    (setq org-ql-ask-unsafe-queries nil))
-
-  (use-package helm-org-ql
-    :ensure t
-    :after org)
-
   (use-package mini-frame
     :custom (
              (mini-frame-show-parameters '((top    . 0.2)
@@ -893,6 +906,7 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
              )
     :hook (after-init . mini-frame-mode))
 
+  (run-with-timer 30 300 'org-save-all-org-buffers)
 #+end_src
 
 * 编辑/操作习惯配置
@@ -1184,18 +1198,30 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   参考： https://github.com/kanglmf/emacs-chinese-word-segmentation
  #+begin_src emacs-lisp :tangle yes
 
+;; 
+;; (add-to-list 'load-path "~/.emacs.d/site-lisp/chinese-word-segmentation")
+;; (require 'cns)
+;; (setq cns-prog "~/.emacs.d/site-lisp/chinese-word-segmentation/chinese-word-segmentation"
+;;       cns-dict-directory "~/.emacs.d/site-lisp/chinese-word-segmentation/dict"
+;;       cns-recent-segmentation-limit 20
+;;       cns-debug t  ;; disable debug output, default is t
+;;       )
+;; (when (featurep 'cns)
+;;   (add-hook 'find-file-hook 'cns-auto-enable))
+;;   
 
 (add-to-list 'load-path "~/.emacs.d/site-lisp/chinese-word-segmentation")
-(require 'cns)
-(setq cns-prog "~/.emacs.d/site-lisp/chinese-word-segmentation/chinese-word-segmentation"
-      cns-dict-directory "~/.emacs.d/site-lisp/chinese-word-segmentation/dict"
+(setq cns-prog "~/.emacs.d/site-lisp/chinese-word-segmentation/cnws"
+      cns-dict-directory "~/.emacs.d/site-lisp/chinese-word-segmentation/cppjieba/dict"
       cns-recent-segmentation-limit 20
-      cns-debug t  ;; disable debug output, default is t
-      )
+      cns-debug nil  ;; disable debug output, default is t
+)
+
+(require 'cns nil t)
 (when (featurep 'cns)
   (add-hook 'find-file-hook 'cns-auto-enable))
   
-  #+end_src
+#+end_src
 
 - 使用内置的中文输入法
   [[https://github.com/tumashu/pyim][pyim]]，使用内置的中文输入法的原因：emacs 的快捷键操作和中文输入时，需要频繁切换中英文输入法，打破了使用时行云流水的感觉，使用内置的中文输入法，则可以做到中文输入时同时使用 emacs 的快捷键
@@ -1247,7 +1273,30 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 (pyim-string-match-p "\\cc"  "。")
 (> (point) (save-excursion (back-to-indentation)
                                      (point)))
+#+end_src
 
+- 翻译
+  #+begin_src emacs-lisp :tangle yes
+  (put 'youdao-dictionary-app-key 'safe-local-variable #'stringp)
+  (put 'youdao-dictionary-secret-key 'safe-local-variable #'stringp)
+  #+end_src
+
+* 临时文件相关操作
+#+begin_src emacs-lisp :tangle yes
+  ;; 因为 org-directory 是在云存储中，org 编辑的临时文件存在原目录会导致临时文件不停的上传下载，因此设置到一个不是云存储的目录
+  ;; 获取 XDG_CACHE_HOME 环境变量的值，如果未设置则使用默认值 ~/.cache
+  (defconst xdg-cache-home
+    (or (getenv "XDG_CACHE_HOME")
+        (expand-file-name "~/.cache")))
+
+  ;; 设置 lock-file-name-transforms
+  (setq lock-file-name-transforms
+        `((".*" ,(concat xdg-cache-home "/emacs/locks/\\1") t)))
+
+  ;; 确保锁文件目录存在
+  (make-directory (concat xdg-cache-home "/emacs/locks") t)
+
+#+end_src
 * AI 配置
 #+begin_src emacs-lisp :tangle yes
   (use-package gptel
@@ -1256,38 +1305,15 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     ;; 配置 Gemini 后端并设置为默认
       (setq gptel-backend
             (gptel-make-gemini "Gemini"
-              :key "you key"
+              :key "AIzaSyDWo6tq_Bs6cSakPnF6SXoZ7GpgS-QkMmU"
               :stream t)
             ;; 设置默认模型
-            gptel-model "gemini-pro"
+            gptel-model "gemini-1.5-pro-001"
             ;; 设置代理
             gptel-proxy "socks5://127.0.0.1:7897"))
 #+end_src
 
 * 我的工作流程
-#+begin_src emacs-lisp
-  ;; 由 Claude-3 生成，提示词：
-  ;; this is  gptel-request，I hope to achieve such a function: When I select a region, I want the LLM to optimize this paragraph of text
-  ;;
-  (defun ref/flow/optimize-region ()
-    "Optimize the text in the currently marked region using the LLM."
-    (interactive)
-    (when (use-region-p)
-      (let ((region-text (buffer-substring-no-properties (region-beginning) (region-end))))
-        (gptel-request
-            (format "麻烦优化一下文字描述：\n %s \n 请不要修改格式" region-text)
-          :callback (lambda (response info)
-                      (if response
-                          (progn
-                            (delete-region (region-beginning) (region-end))
-                            (insert response)
-                            (deactivate-mark)
-                            (message "优化完成"))
-                        (message "Optimization failed with message: %s"
-                                 (plist-get info :status)))))
-        )))
-#+end_src
-
 
 * Test 
 :PROPERTIES:
