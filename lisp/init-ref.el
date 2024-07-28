@@ -1,3 +1,6 @@
+;; init-ref.el --- Initialize Ref's configurations.	-*- lexical-binding: t -*-
+;; 本文件由 org 文件管理，请在对应的 org 文件中编辑，不要怎么本文件中调整
+
 (defun ref/org-timeS-less-p (x y)
   "比较两个org-mode时间格式的时间大小，其中x，y为string类型"
   (org-time-less-p (org-timestamp-to-time(org-timestamp-from-string x))
@@ -12,14 +15,6 @@
     (expand-file-name (format "%s.org"
                               name) org-directory)))
 
-
-
-;; 计算 org-directory 下的字数统计
-(defun ref/reset-count ()
-  (interactive)
-  (shell-command  (expand-file-name (format "%s/scripts/update_record.sh" org-directory)))
-  )
-
 (defun ref/newline-return ()
   "append (open) a new line below the current line, and execute return"
   (interactive)
@@ -32,8 +27,10 @@
   (move-end-of-line 1)
   (org-meta-return))
 
-;; 由 Claude-3 生成，提示词：
-;; this is gptel-request，I hope to achieve such a function: When I select a region, I want the LLM to optimize this paragraph of text
+(defun ref/reset-count ()
+  (interactive)
+  (shell-command  (expand-file-name (format "%s/scripts/update_record.sh" org-directory)))
+  )
 
 (require 'gptel)
 (defun ref/flow/optimize-region ()
