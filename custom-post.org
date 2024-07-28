@@ -1315,6 +1315,31 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 * 我的工作流程
 
+定义 transient 菜单, transient 结构是利用 [] 的语法糖来表示的，与多维数组（向量）的表示方式类似，比如 python 中是如下格式：
+
+# 列表示
+column = [[1], [2], [3], [4]]
+
+# 行表示
+row = [\[1, 2, 3, 4]]
+
+比如： [][][] 表示垂直分布3个命令
+比如： [[][][]] 表示水平分布的 3 个命令
+比如： [[][][]] [[][]] 表示 2 行分组，上面3个，下面 2个
+目前分类菜单是垂直布局，transient 布局可调整，具体使用问 ai
+#+begin_src emacs-lisp :tangle yes :results none
+  (transient-define-prefix ref/menu ()
+    "菜单"
+    ["Workflow"
+     ("o" "优化文字" ref/flow/optimize-region )
+     ;;("t" "翻译" my-translate-text)
+     ]
+    ["快捷命令"
+     ("k" "统计kb字数" ref/reset-count)])
+
+  (global-set-key (kbd "M-m") 'ref/menu)
+#+end_src
+
 * Test 
 :PROPERTIES:
 :ID:       609FA27E-AC07-4385-A050-9DC1491FB0F6
