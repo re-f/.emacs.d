@@ -1276,10 +1276,15 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 #+end_src
 
 - 翻译
-  #+begin_src emacs-lisp :tangle yes
-  (put 'youdao-dictionary-app-key 'safe-local-variable #'stringp)
-  (put 'youdao-dictionary-secret-key 'safe-local-variable #'stringp)
+
+  #+begin_src emacs-lisp :tangle yes :results none
+    (use-package go-translate
+      :ensure t
+      :config
+      (setq gt-langs '(en zh))
+      )
   #+end_src
+  
 
 * 临时文件相关操作
 #+begin_src emacs-lisp :tangle yes
@@ -1331,11 +1336,16 @@ row = [\[1, 2, 3, 4]]
   (transient-define-prefix ref/menu ()
     "菜单"
     ["Workflow"
-     ("o" "优化文字" ref/flow/optimize-region )
-     ;;("t" "翻译" my-translate-text)
+     ("o" "优化文字" ref/flow/optimize-region)
+     ("t" "翻译" (lambda ()
+                   (interactive)
+                   (gt-start (gt-translator
+                              :engines (gt-youdao-dict-engine)
+                              :render (gt-overlay-render
+                                       :then (gt-kill-ring-render))))))
      ]
     ["快捷命令"
-     ("k" "统计kb字数" ref/reset-count)])
+     ("c" "统计kb字数" ref/reset-count)])
 
   (global-set-key (kbd "M-m") 'ref/menu)
 #+end_src
