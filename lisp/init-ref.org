@@ -39,16 +39,43 @@
 #+END_SRC
 
 ** 配置工作流程
+*** 自动导出 org 文件，并属性 webkit
+#+begin_src emacs-lisp :exports none :results none :tangle yes
+  (defun export-org-to-html-and-reload ()
+    "导出当前 Org 文件为 HTML 并根据环境刷新 Webkit 视图。"
+    (interactive)
+    ;; 确保当前 buffer 是 Org Mode buffer
+    (when (eq major-mode 'org-mode)
+      ;; 检查文档头是否包含 #+EXPORT_HTML: yes
+      (let ((export-html (car (org-element-map (org-element-parse-buffer 'element) 'keyword
+                                (lambda (el)
+                                  (when (string-equal (org-element-property :key el) "EXPORT_HTML")
+                                    (org-element-property :value el)))))))
+        (when (and export-html (string-equal (string-trim export-html) "yes"))
+          ;; 导出 HTML
+          (org-html-export-to-html)
+          ;; 如果 xwidget-webkit 函数存在，则调用之
+          (when (fboundp 'xwidget-webkit-reload)
+            (xwidget-webkit-reload))))))
 
-统计 knowledgebase 的下的字数
+  (defun timer-running-p (timer)
+    "Check if TIMER is running."
+    (memq timer timer-list))
+
+  (defvar preview-org-timer nil "Timer for org real-time preview.")
+
+#+end_src
+
+
+*** 统计 knowledgebase 的下的字数
 #+begin_src emacs-lisp :tangle yes
   (defun ref/reset-count ()
     (interactive)
     (shell-command  (expand-file-name (format "%s/scripts/update_record.sh" org-directory)))
     )
 #+end_src
-
-优化选中文字的描述，由 Claude-3 生成，提示词如下：
+*** 优化选中文字的描述
+由 Claude-3 生成，提示词如下：
 this is gptel-request，I hope to achieve such a function: When I select a region, I want the LLM to optimize this paragraph of text
 
 #+BEGIN_SRC emacs-lisp :tangle yes :results none

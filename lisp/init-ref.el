@@ -1,5 +1,5 @@
 ;; init-ref.el --- Initialize Ref's configurations.	-*- lexical-binding: t -*-
-;; 本文件由 org 文件管理，请在对应的 org 文件中编辑，不要怎么本文件中调整
+;; 本文件由 org 文件管理，请在对应的 org 文件中编辑，不要修改本文件
 
 (defun ref/org-timeS-less-p (x y)
   "比较两个org-mode时间格式的时间大小，其中x，y为string类型"
@@ -26,6 +26,29 @@
   (interactive)
   (move-end-of-line 1)
   (org-meta-return))
+
+(defun export-org-to-html-and-reload ()
+  "导出当前 Org 文件为 HTML 并根据环境刷新 Webkit 视图。"
+  (interactive)
+  ;; 确保当前 buffer 是 Org Mode buffer
+  (when (eq major-mode 'org-mode)
+    ;; 检查文档头是否包含 #+EXPORT_HTML: yes
+    (let ((export-html (car (org-element-map (org-element-parse-buffer 'element) 'keyword
+                              (lambda (el)
+                                (when (string-equal (org-element-property :key el) "EXPORT_HTML")
+                                  (org-element-property :value el)))))))
+      (when (and export-html (string-equal (string-trim export-html) "yes"))
+        ;; 导出 HTML
+        (org-html-export-to-html)
+        ;; 如果 xwidget-webkit 函数存在，则调用之
+        (when (fboundp 'xwidget-webkit-reload)
+          (xwidget-webkit-reload))))))
+
+(defun timer-running-p (timer)
+  "Check if TIMER is running."
+  (memq timer timer-list))
+
+(defvar preview-org-timer nil "Timer for org real-time preview.")
 
 (defun ref/reset-count ()
   (interactive)

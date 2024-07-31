@@ -711,6 +711,21 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
 
 #+end_src
 
+*** org mode 插件
+- org-transclusion
+
+  类似于飞书文档的块应用
+  #+begin_src emacs-lisp :tangle yes
+    (use-package org-transclusion
+      :ensure t
+      :init
+      (with-eval-after-load 'pyim
+        ;; 在 transclusion 范围内默认切换英文输入
+        (add-to-list 'pyim-english-input-switch-functions 'org-transclusion-within-transclusion-p)
+        )
+      )
+  #+end_src
+
 ** 针对使用场景的配置
 *** GTD 设置
 #+begin_src emacs-lisp :tangle yes
@@ -1310,7 +1325,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     ;; 配置 Gemini 后端并设置为默认
       (setq gptel-backend
             (gptel-make-gemini "Gemini"
-              :key "AIzaSyDWo6tq_Bs6cSakPnF6SXoZ7GpgS-QkMmU"
+              :key ""
               :stream t)
             ;; 设置默认模型
             gptel-model "gemini-1.5-pro-001"
@@ -1332,22 +1347,47 @@ row = [\[1, 2, 3, 4]]
 比如： [[][][]] 表示水平分布的 3 个命令
 比如： [[][][]] [[][]] 表示 2 行分组，上面3个，下面 2个
 目前分类菜单是垂直布局，transient 布局可调整，具体使用问 ai
-#+begin_src emacs-lisp :tangle yes :results none
-  (transient-define-prefix ref/menu ()
-    "菜单"
-    ["Workflow"
-     ("o" "优化文字" ref/flow/optimize-region)
-     ("t" "翻译" (lambda ()
-                   (interactive)
-                   (gt-start (gt-translator
-                              :engines (gt-youdao-dict-engine)
-                              :render (gt-overlay-render
-                                       :then (gt-kill-ring-render))))))
-     ]
-    ["快捷命令"
-     ("c" "统计kb字数" ref/reset-count)])
 
-  (global-set-key (kbd "M-m") 'ref/menu)
+如何配置翻译：
+ 翻译功能使用的是 [[https://github.com/lorniu/go-translate/tree/master][lorniu/go-translate]] 包，需要在 transient 中设定菜单时，就是使用 =(gt-start (translator))= 即可，translator 配置方法参考官方说明
+#+begin_src emacs-lisp :tangle yes :results none
+  (defun ref/toggle-org-preview ()
+    "Toggle org real-time preview."
+    (interactive)
+    (if (timer-running-p preview-org-timer)
+        (progn
+          (cancel-timer preview-org-timer)
+          (setq preview-org-timer nil)
+          (message "Org real-time preview disabled."))
+      (setq preview-org-timer (run-with-timer 0 30 'export-org-to-html-and-reload))
+      (message "Org real-time preview enabled.")))
+
+  (defun ref/menu-title-org-preview-switch ()
+    "Update the org preview command title based on the timer state."
+    (if (timer-running-p preview-org-timer)
+        "关闭 org 实时预览"
+      "org 实时预览"))
+
+  (use-package transient
+    :ensure t
+    :init
+    (transient-define-prefix ref/menu ()
+      "菜单"
+      ["文字工具"
+       ("o" "优化文字" ref/flow/optimize-region)
+       ("t" "翻译" (lambda ()
+                     (interactive)
+                     (gt-start (gt-translator
+                                :engines (gt-youdao-dict-engine)
+                                :render (gt-overlay-render
+                                         :then (gt-kill-ring-render))))))]
+      ["Flow"
+       ("e"   (lambda () (ref/menu-title-org-preview-switch))
+        ref/toggle-org-preview)]
+      ["快捷命令"
+       ("c" "统计kb字数" ref/reset-count)])
+
+    (global-set-key (kbd "M-m") 'ref/menu))
 #+end_src
 
 * Test 
