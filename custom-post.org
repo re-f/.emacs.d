@@ -920,8 +920,6 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
                                            (height . 15)))
              )
     :hook (after-init . mini-frame-mode))
-
-  (run-with-timer 30 300 'org-save-all-org-buffers)
 #+end_src
 
 * 编辑/操作习惯配置
