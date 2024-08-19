@@ -71,9 +71,18 @@
 #+begin_src emacs-lisp :tangle yes
   (defun ref/reset-count ()
     (interactive)
-    (shell-command  (expand-file-name (format "%s/scripts/update_record.sh" org-directory)))
-    )
+    (let ((output-buffer "*字数统计*"))
+      (async-shell-command
+       (expand-file-name (format "%s/scripts/update_record.sh" org-directory))
+       output-buffer)
+      (run-at-time "3 sec" nil
+                   (lambda (buffer)
+                     (let ((win (get-buffer-window buffer)))
+                       (when (window-live-p win)
+                         (delete-window win))))
+                   output-buffer)))
 #+end_src
+
 *** 优化选中文字的描述
 由 Claude-3 生成，提示词如下：
 this is gptel-request，I hope to achieve such a function: When I select a region, I want the LLM to optimize this paragraph of text

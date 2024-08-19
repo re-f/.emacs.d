@@ -484,13 +484,24 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
                          (org-tags-match-list-sublevels nil))))
                  nil))))
 
-        (defun bh/show-org-agenda ()
-          (interactive)
-          (if org-agenda-sticky
-              (switch-to-buffer "*Org Agenda( )*")
-            (switch-to-buffer "*Org Agenda*"))
-          (delete-other-windows))
-          
+
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes :results none
+  (setq org-agenda-custom-commands
+        '(("c" "TODO 列表"
+           ((tags-todo "-TODO=\"DONE\"-TODO=\"CANCELLED\"-test"
+                       ((org-agenda-overriding-header "All TODOs"))))
+           ((org-super-agenda-groups
+             '((:name "MQ Tasks"
+                :tag "MQ")
+               (:name "Immediately Tasks"
+                :todo "IMMED")
+               (:name "High Priority Tasks"
+                :priority "A")
+
+               (:name "Other Tasks"
+                :discard (:tag "MQ"))))))))
 #+end_src
 
 *** org mode 其它配置
@@ -880,6 +891,10 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
    )
 #+end_src
 *** 导出
+#+begin_src emacs-lisp :tangle yes
+  (setq org-export-preserve-breaks 't) ; 在 orgmode 中不再需要写多个回车即可使导出的 HTML 中出现换行。
+  (setq org-html-checkbox-type 'html) ; 导出 checkbox 时，同步渲染为 HTML 复选框元素
+#+end_src
 **** slide 导出
 #+begin_src emacs-lisp :tangle yes
 (use-package org-re-reveal
@@ -889,6 +904,7 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
         (setq org-re-reveal-root(concat "file://" (expand-file-name "~/.emacs.d/deps/reveal.js"))))
 #+end_src
 *** 知识库
+
 - Glossary 配置
  #+begin_src emacs-lisp :tangle no 
   (add-to-list 'load-path "~/emacs.d/site-lisp/org-glossary")
@@ -1264,12 +1280,14 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
                     pyim-probe-org-structure-template
                     pyim-probe-org-speed-commands
                     pyim-probe-auto-english
+                    minibufferp
                     ))
     (setq-default pyim-punctuation-half-width-functions
                   '(pyim-probe-punctuation-line-beginning
                     pyim-probe-punctuation-after-punctuation))
     ;; 开启拼音搜索功能
     (pyim-isearch-mode 1)
+    (setq-default pyim-punctuation-translate-p '(no))
 
     (global-set-key (kbd "C-M-\\") 'pyim-convert-string-at-point) ;与 pyim-probe-dynamic-english 配合
     (require 'pyim-basedict)
@@ -1333,6 +1351,8 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 * 我的工作流程
 
+** 工具菜单
+
 定义 transient 菜单, transient 结构是利用 [] 的语法糖来表示的，与多维数组（向量）的表示方式类似，比如 python 中是如下格式：
 
 # 列表示
@@ -1381,12 +1401,53 @@ row = [\[1, 2, 3, 4]]
                                          :then (gt-kill-ring-render))))))]
       ["Flow"
        ("e"   (lambda () (ref/menu-title-org-preview-switch))
-        ref/toggle-org-preview)]
+        ref/toggle-org-preview)
+       ("a" "Taks" (lambda () (interactive) (org-agenda nil "c")))]
       ["快捷命令"
        ("c" "统计kb字数" ref/reset-count)])
 
     (global-set-key (kbd "M-m") 'ref/menu))
 #+end_src
+
+** Dashboard
+
+#+begin_src emacs-lisp :tangle yes :results silent
+  (setq dashboard-items '((recents  . 3)
+                          (agenda . 5)
+                          (bookmarks . 5)
+                          (projects . 5))
+        )
+
+  (setq dashboard-filter-agenda-entry 'dashboard-no-filter-agenda)
+  (setq dashboard-match-agenda-entry
+        "TODO=\"IMMED\"")
+
+  (setq dashboard-item-names '(("Agenda for the coming week:" . "重要事项:")))
+
+  (setq dashboard-agenda-prefix-format "%i %s %b")
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes :results silent
+  (defun org-get-parent-headline ()
+    "原本用于 org-agenda-prefix-format 时展示父节点内容,
+  (setq org-agenda-prefix-format
+          '((tags . "%i %s %(org-get-parent-headline)")...))
+  后来发现可以用 %b 因此这个方法暂时没用到
+  "
+    (if (/= (org-current-level) 1)
+        (concat (mapconcat 'identity (org-get-outline-path) " > ") "»» ")
+      ""))
+
+  (setq org-agenda-prefix-format
+        '((agenda . " %i %-12:c")
+          (todo . " %i %-12:c")
+          (tags . " %i %?b>  ")
+          (search . " %i %-12:c")
+          ))
+#+end_src
+
+#+RESULTS:
+:  %i %s %(org-get-parent-headline)
 
 * Test 
 :PROPERTIES:
@@ -1414,7 +1475,7 @@ row = [\[1, 2, 3, 4]]
   (global-set-key (kbd "C-x r b") 'bookmark-jump-other-window)
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
   ;; 跳转
-  (global-set-key (kbd "C--") 'goto-last-change) 
+  (global-set-key (kbd "C--") 'goto-last-change)
 
   (define-key org-mode-map (kbd "C-j") 'ref/newline-return)
   (define-key org-mode-map (kbd "C-M-j") 'ref/newline-meta-return)

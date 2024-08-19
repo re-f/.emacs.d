@@ -52,8 +52,16 @@
 
 (defun ref/reset-count ()
   (interactive)
-  (shell-command  (expand-file-name (format "%s/scripts/update_record.sh" org-directory)))
-  )
+  (let ((output-buffer "*字数统计*"))
+    (async-shell-command
+     (expand-file-name (format "%s/scripts/update_record.sh" org-directory))
+     output-buffer)
+    (run-at-time "3 sec" nil
+                 (lambda (buffer)
+                   (let ((win (get-buffer-window buffer)))
+                     (when (window-live-p win)
+                       (delete-window win))))
+                 output-buffer)))
 
 (require 'gptel)
 (defun ref/flow/optimize-region ()
