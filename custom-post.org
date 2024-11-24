@@ -1211,6 +1211,21 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
          '(("Show heading in source buffer" . helm-org-ql-show-marker)))
 #+end_src
 
+*** mermaid
+#+begin_src emacs-lisp :tangle yes :results silent
+
+  (use-package ob-mermaid
+    :ensure t
+    :after org
+    :config
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((mermaid . t)))
+    )
+
+
+#+end_src
+
 ** 中文支持
 :PROPERTIES:
 :ID:       03445261-50A4-48ED-8147-1200ADEFA118
