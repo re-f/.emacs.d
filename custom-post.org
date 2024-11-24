@@ -488,6 +488,14 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
 #+end_src
 
 #+begin_src emacs-lisp :tangle yes :results none
+
+  (use-package org-super-agenda
+    :ensure t            ;Auto-install the package from Melpa (optional)
+    :after (org)
+    :config
+    (org-super-agenda-mode)
+    )
+
   (setq org-agenda-custom-commands
         '(("c" "TODO 列表"
            ((tags-todo "-TODO=\"DONE\"-TODO=\"CANCELLED\"-test"
@@ -497,9 +505,10 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
                 :tag "MQ")
                (:name "Immediately Tasks"
                 :todo "IMMED")
+               (:name "Overtime"
+                :deadline past)
                (:name "High Priority Tasks"
                 :priority "A")
-
                (:name "Other Tasks"
                 :discard (:tag "MQ"))))))))
 #+end_src
@@ -1425,7 +1434,7 @@ row = [\[1, 2, 3, 4]]
 目前分类菜单是垂直布局，transient 布局可调整，具体使用问 ai
 
 如何配置翻译：
- 翻译功能使用的是 [[https://github.com/lorniu/go-translate/tree/master][lorniu/go-translate]] 包，需要在 transient 中设定菜单时，就是使用 =(gt-start (translator))= 即可，translator 配置方法参考官方说明
+翻译功能使用的是 [[https://github.com/lorniu/go-translate/tree/master][lorniu/go-translate]] 包，需要在 transient 中设定菜单时，就是使用 =(gt-start (translator))= 即可，translator 配置方法参考官方说明
 #+begin_src emacs-lisp :tangle yes :results none
   (defun ref/toggle-org-preview ()
     "Toggle org real-time preview."
@@ -1499,13 +1508,10 @@ row = [\[1, 2, 3, 4]]
   (setq org-agenda-prefix-format
         '((agenda . " %i %-12:c")
           (todo . " %i %-12:c")
-          (tags . " %i %?b>  ")
+          (tags . " %i %?b>\n\t  ")
           (search . " %i %-12:c")
           ))
 #+end_src
-
-#+RESULTS:
-:  %i %s %(org-get-parent-headline)
 
 * Test 
 :PROPERTIES:
