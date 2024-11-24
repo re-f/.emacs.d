@@ -1323,6 +1323,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
       :config
       (setq gt-langs '(en zh))
       )
+    (require 'go-translate)
   #+end_src
   
 
@@ -1343,19 +1344,39 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 
 #+end_src
 * AI 配置
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle yes :results none
   (use-package gptel
     :ensure t
     :config
     ;; 配置 Gemini 后端并设置为默认
-      (setq gptel-backend
-            (gptel-make-gemini "Gemini"
-              :key ""
-              :stream t)
-            ;; 设置默认模型
-            gptel-model "gemini-1.5-pro-001"
-            ;; 设置代理
-            gptel-proxy "socks5://127.0.0.1:7897"))
+    (setq gptel-backend
+          (gptel-make-gemini "Gemini"
+            :key ""
+            :stream t)
+          ;; 设置默认模型
+          gptel-model 'gemini-pro
+          ;; 设置代理
+          gptel-proxy "socks5://127.0.0.1:7897")
+    (setq gptel-default-mode 'org-mode))
+
+  (gptel-make-gpt4all "GPT4All"           ;Name of your choosing
+    :protocol "http"
+    :host "10.186.65.37:8000"                 ;Where it's running
+    :models '(o1-mini
+              o1-preview
+              gpt-4
+              gpt-4-turbo
+              gpt-4-turbo-128k
+              claude-3.5-sonnet
+              claude-3.5-sonnet-200k
+              gemini-1.5-pro
+              gemini-1.5-pro-128k
+              gemini-1.5-pro-search
+              code-llama-13b
+              code-llama-34b
+              stable-diffusion-3
+              stable-diffusion-3-turbo
+              ))
 #+end_src
 
 ** 五星功能: 实现 ob-prompt,
@@ -1373,7 +1394,7 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
     (let* ((prompt body)
            (buffer (current-buffer))
            (position (point-marker))
-           (system-message "1. 先将以上文字翻译成英文\n2. 回答以上问题"))
+           (system-message "1. 先将以上文字翻译成英文\n2. 用中文回答以上问题"))
       ;; 确保 position 是一个 marker
       (unless (marker-position position)
         (setq position (copy-marker position buffer)))
@@ -1556,6 +1577,25 @@ row = [\[1, 2, 3, 4]]
 
   (global-set-key (kbd "C-M-s-a") 'bh/show-org-agenda)
   (global-set-key (kbd "s-w") 'delete-window)
+  (global-set-key (kbd "M-x") 'helm-M-x)
+
+  ;; 配置常见编辑器快捷键
+  (define-key org-mode-map (kbd "s-b") (
+                                        lambda ()
+                                        (interactive)
+                                        (org-emphasize ?\*)
+                                        ))
+
+  (define-key org-mode-map (kbd "s-i") (
+                                        lambda ()
+                                        (interactive)
+                                        (org-emphasize ?\/)
+                                        ))
+   (define-key org-mode-map (kbd "s-u") (
+                                        lambda ()
+                                        (interactive)
+                                        (org-emphasize ?\_)
+                                        ))
 #+end_src
 
 * End

@@ -39,7 +39,7 @@
 #+END_SRC
 
 ** 配置工作流程
-*** 自动导出 org 文件，并属性 webkit
+*** 自动导出 org 文件，并刷新 webkit
 #+begin_src emacs-lisp :exports none :results none :tangle yes
   (defun export-org-to-html-and-reload ()
     "导出当前 Org 文件为 HTML 并根据环境刷新 Webkit 视图。"
@@ -75,7 +75,7 @@
       (async-shell-command
        (expand-file-name (format "%s/scripts/update_record.sh" org-directory))
        output-buffer)
-      (run-at-time "3 sec" nil
+      (run-at-time "8 sec" nil
                    (lambda (buffer)
                      (let ((win (get-buffer-window buffer)))
                        (when (window-live-p win)
@@ -83,12 +83,14 @@
                    output-buffer)))
 #+end_src
 
+
 *** 优化选中文字的描述
 由 Claude-3 生成，提示词如下：
 this is gptel-request，I hope to achieve such a function: When I select a region, I want the LLM to optimize this paragraph of text
 
 #+BEGIN_SRC emacs-lisp :tangle yes :results none
   (require 'gptel)
+  
   (defun ref/flow/optimize-region ()
     "Optimize the text in the currently marked region using the LLM."
     (interactive)
