@@ -1358,6 +1358,28 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   (make-directory (concat xdg-cache-home "/emacs/locks") t)
 
 #+end_src
+
+* Markdown 配置
+Org-mode 添加了一个新的功能：当执行(=C-c C-c= (=org-babel-execute-src-block=)) Markdown 代码块时，会自动将代码块的内容复制到系统剪贴板。这对于快速分享 Markdown 内容特别有用。
+#+begin_src emacs-lisp :tangle yes :results silent
+  ;; 首先声明变量
+  (defvar org-babel-default-header-args:markdown '()
+    "Default arguments for evaluating a markdown source block.")
+
+  (defun org-babel-execute:markdown (body params)
+    "Execute a Markdown code block by copying its content to clipboard.
+  The result is not displayed in the org buffer."
+    (with-temp-buffer
+      (insert body)
+      (kill-new body))
+    ;; Return empty string to avoid showing result
+    "已复制")
+
+  ;; 设置默认参数
+  (add-to-list 'org-babel-default-header-args:markdown
+               '(:results . "silent"))
+#+end_src
+
 * AI 配置
 #+begin_src emacs-lisp :tangle yes :results none
   (use-package gptel
@@ -1399,57 +1421,72 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
 当前存在的问题: 目前每次执行结果都被 examp 包裹, 导出成 html 时不显示 prompt 的输出结果
 #+begin_src emacs-lisp :tangle yes :results silent
 
-  ;; 定义 prompt 的执行函数，遵循 Org Babel 的命名约定
-  (defun org-babel-execute:prompt (body params)
+    ;; 定义 prompt 的执行函数，遵循 Org Babel 的命名约定
+    (defun org-babel-execute:prompt (body params)
     "使用 `gptel-request' 执行给定的 BODY 作为 PARAMS 的提示。
   并将 LLM 的响应插入到 Org Babel 块的结果部分。
 
   BODY: 要发送给 LLM 的提示文本。
   PARAMS: Babel 块的参数列表（目前未使用，但保留以便未来扩展）。"
+
+    ;; 将 BODY 复制到剪贴板
+    (when body
+      (cond
+       ;; 如果 Emacs 处于图形界面
+       ((display-graphic-p)
+        (gui-set-selection 'CLIPBOARD body)
+        (message "提示已复制到剪贴板"))
+       ;; 如果 Emacs 处于终端模式
+       (t
+        (with-temp-buffer
+          (insert body)
+          (clipboard-kill-ring-save (point-min) (point-max)))
+        (message "提示已复制到剪贴板"))))
+
     (let* ((prompt body)
            (buffer (current-buffer))
            (position (point-marker))
-           (system-message "1. 先将以上文字翻译成英文\n2. 用中文回答以上问题"))
+           (system-message ""))
       ;; 确保 position 是一个 marker
       (unless (marker-position position)
         (setq position (copy-marker position buffer)))
       ;; 发送异步请求
       (gptel-request
-          prompt
-        :buffer buffer
-        :position position
-        :system system-message
-        :callback
-        (lambda (response info)
-          ;; 在回调中处理响应
-          (with-current-buffer (plist-get info :buffer)
-            (save-excursion
-              ;; 定位到请求的位置
-              (goto-char (marker-position (plist-get info :position)))
-              (if response
-                  (progn
-                    ;; 插入 LLM 的响应作为结果
-                    (org-babel-insert-result response)
-                    ;; 清理 marker 以防止内存泄漏
-                    (when (marker-buffer (plist-get info :position))
-                      (set-marker (plist-get info :position) nil)))
-                ;; 如果响应为空，插入错误信息
-                (org-babel-insert-result
-                 (format "LLM 请求失败: %s" (plist-get info :status))))))))
+       prompt
+       :buffer buffer
+       :position position
+       :system system-message
+       :callback
+       (lambda (response info)
+         ;; 在回调中处理响应
+         (with-current-buffer (plist-get info :buffer)
+           (save-excursion
+             ;; 定位到请求的位置
+             (goto-char (marker-position (plist-get info :position)))
+             (if response
+                 (progn
+                   ;; 插入 LLM 的响应作为结果
+                   (org-babel-insert-result response)
+                   ;; 清理 marker 以防止内存泄漏
+                   (when (marker-buffer (plist-get info :position))
+                     (set-marker (plist-get info :position) nil)))
+               ;; 如果响应为空，插入错误信息
+               (org-babel-insert-result
+                (format "LLM 请求失败: %s" (plist-get info :status))))))))
       ;; 返回 nil 以防止 Org-mode 插入额外内容
       nil))
 
-  (defun ob-prompt-setup ()
-    "Setup the 'prompt' org-babel language."
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((prompt . t)))
-    ;; 设置 prompt 语言的执行函数
-    (org-babel-set-language-info
-     "prompt"
-     '(:execute-func . org-babel-execute:prompt)))
+    (defun ob-prompt-setup ()
+      "Setup the 'prompt' org-babel language."
+      (org-babel-do-load-languages
+       'org-babel-load-languages
+       '((prompt . t)))
+      ;; 设置 prompt 语言的执行函数
+      (org-babel-set-language-info
+       "prompt"
+       '(:execute-func . org-babel-execute:prompt)))
 
-  (add-to-list 'org-src-lang-modes '("prompt" . markdown))
+    (add-to-list 'org-src-lang-modes '("prompt" . markdown))
 #+end_src
 
 * 我的工作流程
