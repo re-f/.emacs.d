@@ -6,11 +6,11 @@
 
 
 (setq centaur-logo "~/.emacs.d/logo.png")                        ; Logo file or nil (official logo)
-(setq centaur-full-name "ref")           ; User full name
+(setq centaur-full-name "Ref/西顾")           ; User full name
 (setq centaur-mail-address "z.ref@outlook.com")   ; Email address
 
-(setq centaur-proxy "127.0.0.1:7890")          ; HTTP/HTTPS proxy
-(setq centaur-socks-proxy "127.0.0.1:7890")    ; SOCKS proxy
+(setq centaur-proxy "http://127.0.0.1:7890")          ; HTTP/HTTPS proxy
+(setq centaur-socks-proxy "socks5://127.0.0.1:7890")    ; SOCKS proxy
 (setq centaur-org-directory (expand-file-name "~/knowledgebase-blog/content-org"))
 ;; (setq centaur-server nil)                      ; Enable `server-mode' or not: t or nil
 ;; (setq centaur-icon nil)                        ; Display icons or not: t or nil
@@ -296,7 +296,7 @@
 ;; 失败的原因：在 terminal 中可以加密，但是在客户端加密就显示 Encrypt failed，但是可以解密
 (require 'org-crypt)
 (org-crypt-use-before-save-magic)
-(setq org-tags-exclude-from-inheritance (quote("日常")))
+
 (setq org-crypt-key nil)
 (setq org-crypt-tag-matcher "日常")
 

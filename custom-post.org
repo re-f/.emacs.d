@@ -532,10 +532,18 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
                         ("元数据" . ?m)
                         ("NOTE" . ?n)
                         ("PRIVATE" . ?p) ;; 需要隐藏的信息
+                        ;; 任务标志
+                        ("MQ" . nil)
                         ))
+
+  ;; 不希望子节点继承的的列表
+  (setq org-tags-exclude-from-inheritance (quote("日常" "MQ" )))
   (setq org-complete-tags-always-offer-all-agenda-tags t)
+#+end_src
 
 
+**** 配置 org-roam
+#+begin_src emacs-lisp :tangle yes :results silent
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; config keyboard shortcuts
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;; roam configs
@@ -586,6 +594,11 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
            :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
           ))
 
+#+end_src
+
+**** 配置 Dired
+#+begin_src emacs-lisp :tangle yes :results silent
+
   ;; 配置 dired
   ;;  当在 dired 中删除文件时，需要同步更新 org-agenda-files
   (defun update-org-agenda-files-after-delete (file-to-delete &rest args)
@@ -605,12 +618,13 @@ agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查
     ;; dire 初始化的配置中， 会隐藏当前目录和上级目录，导致目录跳转不方便，因此放出来
     (setq dired-omit-files(replace-regexp-in-string
                            "\\\\`\\[\\.\\]\\[\\.\\]\\?\\\\'\\\\\|" "" dired-omit-files))
-  ;; 修改 dired 展示样式 https://oremacs.com/2015/01/13/dired-options/
-  ;;       (setq dired-listing-switches "-laGh1v")
-     ;; 使用系统默认程序打开 xlsx
-     (add-to-list 'dired-guess-shell-alist-user '("\\.xlsx\\'" "open") t) 
+    ;; 修改 dired 展示样式 https://oremacs.com/2015/01/13/dired-options/
+    ;;       (setq dired-listing-switches "-laGh1v")
+    ;; 使用系统默认程序打开 xlsx
+    (add-to-list 'dired-guess-shell-alist-user '("\\.xlsx\\'" "open") t) 
+
+    )
   
-  )
 #+end_src
 
 **** 链接至 agenda
