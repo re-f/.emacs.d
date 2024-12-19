@@ -1,60 +1,38 @@
 #+startup: show2levels
 #+startup: hideblocks
 
+#+hugo_base_dir: ~/OneDrive/knowledgebase-blog/
 
-* 为什么要学习emacs
- todo 和 文档还有项目的规划是在同一个语言体系(系统)下;个人很多todo 都是是在写规划或者文章时，所生产.过往的GTD 工具碰到的最难受的问题就是总是需要手工关联任务和文章
- 
-* Ref的 Emacs 自定义设置
+
+* Blog
 :PROPERTIES:
-:ID:       7900ABE1-B064-4B47-89E0-EB65B9D43154
+:ID:
+:Create:   [2024-12-18]
+:EXPORT_TITLE: Emacs 配置 
+:EXPORT_FILE_NAME: emacs-config
+:EXPORT_HUGO_SECTION: blog 
+:EXPORT_HUGO_DRAFT: false
+:EXPORT_DATE: [2024-12-18 16:51]
+:EXPORT_OPTIONS: toc:nil
 :END:
+** 为什么使用emacs
+ todo 和 文档还有项目的规划是在同一个语言体系(系统)下;个人很多todo 都是是在写规划或者文章时，所生产.过往的GTD 工具碰到的最难受的问题就是总是需要手工关联任务和文章
 ** 使用说明
 :PROPERTIES:
 :ID:       1C7B1DF4-877E-40ED-93F3-BD6A923045C0
 :END:
 本文档作为 [[http://doc.norang.ca/org-mode.org][org 文件]] 提供，您可以在 Emacs 中加载它并通过 =C-c C-v C-t=  （org-babel-tangle） 导出 custom-post.el，文件中包含本文档中所有 emacs 配置的 elisp 代码，可以将它放到你的Emacs配置目录中
 
-#+begin_src emacs-lisp :tangle yes
-(require 'init-ref)
+准备工作:
+1. 手动下载一些 package
+#+begin_src bash
+git clone git@github.com:kanglmf/emacs-chinese-word-segmentation.git  ~/.emacs.d/site-lisp/chinese-word-segmentation/ #chinese-word-segmentation
 #+end_src
 
-需要自己下载的 package 有：
-chinese-word-segmentation: git clone git@github.com:kanglmf/emacs-chinese-word-segmentation.git
-org-bars.el
-*** 使用到的插件
-- [[https://github.com/alphapapa/org-ql][org-ql]]: 友好的heading 查询插件
-  重要参考 [[https://github.com/alphapapa/org-ql][org-ql]]： org 的查询语法* Footnotes
-- super-org-agenda: 友好的heading分组工具
-- pyim
-
-- org-sidebar
-  [[https://github.com/alphapapa/org-sidebar][官网]]
-  
-  #+begin_src emacs-lisp :tangle no
-    ;;从 官网复制过来改的https://github.com/alphapapa/org-sidebar/blob/master/org-sidebar.el#L325
-    (defun my/org-sidebar-import (source-buffer)
-      "Import TODO."
-      (let ((display-buffer
-             (generate-new-buffer (format "org-sidebar<%s>" (buffer-name source-buffer))))
-            (title (concat "Import items in: " (buffer-name source-buffer))))
-        (with-current-buffer display-buffer
-          (setf org-sidebar-source-buffer source-buffer))
-        (save-window-excursion
-          ;; `org-ql-search' displays the buffer, but we don't want to do that here.
-          (org-ql-search source-buffer
-            '(and (priority > "B")
-                  (not (done)))
-            :narrow t :sort 'date
-            :super-groups '((:auto-planning))
-            :buffer display-buffer
-            :title title))
-        display-buffer))
-  #+end_src
-
-
-** org-mode
-org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
+#+begin_src emacs-lisp :tangle yes :exports none
+(require 'init-ref)
+#+end_src
+** org mode 配置
 *** org TODO 设置
 :PROPERTIES:
 :ID:       835E8AB4-81B5-46FE-BCA0-E73E6B7EDDCB
@@ -80,59 +58,49 @@ org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
 
 
   (setq org-modern-todo-faces
-        (quote (("TODO"    :foreground "orange")
-                ("WAITING" :background "gray"
-                 :foreground "white")
-                ("NEXT" :foreground "blue" :weight bold)
-                ("WAITING" . warning)
-                ("HANGUP" :foreground "magenta" :weight bold)
-                )))
+        (quote (("TODO"    :foreground (face-attribute 'font-lock-warning-face :foreground) :weight bold)
+                ("NEXT"    :foreground (face-attribute 'font-lock-function-name-face :foreground) :weight bold)
+                ("DONE"    :foreground (face-attribute 'font-lock-comment-face :foreground) :weight bold)
+                ("CANCELLED" :foreground (face-attribute 'shadow :foreground)))))
 #+end_src
 
-*** org capture 设置
+*** capture 设置
 :PROPERTIES:
 :ID:       28B3A3F2-DF48-42A0-B7DF-3A00777A4513
 :END:
-zmonster[fn:1]
+参考: zmonster[fn:1]
 #+begin_src emacs-lisp :tangle yes
   ;; 设置 stuck project ，参考：https://oomake.com/question/2338872
   (setq org-stuck-projects
         '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
 
-  (setq org-capture-templates
-        `(
-          (;; 依据福格行为模型创建习惯：写每日计划
-           "l" "PLAN: 每日计划" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
-                                       ,(concat org-directory "/worklog/inbox.org"))
-           "* TODO 计划 \nSCHEDULED:%U\n:PROPERTIES:\n:Create: %U\n:END:\n - [ ] %?" :tree-type week)
-          (;; 有计划时间的叫计划
-           "s" "Task 有计划时间的TODO " entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
-                                               ,(concat org-directory "/worklog/inbox.org"))
-           "* TODO \%^{任务标题} \n:PROPERTIES:\n:Create: %U\n:END:\n%^{来源||来源：%a}\n%?" :tree-type week)
-          ("r" "Notes" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
-                              ,(concat org-directory "/worklog/inbox.org"))
-           "*  %^{标题} :NOTE:%^g \n :PROPERTIES:\n:Create: %u\n:END: \n%a\n "  :tree-type week :jump-to-captured t)
-          ("h" "Headline 任意地方插入带 :Create: 的 headline" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
-                                                                     ,(concat org-directory "/worklog/inbox.org"))
-           "*  %^{标题} \n :PROPERTIES:\n:Create: %u\n:END: \n%?\n " :jump-to-captured t)
-          ("g" "预留的组")
-          ("gi" "Idea" entry (file ,(concat org-directory "/idea.org"))
-           "*  %^{Title} %?\n%U\n%a\n")
-          ("gb" "Book" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
-                              ,(concat org-directory "/reading-notes.org"))
-           "* Topic: %^{Description}  %^g %? Added: %U")
-          ("gp" "Create Project 保留原因：template 创建文件" plain (file ref/create-org-file )
-           "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured)
-           ("t" "工具组")
-            ("tw" "文档书写工具" entry (file ,(concat org-directory "/idea.org"))
-           "*  %^{Title} %?\n%U\n%a\n")
-          ))
+  
 
   ;; (add-hook 'org-mode-hook
   ;;           (lambda ()
   ;;             (local-set-key (kbd "C-c i") 'org-capture-at-point)))
 
   (defun org-capture-to-year-month-week-worklog (file)
+    "确保 Org 文件 FILE 中存在当前月份和周的标题结构.
+
+  此函数用于帮助管理工作日志，在指定的 Org 文件中创建
+  当前月份和周的标题。如果当前月份（如 '* sep.'）或当前周
+  （如 '** W38 工作记录'）的标题不存在，则会自动创建。
+
+  在创建周标题时，还会添加一个 Org 属性 \"Create\"，记录
+  当前时间戳。
+
+  参数:
+    FILE -- 要管理的 Org 文件路径。
+
+  函数行为:
+  - 创建月份标题，格式为 '* <月份>.', 例如 '* sep.'。
+  - 创建周标题，格式为 '** W<周数> 工作记录', 例如 '** W38 工作记录'。
+  - 如果创建了周标题，会同时添加 Org 属性 \"Create\"，值为当前日期，
+    格式为 '[YYYY-MM-DD]'。
+
+  示例:
+    (org-capture-to-year-month-week-worklog \"~/worklog.org\")"
     (let* ((month (downcase (format-time-string "%b"))) ; 当前月份的英文缩写，例如 "sep"
            (week (format-time-string "%V")) ; 当前年的第几周
            (headline-month (format "* %s." month)) ; 月份 headline
@@ -159,6 +127,73 @@ zmonster[fn:1]
         org-capture-templates)
 #+end_src
 
+**  Obsolete 的配置
+- org-sidebar
+  [[https://github.com/alphapapa/org-sidebar][官网]]
+  
+  #+begin_src emacs-lisp :tangle no
+    ;;从 官网复制过来改的https://github.com/alphapapa/org-sidebar/blob/master/org-sidebar.el#L325
+    (defun my/org-sidebar-import (source-buffer)
+      "Import TODO."
+      (let ((display-buffer
+             (generate-new-buffer (format "org-sidebar<%s>" (buffer-name source-buffer))))
+            (title (concat "Import items in: " (buffer-name source-buffer))))
+        (with-current-buffer display-buffer
+          (setf org-sidebar-source-buffer source-buffer))
+        (save-window-excursion
+          ;; `org-ql-search' displays the buffer, but we don't want to do that here.
+          (org-ql-search source-buffer
+            '(and (priority > "B")
+                  (not (done)))
+            :narrow t :sort 'date
+            :super-groups '((:auto-planning))
+            :buffer display-buffer
+            :title title))
+        display-buffer))
+  #+end_src
+
+- 不再使用 capture, 保留是为了有配置样例
+  #+begin_src emacs-lisp :tangle no :results silent
+(setq org-capture-templates
+        `((;; 依据福格行为模型创建习惯：写每日计划
+           "l" "PLAN: 每日计划" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
+                                       ,(concat org-directory "/worklog/inbox.org"))
+           "* TODO 计划 \nSCHEDULED:%U\n:PROPERTIES:\n:Create: %U\n:END:\n - [ ] %?" :tree-type week)
+          (;; 有计划时间的叫计划
+           "s" "Task 有计划时间的TODO " entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
+                                               ,(concat org-directory "/worklog/inbox.org"))
+           "* TODO \%^{任务标题} \n:PROPERTIES:\n:Create: %U\n:END:\n%^{来源||来源：%a}\n%?" :tree-type week)
+          ("r" "Notes" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
+                              ,(concat org-directory "/worklog/inbox.org"))
+           "*  %^{标题} :NOTE:%^g \n :PROPERTIES:\n:Create: %u\n:END: \n%a\n "  :tree-type week :jump-to-captured t)
+          ("h" "Headline 任意地方插入带 :Create: 的 headline" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
+                                                                     ,(concat org-directory "/worklog/inbox.org"))
+           "*  %^{标题} \n :PROPERTIES:\n:Create: %u\n:END: \n%?\n " :jump-to-captured t)
+          ("g" "预留的组")
+          ("gi" "Idea" entry (file ,(concat org-directory "/idea.org"))
+           "*  %^{Title} %?\n%U\n%a\n")
+          ("gb" "Book" entry (,(if emacs/>=27p 'file+olp+datetree 'file+datetree)
+                              ,(concat org-directory "/reading-notes.org"))
+           "* Topic: %^{Description}  %^g %? Added: %U")
+          ("gp" "Create Project 保留原因：template 创建文件" plain (file ref/create-org-file )
+           "#+STARTUP: content \n\n* %^{项目名称}\n %? " :jump-to-captured)
+          ("t" "工具组")
+          ("tw" "文档书写工具" entry (file ,(concat org-directory "/idea.org"))
+           "*  %^{Title} %?\n%U\n%a\n")
+          ))
+  #+end_src
+* Ref的 Emacs 自定义设置
+:PROPERTIES:
+:ID:       7900ABE1-B064-4B47-89E0-EB65B9D43154
+:END:
+** 使用到的插件
+- [[https://github.com/alphapapa/org-ql][org-ql]]: 友好的heading 查询插件
+  重要参考 [[https://github.com/alphapapa/org-ql][org-ql]]： org 的查询语法* Footnotes
+
+
+
+** org-mode
+org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
 *** org agenda 设置
     :PROPERTIES:
     :ID:       882C7B36-442B-481C-872F-4F2F524BB0B3
