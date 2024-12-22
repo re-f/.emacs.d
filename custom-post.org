@@ -29,39 +29,132 @@
 git clone git@github.com:kanglmf/emacs-chinese-word-segmentation.git  ~/.emacs.d/site-lisp/chinese-word-segmentation/ #chinese-word-segmentation
 #+end_src
 
+
+本配置的依赖:
+- [[https://github.com/arnm/ob-mermaid][mermaid]]
+
+  需要先安装 mermaid-cli
+   #+begin_src emacs-lisp :tangle yes :results silent
+     ;; 因为我的 mac 版本比较低, Error: Failed to launch the browser process!
+     ;; dyld: Library not loaded: /System/Library/Frameworks/UniformTypeIdentifiers.framework/Versions/A/UniformTypeIdentifiers
+     ;; 的报错, 因此需要指定以下环境变量, mermaid-cli 才能正常使用
+     (setenv "PUPPETEER_EXECUTABLE_PATH" "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+     (use-package ob-mermaid
+       :ensure t
+       :after org
+       :config
+       (org-babel-do-load-languages
+        'org-babel-load-languages
+        '((mermaid . t)))
+       )
+   #+end_src
+
+
+
 #+begin_src emacs-lisp :tangle yes :exports none
 (require 'init-ref)
 #+end_src
+
+
+
 ** org mode 配置
-*** org TODO 设置
+#+begin_src emacs-lisp :tangle yes :results silent
+(require 'org)
+#+end_src
+
+*** 美化
+
+使用的是 =org-modern-mode= ,因为 =Centuar= 中支持, 因此不在本文配置
+
+*** TODO 设置
 :PROPERTIES:
 :ID:       835E8AB4-81B5-46FE-BCA0-E73E6B7EDDCB
 :END:
 
-注意事项
+
+状态流转说明:
+#+begin_src mermaid :file static/todo_flow.png :eval never-export 
+graph TD
+    TODO[TODO] -->|t| IMMED[IMMED]
+    IMMED -->|i| NEXT[NEXT]
+    NEXT -->|n| DONE[DONE]
+    
+    TODO -->|w| WAITING[WAITING]
+    WAITING -->|h| HANGUP[HANGUP]
+    HANGUP -->|c| CANCELLED[CANCELLED]
+    CANCELLED -->|c| DONE
+    
+    DONE -->|reset| TODO
+    CANCELLED -->|reset| TODO
+
+    classDef TODOStyle fill:#FFA500,stroke:#333,stroke-width:2px, color:#fff;
+    classDef IMMEDStyle fill:#FF4500,stroke:#333,stroke-width:2px, color:#fff;
+    classDef NEXTStyle fill:#1E90FF,stroke:#333,stroke-width:2px, color:#fff;
+    classDef DONEStyle fill:#32CD32,stroke:#333,stroke-width:2px, color:#fff;
+    classDef WAITINGStyle fill:#FFD700,stroke:#333,stroke-width:2px, color:#000;
+    classDef HANGUPStyle fill:#FF69B4,stroke:#333,stroke-width:2px, color:#fff;
+    classDef CANCELLEDStyle fill:#A9A9A9,stroke:#333,stroke-width:2px, color:#fff;
+
+    class TODO TODOStyle
+    class IMMED IMMEDStyle
+    class NEXT NEXTStyle
+    class DONE DONEStyle
+    class WAITING WAITINGStyle
+    class HANGUP HANGUPStyle
+    class CANCELLED CANCELLEDStyle
+#+end_src
+
+#+RESULTS:
+[[file:static/todo_flow.png]]
+
+
+TODO 配置要求:
 1. TODO 关键字尽量不要使用中文, 因为 =org-tag-view= 无法支持中文
 2. TODO 关键字尽量不要使用 =+/-= 之类的符号,会导致 =org-tag-view= 的快捷搜索功能( =/TODO关键字= 的搜索方式)无法搜索,只能使用 =TODO = "TODO关键字"= 的搜索方式,也许转义能使用,但是我没找到转义字符时哪个
-#+begin_src emacs-lisp :tangle yes
+
+#+begin_src emacs-lisp :tangle yes :results silent
   (setq org-todo-keywords
         (quote ((sequence "TODO(t)" "IMMED(i)" "NEXT(n)" "|" "DONE(d@/!)")
                 (sequence "WAITING(w@/!)" "HANGUP(h@/!)" "|" "CANCELLED(c@/!)")))
         org-use-fast-todo-selection t
         org-treat-S-cursor-todo-selection-as-state-change nil
-        org-todo-state-tags-triggers      (quote (("CANCELLED" ("CANCELLED" . t))
-                                                  ("WAITING" ("WAITING" . t))
-                                                  ("HANGUP" ("WAITING") ("HANGUP" . t))
-                                                  (done ("WAITING") ("HANGUP"))
-                                                  ("TODO" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED"))
-                                                  ("NEXT" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED") )
-                                                  ("DONE" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED") )))
-        )
+        org-todo-state-tags-triggers
+        (quote (("CANCELLED" ("CANCELLED" . t))
+                ("WAITING" ("WAITING" . t))
+                ("HANGUP" ("WAITING") ("HANGUP" . t))
+                (done ("WAITING") ("HANGUP"))
+                ("TODO" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED"))
+                ("NEXT" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED"))
+                ("DONE" ("WAITING") ("CANCELLED") ("HANGUP") ("IMMED")))))
 
 
-  (setq org-modern-todo-faces
-        (quote (("TODO"    :foreground (face-attribute 'font-lock-warning-face :foreground) :weight bold)
-                ("NEXT"    :foreground (face-attribute 'font-lock-function-name-face :foreground) :weight bold)
-                ("DONE"    :foreground (face-attribute 'font-lock-comment-face :foreground) :weight bold)
-                ("CANCELLED" :foreground (face-attribute 'shadow :foreground)))))
+  (tao-with-color-variables
+    tao-theme-yin-palette
+    ;; 应用自定义主题
+    ;; 配置 org-modern-todo-faces，添加背景颜色
+    (setq org-modern-todo-faces
+          `(("TODO"
+             :foreground, (face-attribute 'shadow :foreground nil t)
+             :background, color-1
+             :weight bold
+             :height 1.2
+             :inherit nil
+             )
+            ("NEXT"
+             :foreground, (face-attribute 'shadow :foreground nil t)
+             :background, color-4       
+             :inherit nil
+             :weight bold)
+            ("DONE"
+             :foreground, (face-attribute 'shadow :foreground nil t)
+             :background, color-8       
+             :inherit nil
+             :weight bold)
+            ("CANCELLED"
+             :foreground, (face-attribute 'shadow :foreground nil t)
+             :background, color-8       
+             :inherit nil
+             :strike-through t))))
 #+end_src
 
 *** capture 设置
@@ -125,6 +218,75 @@ git clone git@github.com:kanglmf/emacs-chinese-word-segmentation.git  ~/.emacs.d
           item (file+function "./worklog/2024.org" (lambda () (org-capture-to-year-month-week-worklog (concat org-directory "/worklog/2024.org"))))
           "\n\n - %?" :tree-type week)
         org-capture-templates)
+#+end_src
+
+*** agenda 设置
+:PROPERTIES:
+:ID:       882C7B36-442B-481C-872F-4F2F524BB0B3
+:END:
+
+说明:
+Org mode 的 agenda 可依据给定筛选条件提供视图，因此筛选条件的编写难易程度很重要，这是为什么会使用 org-super-agenda 的原因。试用一年多后，发现自己常用视图是知晓最重要任务、必须马上做的任务(=IMMED=)以及等待中的事项，所以我的 =org-agenda-custom-commands= 设置得并不复杂，以下是具体配置。
+
+至于实践 GTD 流程来说, 我确实没有使用成功过, 因此这一次将以前对应的配置都删掉了
+
+
+配置方式: 
+agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查询语句找到符合条件的TODO，org-super-agenda 是给传入的TODO 列表进行分类
+
+#+begin_src emacs-lisp :tangle yes
+
+  ;; Do not dim blocked tasks
+  (setq org-agenda-dim-blocked-tasks nil)
+
+  ;; Compact the block agenda view
+  (setq org-agenda-compact-blocks t)
+
+
+  (defun bh/org-auto-exclude-function (tag)
+    "Automatic task exclusion in the agenda with / RET"
+    (and (cond
+          ((string= tag "hold")
+            t)
+          ((string= tag "test")
+            t)
+          ((string= tag "#life")
+            t))
+          (concat "-" tag)))
+
+  (setq org-agenda-auto-exclude-function 'bh/org-auto-exclude-function)
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;; Agenda configuration
+
+  ;; recursively add org file
+  (setq org-agenda-files (directory-files-recursively centaur-org-directory "^[^\\.][^#].*\\.org$"))
+  (setq org-agenda-files (append org-agenda-files '("~/.emacs.d/custom-post.org"))) 
+
+
+
+
+  (use-package org-super-agenda
+    :ensure t            ;Auto-install the package from Melpa (optional)
+    :after (org)
+    :config
+    (org-super-agenda-mode)
+    )
+
+  (setq org-agenda-custom-commands
+        '(("c" "TODO 列表"
+           ((tags-todo "-TODO=\"DONE\"-TODO=\"CANCELLED\"-test"
+                       ((org-agenda-overriding-header "All TODOs"))))
+           ((org-super-agenda-groups
+             '((:name "MQ Tasks"
+                :tag "MQ")
+               (:name "Immediately Tasks"
+                :todo "IMMED")
+               (:name "Overtime"
+                :deadline past)
+               (:name "High Priority Tasks"
+                :priority "A")
+               (:name "Other Tasks"
+                :discard (:tag "MQ"))))))))
 #+end_src
 
 **  Obsolete 的配置
@@ -194,67 +356,6 @@ git clone git@github.com:kanglmf/emacs-chinese-word-segmentation.git  ~/.emacs.d
 
 ** org-mode
 org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
-*** agenda 设置
-:PROPERTIES:
-:ID:       882C7B36-442B-481C-872F-4F2F524BB0B3
-:END:
-agenda 设置会使用到到插件 org-ql，org-super-agenda,org-ql是 通过查询语句找到符合条件的TODO，org-super-agenda 是给传入的TODO 列表进行分类
-
-#+begin_src emacs-lisp :tangle yes
-
-  ;; Do not dim blocked tasks
-  (setq org-agenda-dim-blocked-tasks nil)
-
-  ;; Compact the block agenda view
-  (setq org-agenda-compact-blocks t)
-
-
-  (defun bh/org-auto-exclude-function (tag)
-    "Automatic task exclusion in the agenda with / RET"
-    (and (cond
-          ((string= tag "hold")
-            t)
-          ((string= tag "test")
-            t)
-          ((string= tag "#life")
-            t))
-          (concat "-" tag)))
-
-  (setq org-agenda-auto-exclude-function 'bh/org-auto-exclude-function)
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;; Agenda configuration
-
-  ;; recursively add org file
-  (setq org-agenda-files (directory-files-recursively centaur-org-directory "^[^\\.][^#].*\\.org$"))
-  (setq org-agenda-files (append org-agenda-files '("~/.emacs.d/custom-post.org"))) 
-
-
-
-
-  (use-package org-super-agenda
-    :ensure t            ;Auto-install the package from Melpa (optional)
-    :after (org)
-    :config
-    (org-super-agenda-mode)
-    )
-
-  (setq org-agenda-custom-commands
-        '(("c" "TODO 列表"
-           ((tags-todo "-TODO=\"DONE\"-TODO=\"CANCELLED\"-test"
-                       ((org-agenda-overriding-header "All TODOs"))))
-           ((org-super-agenda-groups
-             '((:name "MQ Tasks"
-                :tag "MQ")
-               (:name "Immediately Tasks"
-                :todo "IMMED")
-               (:name "Overtime"
-                :deadline past)
-               (:name "High Priority Tasks"
-                :priority "A")
-               (:name "Other Tasks"
-                :discard (:tag "MQ"))))))))
-#+end_src
-
 *** org mode 其它配置
 :PROPERTIES:
 :ID:       3DDB2384-4F39-470A-BA19-4CA8E28BFAC9
@@ -965,20 +1066,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
   ;; 搜索 headline?
   (setq  helm-org-ql-actions
          '(("Show heading in source buffer" . helm-org-ql-show-marker)))
-#+end_src
-
-*** mermaid
-#+begin_src emacs-lisp :tangle yes :results silent
-
-  (use-package ob-mermaid
-    :ensure t
-    :after org
-    :config
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((mermaid . t)))
-    )
-
 #+end_src
 
 ** 中文支持
