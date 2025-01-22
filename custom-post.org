@@ -756,6 +756,66 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
    '(org-use-speed-commands t)
    )
 #+end_src
+**** org mode region/element 跳转
+#+begin_src emacs-lisp :tangle yes :results silent
+  ;; 定义要导航的 Org 元素类型
+  (defvar ref/org-navigation-element-types
+    '(headline item src-block table drawer)
+    "List of Org element types to include in navigation.
+  添加或移除元素类型以自定义导航行为。例如，添加 `checkbox' 来包括复选框项。")
+
+  ;; 获取所有目标 Org 元素的位置列表
+  (defun ref/get-all-org-navigation-element-positions ()
+    "返回当前缓冲区中所有目标 Org 元素的起始位置列表，按文档顺序排序。"
+    (let (positions)
+      (save-excursion
+        (org-element-map (org-element-parse-buffer) ref/org-navigation-element-types
+          (lambda (el)
+            (let ((beg (org-element-property :begin el)))
+              (when beg
+                (push beg positions))))))
+      (sort positions '<)))
+
+  ;; 向前跳转到下一个 Org 元素
+  (defun ref/forward-all-elements ()
+    "向前跳转到下一个目标 Org 元素。如果已在最后一个元素，显示消息。"
+    (interactive)
+    (let* ((elements (ref/get-all-org-navigation-element-positions))
+           (current (point))
+           (next-pos (cl-find-if (lambda (p) (> p current)) elements)))
+      (if next-pos
+          (progn
+            (goto-char next-pos)
+            (org-show-context))  ;; 可选：展开当前上下文
+        (message "No further elements to move forward to."))))
+
+  ;; 向后跳转到上一个 Org 元素
+  (defun ref/backward-all-elements ()
+    "向后跳转到上一个目标 Org 元素。如果已在第一个元素，显示消息。"
+    (interactive)
+    (let* ((elements (ref/get-all-org-navigation-element-positions))
+           (current (point))
+           (prev-pos (cl-find-if (lambda (p) (< p current)) (reverse elements))))
+      (if prev-pos
+          (progn
+            (goto-char prev-pos)
+            (org-show-context))  ;; 可选：展开当前上下文
+        (message "No further elements to move backward to."))))
+
+  ;; 绑定快捷键
+  (with-eval-after-load 'org
+    (define-key org-mode-map (kbd "M-}") 'ref/forward-all-elements)
+    (define-key org-mode-map (kbd "M-{") 'ref/backward-all-elements))
+#+end_src
+**** 任意跳转:
+- consult-line: 搜索然后跳转到对应位置
+
+   用于在当前缓冲区中快速搜索和跳转到一行。你可以输入部分文本内容，consult-line 会实时筛选出包含该文本的所有行，并允许你快速选择要跳转的目标行。
+- avy-goto-char: 搜索然后跳转到对应位置
+  如果是实现可视范围内时, 比 consult-line 方便, 因为搜索结果是唯一
+  用于快速跳转到当前缓冲区中的某个字符或字符位置。它通过给每个目标字符分配一个唯一的快捷键（通常是可视化的字母标记），让你快速跳转到目标位置。  
+
+
 *** 导出
 #+begin_src emacs-lisp :tangle yes
   (setq org-export-preserve-breaks 't) ; 在 orgmode 中不再需要写多个回车即可使导出的 HTML 中出现换行。
