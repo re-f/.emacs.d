@@ -379,7 +379,7 @@ org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
                         ("MQ" . nil)
                         ))
 
-  ;; 不希望子节点继承的的列表
+  ;; 不希望子节点继承的标签的列表
   (setq org-tags-exclude-from-inheritance (quote("日常" "MQ" )))
   (setq org-complete-tags-always-offer-all-agenda-tags t)
 #+end_src
@@ -808,13 +808,13 @@ orgmode 自带的查询方式：[[https://orgmode.org/manual/Matching-tags-and-p
     (define-key org-mode-map (kbd "M-{") 'ref/backward-all-elements))
 #+end_src
 **** 任意跳转:
-- consult-line: 搜索然后跳转到对应位置
+- consult-line: 搜索并跳转到对应位置
 
-   用于在当前缓冲区中快速搜索和跳转到一行。你可以输入部分文本内容，consult-line 会实时筛选出包含该文本的所有行，并允许你快速选择要跳转的目标行。
-- avy-goto-char: 搜索然后跳转到对应位置
-  如果是实现可视范围内时, 比 consult-line 方便, 因为搜索结果是唯一
-  用于快速跳转到当前缓冲区中的某个字符或字符位置。它通过给每个目标字符分配一个唯一的快捷键（通常是可视化的字母标记），让你快速跳转到目标位置。  
+  用于在当前缓冲区中快速搜索并跳转到某一行。你可以输入部分文本内容，`consult-line` 会实时过滤出包含该文本的所有行，并让你快速选择目标行进行跳转。
 
+- avy-goto-char: 搜索并跳转到对应位置（可选择或标记位置）
+
+  当需要在可视范围内跳转时，相比 `consult-line` 更加方便，因为其搜索结果是唯一的。`avy-goto-char` 通过为每个目标字符分配一个唯一快捷键（通常是可视化的字母标记），让你快速跳转到指定字符或字符位置。此外，`avy-goto-char` 还支持配合 `mark` 使用，允许你选择（或标记）目标位置，从而实现对文本范围的快速操作。
 
 *** 导出
 #+begin_src emacs-lisp :tangle yes
@@ -1393,6 +1393,51 @@ Org-mode 添加了一个新的功能：当执行(=C-c C-c= (=org-babel-execute-s
 
 * 我的工作流程
 
+** blog 网站预览
+#+begin_src emacs-lisp :tangle yes :results silent
+(defvar blog/server-process-name "blog-server"
+  "The name of the blog server process.")
+
+(defun blog/start-server ()
+  "Start the Hugo blog server in a dedicated buffer.
+If a server process is already running, it will be terminated first.
+The output buffer supports URL navigation."
+  (interactive)
+  (let* ((default-directory "~/OneDrive/knowledgebase-blog/") ;; 设置工作目录
+         (buffer-name "*Blog Server Output*")                 ;; 输出 buffer 名称
+         (server-buffer (get-buffer-create buffer-name))      ;; 创建或获取输出 buffer
+         (existing-process (get-process blog/server-process-name))) ;; 检查是否有已存在的进程
+    ;; 终止已有进程（如果存在）
+    (when existing-process
+      (delete-process existing-process)
+      (message "Killed existing blog server process."))
+    ;; 准备输出 buffer
+    (with-current-buffer server-buffer
+      (read-only-mode -1)                                     ;; 关闭只读模式
+      (erase-buffer)                                          ;; 清空 buffer
+      (insert (format "Starting blog server in %s...\n\n" default-directory)) ;; 提示信息
+      (goto-address-mode 1)                                   ;; 启用 URL 识别模式
+      (setq-local scroll-conservatively 101))                 ;; 自动滚动到底部
+    ;; 启动新进程
+    (condition-case err
+        (progn
+          (start-process blog/server-process-name server-buffer "hugo" "server" "-D")
+          (with-current-buffer server-buffer
+            (read-only-mode 1))                               ;; 启用只读模式
+          (pop-to-buffer server-buffer))                      ;; 切换到输出 buffer
+      (error
+       (message "Error starting blog server: %s" (error-message-string err))))))
+
+(defun blog/stop-server ()
+  "Stop the running blog server process."
+  (interactive)
+  (let ((server-process (get-process blog/server-process-name))) ;; 获取进程
+    (if server-process
+        (progn
+          (delete-process server-process)                      ;; 终止进程
+          (message "Blog server stopped."))
+      (message "No blog server process found."))))             ;; 如果未找到进程，提示用户
+#+end_src
 ** 工具菜单
 
 定义 transient 菜单, transient 结构是利用 [] 的语法糖来表示的，与多维数组（向量）的表示方式类似，比如 python 中是如下格式：
@@ -1507,9 +1552,6 @@ row = [\[1, 2, 3, 4]]
 :END:
       
 #+begin_src emacs-lisp :tangle yes
-
-
-
   (global-set-key (kbd "<f1>") 'count-words)
   (global-set-key (kbd "C-x r b") 'bookmark-jump-other-window)
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
@@ -1566,7 +1608,7 @@ row = [\[1, 2, 3, 4]]
       (switch-to-buffer buffer)))
   (global-set-key (kbd "s-n") 'new-buffer)
 
-  ;; 新建 tab
+  ;; 在新 tab 中打开 buffer
   (global-set-key (kbd "s-t") 'consult-buffer-other-window)
 #+end_src
 
