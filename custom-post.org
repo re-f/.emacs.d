@@ -162,12 +162,12 @@ TODO 配置要求:
 :ID:       28B3A3F2-DF48-42A0-B7DF-3A00777A4513
 :END:
 参考: zmonster[fn:1]
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle yes :results silent
   ;; 设置 stuck project ，参考：https://oomake.com/question/2338872
   (setq org-stuck-projects
         '("TODO={.+}/-DONE" nil nil "SCHEDULED:\\|DEADLINE:"))
 
-  
+
 
   ;; (add-hook 'org-mode-hook
   ;;           (lambda ()
@@ -175,7 +175,7 @@ TODO 配置要求:
 
   ;; 定义 org-capture-to-year-month-week-worklog 函数
   (defun org-capture-to-year-month-week-worklog (file)
-    "确保 Org 文件 FILE 中存在当前月份和周的标题结构。
+    "确保 Org 文件 FILE 中存在当前月份和周的标题结构，并将光标定位到周标题下。
 
   此函数用于帮助管理工作日志，在指定的 Org 文件中创建
   当前月份和周的标题。如果当前月份（如 '* Sep.'）或当前周
@@ -194,41 +194,65 @@ TODO 配置要求:
     格式为 '[YYYY-MM-DD]'。
 
   示例:
-    (org-capture-to-year-month-week-worklog \"~/worklog.org\")"
+    (org-capture-to-year-month-week-worklog \"~/worklog.org\")
+
+  返回:
+    返回处理后的缓冲区，以供 org-capture 插入内容。"
     (let* ((month (format-time-string "%b")) ; 当前月份的英文缩写，例如 "Sep"
            (week (format-time-string "%V"))  ; 当前年的第几周
            (headline-month (format "* %s." month)) ; 月份 headline
            (headline-week (format "** W%s 工作记录" week))) ; 周数 headline
-
       (with-current-buffer (find-file-noselect file)
         (goto-char (point-min))
-        (unless (search-forward headline-month nil t)
-          ;; 如果月份 headline 不存在，则创建
+        ;; 确保月份 headline 存在
+        (unless (re-search-forward (regexp-quote headline-month) nil t)
           (goto-char (point-max))
-          (insert (concat "\n" headline-month "\n")))
-        (unless (search-forward headline-week nil t)
-          ;; 如果周数 headline 不存在，则在月份 headline 下创建
+          (unless (bolp) (insert "\n"))
+          (insert headline-month "\n"))
+        ;; 确保周 headline 存在
+        (goto-char (point-min))
+        (unless (re-search-forward (regexp-quote headline-week) nil t)
+          ;; 假设月份 headline 已存在
           (goto-char (point-max))
-          (insert (concat headline-week " [0/0] \n"))
-          ;; 设置属性 "Create" 为当前时间
-          (org-set-property "Create" (format-time-string "[%Y-%m-%d]"))
-          ))
-      ;; 返回 org-capture 的目标位置，指向当前周的 headline
-      (list 'file+headline file headline-week)))
+          (unless (bolp) (insert "\n"))
+          (insert headline-week " [0/0]\n")
+          ;; 设置属性 "Create" 为当前日期
+          (org-set-property "Create" (format-time-string "[%Y-%m-%d]")))
+        ;; 定位到周 headline 的末尾，准备插入
+        (goto-char (point-min))
+        (when (re-search-forward (regexp-quote headline-week) nil t)
+          ;; 定位到周 headline 的行尾
+          (goto-char (line-end-position)))
+        ;; 返回缓冲区供 org-capture 使用
+        (current-buffer))))
 
-  ;; 添加 org-capture 模板
-  (push '("w" "PLAN: 每周工作记录"
-          entry  ;; 使用 'entry' 以添加标题
-          (file+function "./worklog/2025.org"
-                         (lambda () (org-capture-to-year-month-week-worklog (concat org-directory "/worklog/2025.org"))))
-          "\n\n*** %?"  ;; 使用三个星号表示子标题，根据需要调整
-          :tree-type week)
-        org-capture-templates)
 
   (use-package doct
     :ensure t
     ;;recommended: defer until calling doct
     :commands (doct))
+
+  (setq org-capture-templates
+        (doct `((:group
+                 ;; 公共属性
+                 :file ,(concat org-directory "/worklog/2025.org")
+                 :function (lambda ()
+                             (org-capture-to-year-month-week-worklog
+                              (concat org-directory "/worklog/2025.org")))
+                 :tree-type week  ;; 设置周树类型
+                 :children (
+                            ;; 子模板 1: 标题类型（entry）
+                            ("PLAN: 每周工作记录-Headline"
+                             :keys "w"
+                             :type entry
+                             :template "\n\n*** %?")
+
+                            ;; 子模板 2: 列表项类型（item）
+                            ("PLAN: 每周工作记录-Item"
+                             :keys "i"
+                             :type item
+                             :template "\n\n - %?")
+                            )))))
 
   (setq org-capture-templates
         (append org-capture-templates
