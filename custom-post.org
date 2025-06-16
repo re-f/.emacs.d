@@ -129,32 +129,37 @@ TODO 配置要求:
 
 
   (with-eval-after-load 'tao-theme
-  (tao-with-color-variables
+    (tao-with-color-variables
       tao-theme-yin-palette
-    ;; 应用自定义主题
-    ;; 配置 org-modern-todo-faces，添加背景颜色
-    (setq org-modern-todo-faces
-          `(("TODO"
-             :foreground ,(face-attribute 'shadow :foreground nil t)
-             :background ,color-1
-             :weight bold
-             :height 1.2
-             :inherit nil)
-            ("NEXT"
-             :foreground ,(face-attribute 'shadow :foreground nil t)
-             :background ,color-4
-             :inherit nil
-             :weight bold)
-            ("DONE"
-             :foreground ,(face-attribute 'shadow :foreground nil t)
-             :background ,color-8
-             :inherit nil
-             :weight bold)
-            ("CANCELLED"
-             :foreground ,(face-attribute 'shadow :foreground nil t)
-             :background ,color-8
-             :inherit nil
-             :strike-through t)))))
+      ;; 应用自定义主题
+      ;; 配置 org-modern-todo-faces，添加背景颜色
+      (setq org-modern-todo-faces
+            `(("TODO"
+               :foreground ,(face-attribute 'shadow :foreground nil t)
+               :background ,color-1
+               :weight bold
+               :height 1.2
+               :inherit nil)
+              ("NEXT"
+               :foreground ,(face-attribute 'shadow :foreground nil t)
+               :background ,color-4
+               :inherit nil
+               :weight bold)
+              ("DONE"
+               :foreground ,(face-attribute 'shadow :foreground nil t)
+               :background ,color-8
+               :inherit nil
+               :weight bold)
+              ("CANCELLED"
+               :foreground ,(face-attribute 'shadow :foreground nil t)
+               :background ,color-8
+               :inherit nil
+               :strike-through t)
+              ("OBSOLETE"
+               :foreground ,(face-attribute 'shadow :foreground nil t)
+               :background ,color-6
+               :inherit nil
+               :strike-through t)))))
 #+end_src
 
 *** capture 设置
@@ -483,6 +488,18 @@ org-mode 的使用流程主要用于 GTD+个人 KB （第二知识库）
            :head "#+title: ${title}\n#+date: %<%Y-%m-%d>\n\n#+roam_alias:${title}\n\n#+hugo_section: posts/${slug}\n#+hugo_base_dir: ../.QL.\n\n%?")
           ))
 
+  (defun ref/org-roam-node-annotation (node)
+    "Simple annotation with format: < [parent-info] with headline face."
+    (let* ((level (org-roam-node-level node))
+           (olp (org-roam-node-olp node))
+           (parent-title (when (and (> level 0) olp)
+                           (car (last olp 1)))))
+      (when parent-title
+        (concat "< ["
+                (propertize parent-title 'face 'org-level-1)
+                "]"))))
+
+  (setq org-roam-node-annotation-function #'ref/org-roam-node-annotation)
 #+end_src
 
 **** 配置 Dired
@@ -965,7 +982,6 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
             org-super-links-link-prefix 'org-super-links-link-prefix-timestamp
             org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
       )
-
 #+end_src
 
 ** 显示配置
@@ -1040,6 +1056,21 @@ emacs 中不使用鼠标时的选中方式：[[https://www.gnu.org/software/emac
           (start-process "" nil openFileProgram (shell-quote-argument $path)))
         ;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. eg with nautilus
         ))))
+
+  (defun xah-open-in-cursor ()
+    "Open current file or dir in cursor.
+      URL `http://xahlee.info/emacs/emacs/emacs_open_in_vscode.html'
+      Version: 2020-02-13 2021-01-18 2022-08-04 2023-06-26"
+    (interactive)
+    (let ((xpath (if buffer-file-name buffer-file-name (expand-file-name default-directory))))
+      (message "path is %s" xpath)
+      (cond
+       ((string-equal system-type "darwin")
+        (shell-command (format "open -a Cursor.app %s" (shell-quote-argument xpath))))
+       ((string-equal system-type "windows-nt")
+        (shell-command (format "cursor.cmd %s" (shell-quote-argument xpath))))
+       ((string-equal system-type "gnu/linux")
+        (shell-command (format "cursor %s" (shell-quote-argument xpath)))))))
 
   (defun xah-open-in-vscode ()
     "Open current file or dir in vscode.
